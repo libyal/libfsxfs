@@ -1,0 +1,12 @@
+libfsxfs is a library to access the Extents File System (XFS)
+
+Project information:
+
+* Status: experimental
+* Licence: LGPLv3+
+
+For more information see:
+
+* Project documentation: https://github.com/libyal/libfsxfs/wiki/Home
+* How to build from source: https://github.com/libyal/libfsxfs/wiki/Building
+
