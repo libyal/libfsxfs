@@ -1,4 +1,6 @@
-libfsxfs is a library to access the Extents File System (XFS)
+libfsxfs is a library to access the SGI X File System (XFS)
+
+Note that this project currently only focuses on the analysis of the format.
 
 Project information:
 
