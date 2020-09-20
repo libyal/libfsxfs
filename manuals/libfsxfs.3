@@ -63,8 +63,6 @@ Volume functions
 .Ft int
 .Fn libfsxfs_volume_get_format_version "libfsxfs_volume_t *volume" "uint8_t *format_version" "libfsxfs_error_t **error"
 .Ft int
-.Fn libfsxfs_volume_get_features_flags "libfsxfs_volume_t *volume" "uint32_t *compatible_features_flags" "uint32_t *incompatible_features_flags" "uint32_t *read_only_compatible_features_flags" "libfsxfs_error_t **error"
-.Ft int
 .Fn libfsxfs_volume_get_utf8_label_size "libfsxfs_volume_t *volume" "size_t *utf8_string_size" "libfsxfs_error_t **error"
 .Ft int
 .Fn libfsxfs_volume_get_utf8_label "libfsxfs_volume_t *volume" "uint8_t *utf8_string" "size_t utf8_string_size" "libfsxfs_error_t **error"

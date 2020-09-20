@@ -1,5 +1,5 @@
 /*
- * Library superblock type test program
+ * Library inode_information type test program
  *
  * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -35,30 +35,31 @@
 #include "fsxfs_test_memory.h"
 #include "fsxfs_test_unused.h"
 
-#include "../libfsxfs/libfsxfs_superblock.h"
+#include "../libfsxfs/libfsxfs_inode_information.h"
+#include "../libfsxfs/libfsxfs_io_handle.h"
 
-uint8_t fsxfs_test_superblock_data1[ 512 ] = {
-	0x58, 0x46, 0x53, 0x42, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0xaa, 0xf0, 0xa2, 0xfc, 0x3b, 0x18, 0x47, 0xa6, 0x8e, 0xce, 0x3d, 0x94, 0x3a, 0x9f, 0x12, 0x4d,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2b, 0x40,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2b, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2b, 0x42,
-	0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x05, 0x58, 0xb4, 0xb5, 0x02, 0x00, 0x02, 0x00, 0x00, 0x08, 0x78, 0x66, 0x73, 0x5f,
-	0x74, 0x65, 0x73, 0x74, 0x00, 0x00, 0x00, 0x00, 0x0c, 0x09, 0x09, 0x03, 0x0c, 0x00, 0x00, 0x19,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x32,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x94, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+uint8_t fsxfs_test_inode_information_data1[ 512 ] = {
+	0x58, 0x41, 0x47, 0x49, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+	0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x32,
+	0x00, 0x00, 0x2b, 0x40, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x01, 0x8a, 0x00, 0x00, 0x01, 0x8a,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00,
-	0x26, 0xe1, 0xa5, 0xe0, 0x00, 0x00, 0x00, 0x04, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xaa, 0xf0, 0xa2, 0xfc, 0x3b, 0x18, 0x47, 0xa6,
+	0x8e, 0xce, 0x3d, 0x94, 0x3a, 0x9f, 0x12, 0x4d, 0x0e, 0x60, 0x3a, 0x66, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x01,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -73,26 +74,26 @@ uint8_t fsxfs_test_superblock_data1[ 512 ] = {
 
 #if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
 
-/* Tests the libfsxfs_superblock_initialize function
+/* Tests the libfsxfs_inode_information_initialize function
  * Returns 1 if successful or 0 if not
  */
-int fsxfs_test_superblock_initialize(
+int fsxfs_test_inode_information_initialize(
      void )
 {
-	libcerror_error_t *error          = NULL;
-	libfsxfs_superblock_t *superblock = NULL;
-	int result                        = 0;
+	libcerror_error_t *error                        = NULL;
+	libfsxfs_inode_information_t *inode_information = NULL;
+	int result                                      = 0;
 
 #if defined( HAVE_FSXFS_TEST_MEMORY )
-	int number_of_malloc_fail_tests   = 1;
-	int number_of_memset_fail_tests   = 1;
-	int test_number                   = 0;
+	int number_of_malloc_fail_tests                 = 1;
+	int number_of_memset_fail_tests                 = 1;
+	int test_number                                 = 0;
 #endif
 
 	/* Test regular cases
 	 */
-	result = libfsxfs_superblock_initialize(
-	          &superblock,
+	result = libfsxfs_inode_information_initialize(
+	          &inode_information,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -101,15 +102,15 @@ int fsxfs_test_superblock_initialize(
 	 1 );
 
 	FSXFS_TEST_ASSERT_IS_NOT_NULL(
-	 "superblock",
-	 superblock );
+	 "inode_information",
+	 inode_information );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
 	 "error",
 	 error );
 
-	result = libfsxfs_superblock_free(
-	          &superblock,
+	result = libfsxfs_inode_information_free(
+	          &inode_information,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -118,8 +119,8 @@ int fsxfs_test_superblock_initialize(
 	 1 );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
-	 "superblock",
-	 superblock );
+	 "inode_information",
+	 inode_information );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
 	 "error",
@@ -127,7 +128,7 @@ int fsxfs_test_superblock_initialize(
 
 	/* Test error cases
 	 */
-	result = libfsxfs_superblock_initialize(
+	result = libfsxfs_inode_information_initialize(
 	          NULL,
 	          &error );
 
@@ -143,10 +144,10 @@ int fsxfs_test_superblock_initialize(
 	libcerror_error_free(
 	 &error );
 
-	superblock = (libfsxfs_superblock_t *) 0x12345678UL;
+	inode_information = (libfsxfs_inode_information_t *) 0x12345678UL;
 
-	result = libfsxfs_superblock_initialize(
-	          &superblock,
+	result = libfsxfs_inode_information_initialize(
+	          &inode_information,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -161,7 +162,7 @@ int fsxfs_test_superblock_initialize(
 	libcerror_error_free(
 	 &error );
 
-	superblock = NULL;
+	inode_information = NULL;
 
 #if defined( HAVE_FSXFS_TEST_MEMORY )
 
@@ -169,22 +170,22 @@ int fsxfs_test_superblock_initialize(
 	     test_number < number_of_malloc_fail_tests;
 	     test_number++ )
 	{
-		/* Test libfsxfs_superblock_initialize with malloc failing
+		/* Test libfsxfs_inode_information_initialize with malloc failing
 		 */
 		fsxfs_test_malloc_attempts_before_fail = test_number;
 
-		result = libfsxfs_superblock_initialize(
-		          &superblock,
+		result = libfsxfs_inode_information_initialize(
+		          &inode_information,
 		          &error );
 
 		if( fsxfs_test_malloc_attempts_before_fail != -1 )
 		{
 			fsxfs_test_malloc_attempts_before_fail = -1;
 
-			if( superblock != NULL )
+			if( inode_information != NULL )
 			{
-				libfsxfs_superblock_free(
-				 &superblock,
+				libfsxfs_inode_information_free(
+				 &inode_information,
 				 NULL );
 			}
 		}
@@ -196,8 +197,8 @@ int fsxfs_test_superblock_initialize(
 			 -1 );
 
 			FSXFS_TEST_ASSERT_IS_NULL(
-			 "superblock",
-			 superblock );
+			 "inode_information",
+			 inode_information );
 
 			FSXFS_TEST_ASSERT_IS_NOT_NULL(
 			 "error",
@@ -211,22 +212,22 @@ int fsxfs_test_superblock_initialize(
 	     test_number < number_of_memset_fail_tests;
 	     test_number++ )
 	{
-		/* Test libfsxfs_superblock_initialize with memset failing
+		/* Test libfsxfs_inode_information_initialize with memset failing
 		 */
 		fsxfs_test_memset_attempts_before_fail = test_number;
 
-		result = libfsxfs_superblock_initialize(
-		          &superblock,
+		result = libfsxfs_inode_information_initialize(
+		          &inode_information,
 		          &error );
 
 		if( fsxfs_test_memset_attempts_before_fail != -1 )
 		{
 			fsxfs_test_memset_attempts_before_fail = -1;
 
-			if( superblock != NULL )
+			if( inode_information != NULL )
 			{
-				libfsxfs_superblock_free(
-				 &superblock,
+				libfsxfs_inode_information_free(
+				 &inode_information,
 				 NULL );
 			}
 		}
@@ -238,8 +239,8 @@ int fsxfs_test_superblock_initialize(
 			 -1 );
 
 			FSXFS_TEST_ASSERT_IS_NULL(
-			 "superblock",
-			 superblock );
+			 "inode_information",
+			 inode_information );
 
 			FSXFS_TEST_ASSERT_IS_NOT_NULL(
 			 "error",
@@ -259,19 +260,19 @@ on_error:
 		libcerror_error_free(
 		 &error );
 	}
-	if( superblock != NULL )
+	if( inode_information != NULL )
 	{
-		libfsxfs_superblock_free(
-		 &superblock,
+		libfsxfs_inode_information_free(
+		 &inode_information,
 		 NULL );
 	}
 	return( 0 );
 }
 
-/* Tests the libfsxfs_superblock_free function
+/* Tests the libfsxfs_inode_information_free function
  * Returns 1 if successful or 0 if not
  */
-int fsxfs_test_superblock_free(
+int fsxfs_test_inode_information_free(
      void )
 {
 	libcerror_error_t *error = NULL;
@@ -279,7 +280,7 @@ int fsxfs_test_superblock_free(
 
 	/* Test error cases
 	 */
-	result = libfsxfs_superblock_free(
+	result = libfsxfs_inode_information_free(
 	          NULL,
 	          &error );
 
@@ -306,20 +307,21 @@ on_error:
 	return( 0 );
 }
 
-/* Tests the libfsxfs_superblock_read_data function
+/* Tests the libfsxfs_inode_information_read_data function
  * Returns 1 if successful or 0 if not
  */
-int fsxfs_test_superblock_read_data(
+int fsxfs_test_inode_information_read_data(
      void )
 {
-	libcerror_error_t *error          = NULL;
-	libfsxfs_superblock_t *superblock = NULL;
-	int result                        = 0;
+	libcerror_error_t *error                        = NULL;
+	libfsxfs_inode_information_t *inode_information = NULL;
+	libfsxfs_io_handle_t *io_handle                 = NULL;
+	int result                                      = 0;
 
 	/* Initialize test
 	 */
-	result = libfsxfs_superblock_initialize(
-	          &superblock,
+	result = libfsxfs_inode_information_initialize(
+	          &inode_information,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -328,18 +330,38 @@ int fsxfs_test_superblock_read_data(
 	 1 );
 
 	FSXFS_TEST_ASSERT_IS_NOT_NULL(
-	 "superblock",
-	 superblock );
+	 "inode_information",
+	 inode_information );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
 	 "error",
 	 error );
 
+	result = libfsxfs_io_handle_initialize(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	io_handle->format_version = 5;
+
 	/* Test regular cases
 	 */
-	result = libfsxfs_superblock_read_data(
-	          superblock,
-	          fsxfs_test_superblock_data1,
+	result = libfsxfs_inode_information_read_data(
+	          inode_information,
+	          io_handle,
+	          fsxfs_test_inode_information_data1,
 	          512,
 	          &error );
 
@@ -354,9 +376,10 @@ int fsxfs_test_superblock_read_data(
 
 	/* Test error cases
 	 */
-	result = libfsxfs_superblock_read_data(
+	result = libfsxfs_inode_information_read_data(
 	          NULL,
-	          fsxfs_test_superblock_data1,
+	          io_handle,
+	          fsxfs_test_inode_information_data1,
 	          512,
 	          &error );
 
@@ -372,8 +395,28 @@ int fsxfs_test_superblock_read_data(
 	libcerror_error_free(
 	 &error );
 
-	result = libfsxfs_superblock_read_data(
-	          superblock,
+	result = libfsxfs_inode_information_read_data(
+	          inode_information,
+	          NULL,
+	          fsxfs_test_inode_information_data1,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_inode_information_read_data(
+	          inode_information,
+	          io_handle,
 	          NULL,
 	          512,
 	          &error );
@@ -390,9 +433,10 @@ int fsxfs_test_superblock_read_data(
 	libcerror_error_free(
 	 &error );
 
-	result = libfsxfs_superblock_read_data(
-	          superblock,
-	          fsxfs_test_superblock_data1,
+	result = libfsxfs_inode_information_read_data(
+	          inode_information,
+	          io_handle,
+	          fsxfs_test_inode_information_data1,
 	          (size_t) SSIZE_MAX + 1,
 	          &error );
 
@@ -408,9 +452,10 @@ int fsxfs_test_superblock_read_data(
 	libcerror_error_free(
 	 &error );
 
-	result = libfsxfs_superblock_read_data(
-	          superblock,
-	          fsxfs_test_superblock_data1,
+	result = libfsxfs_inode_information_read_data(
+	          inode_information,
+	          io_handle,
+	          fsxfs_test_inode_information_data1,
 	          0,
 	          &error );
 
@@ -428,8 +473,8 @@ int fsxfs_test_superblock_read_data(
 
 	/* Clean up
 	 */
-	result = libfsxfs_superblock_free(
-	          &superblock,
+	result = libfsxfs_io_handle_free(
+	          &io_handle,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -438,8 +483,25 @@ int fsxfs_test_superblock_read_data(
 	 1 );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
-	 "superblock",
-	 superblock );
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_inode_information_free(
+	          &inode_information,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "inode_information",
+	 inode_information );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
 	 "error",
@@ -453,30 +515,37 @@ on_error:
 		libcerror_error_free(
 		 &error );
 	}
-	if( superblock != NULL )
+	if( io_handle != NULL )
 	{
-		libfsxfs_superblock_free(
-		 &superblock,
+		libfsxfs_io_handle_free(
+		 &io_handle,
+		 NULL );
+	}
+	if( inode_information != NULL )
+	{
+		libfsxfs_inode_information_free(
+		 &inode_information,
 		 NULL );
 	}
 	return( 0 );
 }
 
-/* Tests the libfsxfs_superblock_read_file_io_handle function
+/* Tests the libfsxfs_inode_information_read_file_io_handle function
  * Returns 1 if successful or 0 if not
  */
-int fsxfs_test_superblock_read_file_io_handle(
+int fsxfs_test_inode_information_read_file_io_handle(
      void )
 {
-	libbfio_handle_t *file_io_handle  = NULL;
-	libcerror_error_t *error          = NULL;
-	libfsxfs_superblock_t *superblock = NULL;
-	int result                        = 0;
+	libbfio_handle_t *file_io_handle                = NULL;
+	libcerror_error_t *error                        = NULL;
+	libfsxfs_inode_information_t *inode_information = NULL;
+	libfsxfs_io_handle_t *io_handle                 = NULL;
+	int result                                      = 0;
 
 	/* Initialize test
 	 */
-	result = libfsxfs_superblock_initialize(
-	          &superblock,
+	result = libfsxfs_inode_information_initialize(
+	          &inode_information,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -485,18 +554,37 @@ int fsxfs_test_superblock_read_file_io_handle(
 	 1 );
 
 	FSXFS_TEST_ASSERT_IS_NOT_NULL(
-	 "superblock",
-	 superblock );
+	 "inode_information",
+	 inode_information );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
 	 "error",
 	 error );
 
+	result = libfsxfs_io_handle_initialize(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	io_handle->format_version = 5;
+
 	/* Initialize file IO handle
 	 */
 	result = fsxfs_test_open_file_io_handle(
 	          &file_io_handle,
-	          fsxfs_test_superblock_data1,
+	          fsxfs_test_inode_information_data1,
 	          512,
 	          &error );
 
@@ -515,8 +603,9 @@ int fsxfs_test_superblock_read_file_io_handle(
 
 	/* Test regular cases
 	 */
-	result = libfsxfs_superblock_read_file_io_handle(
-	          superblock,
+	result = libfsxfs_inode_information_read_file_io_handle(
+	          inode_information,
+	          io_handle,
 	          file_io_handle,
 	          0,
 	          &error );
@@ -532,7 +621,27 @@ int fsxfs_test_superblock_read_file_io_handle(
 
 	/* Test error cases
 	 */
-	result = libfsxfs_superblock_read_file_io_handle(
+	result = libfsxfs_inode_information_read_file_io_handle(
+	          NULL,
+	          io_handle,
+	          file_io_handle,
+	          0,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_inode_information_read_file_io_handle(
+	          inode_information,
 	          NULL,
 	          file_io_handle,
 	          0,
@@ -550,8 +659,9 @@ int fsxfs_test_superblock_read_file_io_handle(
 	libcerror_error_free(
 	 &error );
 
-	result = libfsxfs_superblock_read_file_io_handle(
-	          superblock,
+	result = libfsxfs_inode_information_read_file_io_handle(
+	          inode_information,
+	          io_handle,
 	          NULL,
 	          0,
 	          &error );
@@ -568,8 +678,9 @@ int fsxfs_test_superblock_read_file_io_handle(
 	libcerror_error_free(
 	 &error );
 
-	result = libfsxfs_superblock_read_file_io_handle(
-	          superblock,
+	result = libfsxfs_inode_information_read_file_io_handle(
+	          inode_information,
+	          io_handle,
 	          file_io_handle,
 	          -1,
 	          &error );
@@ -605,7 +716,7 @@ int fsxfs_test_superblock_read_file_io_handle(
 	 */
 	result = fsxfs_test_open_file_io_handle(
 	          &file_io_handle,
-	          fsxfs_test_superblock_data1,
+	          fsxfs_test_inode_information_data1,
 	          8,
 	          &error );
 
@@ -622,8 +733,9 @@ int fsxfs_test_superblock_read_file_io_handle(
 	 "error",
 	 error );
 
-	result = libfsxfs_superblock_read_file_io_handle(
-	          superblock,
+	result = libfsxfs_inode_information_read_file_io_handle(
+	          inode_information,
+	          io_handle,
 	          file_io_handle,
 	          0,
 	          &error );
@@ -659,8 +771,8 @@ int fsxfs_test_superblock_read_file_io_handle(
 
 	/* Clean up
 	 */
-	result = libfsxfs_superblock_free(
-	          &superblock,
+	result = libfsxfs_io_handle_free(
+	          &io_handle,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -669,8 +781,25 @@ int fsxfs_test_superblock_read_file_io_handle(
 	 1 );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
-	 "superblock",
-	 superblock );
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_inode_information_free(
+	          &inode_information,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "inode_information",
+	 inode_information );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
 	 "error",
@@ -690,10 +819,16 @@ on_error:
 		 &file_io_handle,
 		 NULL );
 	}
-	if( superblock != NULL )
+	if( io_handle != NULL )
 	{
-		libfsxfs_superblock_free(
-		 &superblock,
+		libfsxfs_io_handle_free(
+		 &io_handle,
+		 NULL );
+	}
+	if( inode_information != NULL )
+	{
+		libfsxfs_inode_information_free(
+		 &inode_information,
 		 NULL );
 	}
 	return( 0 );
@@ -719,22 +854,20 @@ int main(
 #if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
 
 	FSXFS_TEST_RUN(
-	 "libfsxfs_superblock_initialize",
-	 fsxfs_test_superblock_initialize );
+	 "libfsxfs_inode_information_initialize",
+	 fsxfs_test_inode_information_initialize );
 
 	FSXFS_TEST_RUN(
-	 "libfsxfs_superblock_free",
-	 fsxfs_test_superblock_free );
+	 "libfsxfs_inode_information_free",
+	 fsxfs_test_inode_information_free );
 
 	FSXFS_TEST_RUN(
-	 "libfsxfs_superblock_read_data",
-	 fsxfs_test_superblock_read_data );
+	 "libfsxfs_inode_information_read_data",
+	 fsxfs_test_inode_information_read_data );
 
 	FSXFS_TEST_RUN(
-	 "libfsxfs_superblock_read_file_io_handle",
-	 fsxfs_test_superblock_read_file_io_handle );
-
-/* TODO add additional tests */
+	 "libfsxfs_inode_information_read_file_io_handle",
+	 fsxfs_test_inode_information_read_file_io_handle );
 
 #endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
 

@@ -634,8 +634,11 @@ int info_handle_volume_fprint(
      info_handle_t *info_handle,
      libcerror_error_t **error )
 {
-	static char *function = "info_handle_volume_fprint";
-	int result            = 0;
+	system_character_t *value_string = NULL;
+	static char *function            = "info_handle_volume_fprint";
+	size_t value_string_size         = 0;
+	uint8_t format_version           = 0;
+	int result                       = 0;
 
 	if( info_handle == NULL )
 	{
@@ -656,6 +659,105 @@ int info_handle_volume_fprint(
 	 info_handle->notify_stream,
 	 "Volume information:\n" );
 
+	if( libfsxfs_volume_get_format_version(
+	     info_handle->input_volume,
+	     &format_version,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve format version.",
+		 function );
+
+		goto on_error;
+	}
+	fprintf(
+	 info_handle->notify_stream,
+	 "\tFormat version\t\t\t: %" PRIu8 "\n",
+	 format_version );
+
+	fprintf(
+	 info_handle->notify_stream,
+	 "\tLabel\t\t\t\t: " );
+
+#if defined( HAVE_WIDE_SYSTEM_CHARACTER )
+	result = libfsxfs_volume_get_utf16_label_size(
+	          info_handle->input_volume,
+	          &value_string_size,
+	          error );
+#else
+	result = libfsxfs_volume_get_utf8_label_size(
+	          info_handle->input_volume,
+	          &value_string_size,
+	          error );
+#endif
+	if( result != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve volume label size.",
+		 function );
+
+		goto on_error;
+	}
+	if( value_string_size > 0 )
+	{
+		value_string = system_string_allocate(
+		                value_string_size );
+
+		if( value_string == NULL )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_MEMORY,
+			 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+			 "%s: unable to create volume label string.",
+			 function );
+
+			goto on_error;
+		}
+#if defined( HAVE_WIDE_SYSTEM_CHARACTER )
+		result = libfsxfs_volume_get_utf16_label(
+		          info_handle->input_volume,
+		          (uint16_t *) value_string,
+		          value_string_size,
+		          error );
+#else
+		result = libfsxfs_volume_get_utf8_label(
+		          info_handle->input_volume,
+		          (uint8_t *) value_string,
+		          value_string_size,
+		          error );
+#endif
+		if( result != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve volume label.",
+			 function );
+
+			goto on_error;
+		}
+		fprintf(
+		 info_handle->notify_stream,
+		 "%" PRIs_SYSTEM "",
+		 value_string );
+
+		memory_free(
+		 value_string );
+
+		value_string = NULL;
+	}
+	fprintf(
+	 info_handle->notify_stream,
+	 "\n" );
+
 /* TODO print more info */
 
 	fprintf(
@@ -663,5 +765,13 @@ int info_handle_volume_fprint(
 	 "\n" );
 
 	return( 1 );
+
+on_error:
+	if( value_string != NULL )
+	{
+		memory_free(
+		 value_string );
+	}
+	return( -1 );
 }
 

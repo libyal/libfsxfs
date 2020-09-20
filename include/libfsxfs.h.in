@@ -260,6 +260,15 @@ int libfsxfs_volume_close(
      libfsxfs_volume_t *volume,
      libfsxfs_error_t **error );
 
+/* Retrieves the format version
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_format_version(
+     libfsxfs_volume_t *volume,
+     uint8_t *format_version,
+     libfsxfs_error_t **error );
+
 /* Retrieves the size of the UTF-8 encoded label
  * The returned size includes the end of string character
  * Returns 1 if successful or -1 on error

@@ -2,9 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="pyfsxfs"
-	ProjectGUID="{937F2114-5F1C-43E0-8206-D5190D441FCF}"
-	RootNamespace="pyfsxfs"
+	Name="fsxfs_test_btree_header"
+	ProjectGUID="{905FF3FF-8CCB-4E4A-A8DE-4AC161FD5DA5}"
+	RootNamespace="fsxfs_test_btree_header"
+	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -19,8 +20,9 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="1"
 			CharacterSet="1"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -39,8 +41,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\include;..\..\common;..\..\libcerror;..\..\libcdata;..\..\libclocale;..\..\libcsplit;..\..\libuna;..\..\libcfile;..\..\libcpath;..\..\libbfio;C:\Python27\include"
-				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;HAVE_LOCAL_LIBCERROR;HAVE_LOCAL_LIBCDATA;HAVE_LOCAL_LIBCLOCALE;HAVE_LOCAL_LIBCSPLIT;HAVE_LOCAL_LIBUNA;HAVE_LOCAL_LIBCFILE;HAVE_LOCAL_LIBCPATH;HAVE_LOCAL_LIBBFIO;LIBFSXFS_DLL_IMPORT"
+				AdditionalIncludeDirectories="..\..\include;..\..\common;..\..\libcerror;..\..\libcthreads;..\..\libcdata;..\..\libclocale;..\..\libcnotify;..\..\libcsplit;..\..\libuna;..\..\libcfile;..\..\libcpath;..\..\libbfio;..\..\libfcache;..\..\libfdata"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;HAVE_LOCAL_LIBCERROR;HAVE_LOCAL_LIBCTHREADS;HAVE_LOCAL_LIBCDATA;HAVE_LOCAL_LIBCLOCALE;HAVE_LOCAL_LIBCNOTIFY;HAVE_LOCAL_LIBCSPLIT;HAVE_LOCAL_LIBUNA;HAVE_LOCAL_LIBCFILE;HAVE_LOCAL_LIBCPATH;HAVE_LOCAL_LIBBFIO;HAVE_LOCAL_LIBFCACHE;HAVE_LOCAL_LIBFDATA;LIBFSXFS_DLL_IMPORT"
 				RuntimeLibrary="2"
 				WarningLevel="4"
 				CompileAs="1"
@@ -56,12 +58,14 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)\$(ProjectName).pyd"
-				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;;C:\Python27\libs"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="2"
 				DataExecutionPrevention="2"
 				TargetMachine="1"
-				ImportLibrary="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -89,7 +93,7 @@
 			Name="VSDebug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="1"
 			CharacterSet="1"
 			>
 			<Tool
@@ -110,8 +114,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\common;..\..\libcerror;..\..\libcdata;..\..\libclocale;..\..\libcsplit;..\..\libuna;..\..\libcfile;..\..\libcpath;..\..\libbfio;C:\Python27\include"
-				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;HAVE_LOCAL_LIBCERROR;HAVE_LOCAL_LIBCDATA;HAVE_LOCAL_LIBCLOCALE;HAVE_LOCAL_LIBCSPLIT;HAVE_LOCAL_LIBUNA;HAVE_LOCAL_LIBCFILE;HAVE_LOCAL_LIBCPATH;HAVE_LOCAL_LIBBFIO;LIBFSXFS_DLL_IMPORT"
+				AdditionalIncludeDirectories="..\..\include;..\..\common;..\..\libcerror;..\..\libcthreads;..\..\libcdata;..\..\libclocale;..\..\libcnotify;..\..\libcsplit;..\..\libuna;..\..\libcfile;..\..\libcpath;..\..\libbfio;..\..\libfcache;..\..\libfdata"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;HAVE_LOCAL_LIBCERROR;HAVE_LOCAL_LIBCTHREADS;HAVE_LOCAL_LIBCDATA;HAVE_LOCAL_LIBCLOCALE;HAVE_LOCAL_LIBCNOTIFY;HAVE_LOCAL_LIBCSPLIT;HAVE_LOCAL_LIBUNA;HAVE_LOCAL_LIBCFILE;HAVE_LOCAL_LIBCPATH;HAVE_LOCAL_LIBBFIO;HAVE_LOCAL_LIBFCACHE;HAVE_LOCAL_LIBFDATA;LIBFSXFS_DLL_IMPORT"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
 				RuntimeLibrary="3"
@@ -130,13 +134,15 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)\$(ProjectName).pyd"
-				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;;C:\Python27\libs"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;"
 				GenerateDebugInformation="true"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="1"
 				TargetMachine="1"
-				ImportLibrary="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -170,23 +176,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs.c"
+				RelativePath="..\..\tests\fsxfs_test_btree_header.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_error.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_file_object_io_handle.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_integer.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_volume.c"
+				RelativePath="..\..\tests\fsxfs_test_memory.c"
 				>
 			</File>
 		</Filter>
@@ -196,43 +190,23 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs.h"
+				RelativePath="..\..\tests\fsxfs_test_libcerror.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_error.h"
+				RelativePath="..\..\tests\fsxfs_test_libfsxfs.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_file_object_io_handle.h"
+				RelativePath="..\..\tests\fsxfs_test_macros.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_integer.h"
+				RelativePath="..\..\tests\fsxfs_test_memory.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_libbfio.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_libcerror.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_libfsxfs.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_python.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_unused.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\pyfsxfs\pyfsxfs_volume.h"
+				RelativePath="..\..\tests\fsxfs_test_unused.h"
 				>
 			</File>
 		</Filter>

@@ -1,5 +1,10 @@
 TODO:
-* add basic format support
+* add basic format version 5 support
+* add support for 4k sector size (need test data)
+* add support for format version 1 (need test data)
+* add support for format version 2 (need test data)
+* add support for format version 3 (need test data)
+* add support for format version 4 (need test data)
 
 20200105
 * see `git log' for more recent change log

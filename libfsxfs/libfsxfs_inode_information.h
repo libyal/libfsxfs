@@ -1,5 +1,5 @@
 /*
- * Input/Output (IO) handle functions
+ * Inode information functions
  *
  * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,12 +19,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_IO_HANDLE_H )
-#define _LIBFSXFS_IO_HANDLE_H
+#if !defined( _LIBFSXFS_INODE_INFORMATION_H )
+#define _LIBFSXFS_INODE_INFORMATION_H
 
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 
@@ -32,42 +33,44 @@
 extern "C" {
 #endif
 
-typedef struct libfsxfs_io_handle libfsxfs_io_handle_t;
+typedef struct libfsxfs_inode_information libfsxfs_inode_information_t;
 
-struct libfsxfs_io_handle
+struct libfsxfs_inode_information
 {
-	/* The format version
+	/* Inode B+ tree root block number
 	 */
-	int format_version;
+	uint32_t inode_btree_root_block_number;
 
-	/* The block size
+	/* Inode B+ tree depth
 	 */
-	uint32_t block_size;
-
-	/* Inode size
-	 */
-	uint16_t inode_size;
-
-	/* Value to indicate if abort was signalled
-	 */
-	int abort;
+	uint32_t inode_btree_depth;
 };
 
-int libfsxfs_io_handle_initialize(
-     libfsxfs_io_handle_t **io_handle,
+int libfsxfs_inode_information_initialize(
+     libfsxfs_inode_information_t **inode_information,
      libcerror_error_t **error );
 
-int libfsxfs_io_handle_free(
-     libfsxfs_io_handle_t **io_handle,
+int libfsxfs_inode_information_free(
+     libfsxfs_inode_information_t **inode_information,
      libcerror_error_t **error );
 
-int libfsxfs_io_handle_clear(
+int libfsxfs_inode_information_read_data(
+     libfsxfs_inode_information_t *inode_information,
      libfsxfs_io_handle_t *io_handle,
+     const uint8_t *data,
+     size_t data_size,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_information_read_file_io_handle(
+     libfsxfs_inode_information_t *inode_information,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     off64_t file_offset,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_IO_HANDLE_H ) */
+#endif /* !defined( _LIBFSXFS_INODE_INFORMATION_H ) */
 

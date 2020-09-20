@@ -38,12 +38,50 @@ EXTRA_DIST = \
 	$(check_SCRIPTS)
 
 check_PROGRAMS = \
+	fsxfs_test_btree_block \
+	fsxfs_test_btree_header \
 	fsxfs_test_error \
+	fsxfs_test_inode_btree \
+	fsxfs_test_inode_information \
 	fsxfs_test_io_handle \
 	fsxfs_test_notify \
 	fsxfs_test_superblock \
 	fsxfs_test_support \
 	fsxfs_test_volume
+
+fsxfs_test_btree_block_SOURCES = \
+	fsxfs_test_btree_block.c \
+	fsxfs_test_functions.c fsxfs_test_functions.h \
+	fsxfs_test_libbfio.h \
+	fsxfs_test_libcerror.h \
+	fsxfs_test_libfsxfs.h \
+	fsxfs_test_macros.h \
+	fsxfs_test_memory.c fsxfs_test_memory.h \
+	fsxfs_test_unused.h
+
+fsxfs_test_btree_block_LDADD = \
+	@LIBBFIO_LIBADD@ \
+	@LIBCPATH_LIBADD@ \
+	@LIBCFILE_LIBADD@ \
+	@LIBUNA_LIBADD@ \
+	@LIBCSPLIT_LIBADD@ \
+	@LIBCNOTIFY_LIBADD@ \
+	@LIBCLOCALE_LIBADD@ \
+	@LIBCDATA_LIBADD@ \
+	../libfsxfs/libfsxfs.la \
+	@LIBCERROR_LIBADD@
+
+fsxfs_test_btree_header_SOURCES = \
+	fsxfs_test_btree_header.c \
+	fsxfs_test_libcerror.h \
+	fsxfs_test_libfsxfs.h \
+	fsxfs_test_macros.h \
+	fsxfs_test_memory.c fsxfs_test_memory.h \
+	fsxfs_test_unused.h
+
+fsxfs_test_btree_header_LDADD = \
+	../libfsxfs/libfsxfs.la \
+	@LIBCERROR_LIBADD@
 
 fsxfs_test_error_SOURCES = \
 	fsxfs_test_error.c \
@@ -53,6 +91,40 @@ fsxfs_test_error_SOURCES = \
 
 fsxfs_test_error_LDADD = \
 	../libfsxfs/libfsxfs.la
+
+fsxfs_test_inode_btree_SOURCES = \
+	fsxfs_test_inode_btree.c \
+	fsxfs_test_libcerror.h \
+	fsxfs_test_libfsxfs.h \
+	fsxfs_test_macros.h \
+	fsxfs_test_memory.c fsxfs_test_memory.h \
+	fsxfs_test_unused.h
+
+fsxfs_test_inode_btree_LDADD = \
+	../libfsxfs/libfsxfs.la \
+	@LIBCERROR_LIBADD@
+
+fsxfs_test_inode_information_SOURCES = \
+	fsxfs_test_functions.c fsxfs_test_functions.h \
+	fsxfs_test_inode_information.c \
+	fsxfs_test_libbfio.h \
+	fsxfs_test_libcerror.h \
+	fsxfs_test_libfsxfs.h \
+	fsxfs_test_macros.h \
+	fsxfs_test_memory.c fsxfs_test_memory.h \
+	fsxfs_test_unused.h
+
+fsxfs_test_inode_information_LDADD = \
+	@LIBBFIO_LIBADD@ \
+	@LIBCPATH_LIBADD@ \
+	@LIBCFILE_LIBADD@ \
+	@LIBUNA_LIBADD@ \
+	@LIBCSPLIT_LIBADD@ \
+	@LIBCNOTIFY_LIBADD@ \
+	@LIBCLOCALE_LIBADD@ \
+	@LIBCDATA_LIBADD@ \
+	../libfsxfs/libfsxfs.la \
+	@LIBCERROR_LIBADD@
 
 fsxfs_test_io_handle_SOURCES = \
 	fsxfs_test_io_handle.c \

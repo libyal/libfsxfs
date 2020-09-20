@@ -62,6 +62,14 @@ struct libfsxfs_superblock
 	 */
 	uint16_t feature_flags;
 
+	/* Sector size
+	 */
+	uint16_t sector_size;
+
+	/* Inode size
+	 */
+	uint16_t inode_size;
+
 	/* Volume label
 	 */
 	uint8_t volume_label[ 12 ];

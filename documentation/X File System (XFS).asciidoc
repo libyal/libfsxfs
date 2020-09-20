@@ -64,6 +64,8 @@ a placeholder for a name that never given.
 
 == Terminology
 
+[yellow-background]*TODO determine if block numbers are relative from the start of the volume or the allocation group*
+
 === Absolute and relative inode numbers
 
 [yellow-background]*TODO describe*
@@ -73,9 +75,9 @@ a placeholder for a name that never given.
 An allocation group consist of:
 
 * a sector containing a superblock
-* a sector containing allocation group free block information
-* a sector containing allocation group inode B+ tree information
-* a sector containing allocation group internal free list
+* a sector containing free block information
+* a sector containing inode B+ tree information
+* a sector containing internal free list
 * blocks containing
   * root of the inode B+ tree
   * root of the free space B+ tree
@@ -168,14 +170,20 @@ See section: <<secondary_feature_flags,Secondary feature flags>>
 Introduced to work-around 64-bit alignment errors +
 See section: <<secondary_feature_flags,Secondary feature flags>>
 4+| _If version >= 5_
+| 208 | 4 | | (Read-write) compatible feature flags +
+See section: <<compatible_feature_flags,Compatible feature flags>>
+| 208 | 4 | | Read-only compatible feature flags +
+See section: <<read_only_compatible_feature_flags,Read-only compatible feature flags>>
+| 208 | 4 | | (Read-write) incompatible feature flags +
+See section: <<incompatible_feature_flags,Incompatible feature flags>>
+| 208 | 4 | | Journal (read-write) incompatible feature flags +
+See section: <<journal_incompatible_feature_flags,Journal incompatible feature flags>>
+| 208 | 4 | | Checksum of the superblock
 |===
 
+[yellow-background]*TODO describe*
+
 ....
-	uint32_t	sb_features_compat;
-	uint32_t	sb_features_ro_compat;
-	uint32_t	sb_features_incompat;
-	uint32_t	sb_features_log_incompat;
-	uint32_t	sb_crc;		/* superblock crc */
 	xfs_extlen_t	sb_spino_align;	/* sparse inode chunk alignment */
 	xfs_ino_t	sb_pquotino;	/* project quota inode */
 	xfs_lsn_t	sb_lsn;		/* last write sequence */
@@ -246,15 +254,38 @@ Free space and inode values are only tracked in the primary superblock
 | 0x0400 | XFS_PQUOTA_CHKD | Project quotas have been checked
 |===
 
-== Allocation group free block information
+=== [[compatible_feature_flags]]Compatible feature flags
 
-The allocation group free block information stores 2 B+ trees to track:
+Current no compatible feature flags are defined
 
-* the free space by block number (block offset B+ tree)
-* the size of the free space block (block count B+ tree)
+=== [[read_only_compatible_feature_flags]]Read-only compatible feature flags
 
-The allocation group free block information (xfs_agf_t) is 64 bytes of size
-and consists of: 
+[yellow-background]*TODO describe*
+
+XFS_SB_FEAT_RO_COMPAT_FINOBT
+XFS_SB_FEAT_RO_COMPAT_RMAPBT
+XFS_SB_FEAT_RO_COMPAT_REFLINK
+
+=== [[incompatible_feature_flags]]Incompatible feature flags
+
+[yellow-background]*TODO describe*
+
+XFS_SB_FEAT_INCOMPAT_FTYPE
+XFS_SB_FEAT_INCOMPAT_SPINODES
+XFS_SB_FEAT_INCOMPAT_META_UUID
+
+=== [[journal_incompatible_feature_flags]]Journal incompatible feature flags
+
+Current no journal incompatible feature flags are defined
+
+== Free block information
+
+The free block information stores references:
+
+* the block offset B+ tree, that tracks the free space by block number
+* the block count B+ tree, that tracks the size of the free space block
+
+The free block information (xfs_agf_t) is 64 bytes of size and consists of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -281,8 +312,10 @@ Contains number of blocks
 4+| _Only used if the XFS_SB_VERSION2_LAZYSBCOUNTBIT feature flag is set_
 | 60 | 4 | | Number of blocks used for the free space B+ trees
 4+| _If version >= 5_
-| 64 | 0 | | 
+| 64 | 0 | |
 |===
+
+[yellow-background]*TODO describe*
 
 ....
 /* version 5 filesystem fields start here */
@@ -307,63 +340,16 @@ __be32
 agf_spare2;
 ....
 
-== Allocation group free space B+ trees
+== Free list
 
-=== Free B+ tree header
+A free list consists of:
 
-The free B+ tree header (xfs_btree_sblock_t) is 16 bytes of size and consist of:
-
-[cols="1,1,1,5",options="header"]
-|===
-| Offset | Size | Value | Description
-| 0 | 4 | "AB3B" +
-"AB3C" +
-"ABTB" +
-"ABTC" | Signature
-| 4 | 2 | | Level (or depth)
-| 6 | 2 | | Number of records
-| 8 | 4 | | Previous free B+ tree header block number
-| 12 | 4 | | Next free B+ tree header block number
-|===
-
-==== Free B+ tree header signatures
-
-[cols="1,5",options="header"]
-|===
-| Signature | Description
-| "AB3B" | Version 5 free space block offset B+ tree
-| "AB3C" | Version 5 free space block count B+ tree
-| "ABTB" | Free space block offset B+ tree
-| "ABTC" | Free space block count B+ tree
-|===
-
-=== Free B+ tree branch node
-
-....
-typedef __be32 xfs_alloc_ptr_t;
-....
-
-=== Free B+ tree leaf value
-
-....
-typedef struct xfs_alloc_rec {
-__be32
-ar_startblock;
-__be32
-ar_blockcount;
-} xfs_alloc_rec_t, xfs_alloc_key_t;
-....
-
-== Allocation group free list
-
-An allocation group free list consists of:
-
-* As of version 5, allocation group free list header
+* As of version 5, free list header
 * Array of free block numbers
 
-=== Allocation group free list header
+=== Free list header
 
-The allocation group free list header is 36 bytes of size and consist of:
+The free list header is 36 bytes of size and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -372,17 +358,16 @@ The allocation group free list header is 36 bytes of size and consist of:
 | 4 | 4 | | Sequence number +
 Contains the allocation group number of the corresponding sector
 | 8 | 16 | | Block type identifier +
-Contains an UUID
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
 | 24 | 8 | | Log sequence number
 | 32 | 4 | | Checksum of the sector
 |===
 
 [yellow-background]*TODO describe sb_uuid or sb_meta_uuid*
 
-== Allocation group inode information
+== Inode information
 
-The allocation group inode information (xfs_agi_t) is 296 bytes of size
-and consists of: 
+The inode information (xfs_agi_t) is 296 or 336 bytes of size and consists of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -393,89 +378,248 @@ and consists of:
 Contains the allocation group number of the corresponding sector
 | 12 | 4 | | [yellow-background]*Unknown (Allocation group size)* +
 Contains number of blocks
-| 16 | 4 | | Number of inodes allocated of the allocation group
+| 16 | 4 | | Number of inodes in the allocation group
 | 20 | 4 | | Inode B+ tree root block number
 | 24 | 4 | | Inode B+ tree height/depth
-| 28 | 4 | | Number of free inodes of the allocation group
+| 28 | 4 | | Number of unused (free) inodes in the allocation group
 | 32 | 4 | | Last allocated chunk +
 Contains a relative inode number
-| 36 | 4 | | [yellow-background]*Unknown (deprecated)* +
-Always set to NULL (-1)
-| 40 | 64 x 4 | | Hash table of unlinked (deleted) inodes that are still being referenced
+| 36 | 4 | -1 (0xffffffff) | [yellow-background]*Unknown (deprecated)*
+| 40 | 64 x 4 | | Hash table of unlinked (deleted) inodes that are still being referenced +
+Contains -1 (0xffffffff) if not set
 4+| _If version >= 5_
-| 296 | 0 | | 
+| 296 | 16 | | Block type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+| 312 | 4 | | Checksum of the sector
+| 316 | 4 | | [yellow-background]*Unknown (padding)*
+| 320 | 8 | | Log sequence number
+| 328 | 4 | | Free inode B+ tree root block number
+| 332 | 4 | | Free inode B+ tree height/depth
 |===
 
-....
-/*
-* v5 filesystem fields start here; this marks the end of logging region 1
-* and start of logging region 2.
-*/
-uuid_t
-agi_uuid;
-__be32
-agi_crc;
-__be32
-agi_pad32;
-__be64
-agi_lsn;
-__be32
-__be32
-agi_free_root;
-agi_free_level;
-....
+== B+ tree
 
-== Allocation group inode B+ trees
+XFS uses B+ trees to store various types of information. There are 2 different
+types of B+ trees, namely:
 
-=== Inode B+ tree header
+* Free space block B+ tree
+* Inode B+ tree
+* Reference count B+ tree
 
-The inode B+ tree header (xfs_btree_sblock_t) is 16 bytes of size and consist of:
+=== B+ tree block
+
+A B+ tree block consists of:
+
+* B+ tree block header
+* [yellow-background]*Unknown (B+ tree block extended header)*
+* Array of branch or leaf block records
+
+=== B+ tree block header
+
+The B+ tree block header (xfs_btree_sblock_t or xfs_btree_iblock_t) is 16 bytes
+of size and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
-| 0 | 4 | "FIB3" +
-"FIBT" +
-"IAB3" +
-"IABT" | Signature
-| 4 | 2 | | Level (or depth)
+| 0 | 4 | | Signature
+| 4 | 2 | | Level (or depth/height) +
+Contains 0 for a leaf block
 | 6 | 2 | | Number of records
-| 8 | 4 | | Previous inode B+ tree header block number
-| 12 | 4 | | Next inode B+ tree header block number
+| 8 | 4 | | Previous B+ tree block number +
+Contains -1 (0xffffffff) if not set
+| 12 | 4 | | Next B+ tree block number +
+Contains -1 (0xffffffff) if not set
 |===
 
-==== Inode B+ tree header signatures
+==== B+ tree block header signatures
 
 [cols="1,5",options="header"]
 |===
 | Signature | Description
+| "AB3B" | Version 5 free space block offset B+ tree
+| "AB3C" | Version 5 free space block count B+ tree
+| "ABTB" | Free space block offset B+ tree
+| "ABTC" | Free space block count B+ tree
 | "FIB3" | Version 5 free inode B+tree
-| "FIBT" | free inode B+tree
+| "FIBT" | Free inode B+tree
 | "IAB3" | Version 5 (allocated) inode B+tree
-| "IABT" | (allocated) inode B+tree
+| "IABT" | (Allocated) inode B+tree
+| "R3FC" | Version 5 reference count B+ tree
 |===
 
-=== Inode B+ tree branch node
+=== B+ tree block extended header
+
+* [yellow-background]*TODO: determine where this is defined, it seems to be
+represented in the examples.*
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 16 | 8 | | [yellow-background]*Unknown (sector number)*
+| 24 | 8 | | Log sequence number
+| 32 | 16 | | Block type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+| 48 | 4 | | [yellow-background]*Unknown (owner)*
+| 52 | 4 | | Checksum
+|===
+
+=== Free space B+ tree branch block record
+
+[yellow-background]*TODO describe*
 
 ....
-struct xfs_inobt_key {
-__be32
-ir_startino;
-};
-typedef __be32 xfs_inobt_ptr_t;
+typedef __be32 xfs_alloc_ptr_t;
 ....
 
-=== Inode B+ tree leaf value
+=== Free space B+ tree leaf block record
+
+[yellow-background]*TODO describe*
 
 ....
-struct xfs_inobt_rec {
+typedef struct xfs_alloc_rec {
 __be32
+ar_startblock;
 __be32
-__be64
-};
-ir_startino;
-ir_freecount;
-ir_free;
+ar_blockcount;
+} xfs_alloc_rec_t, xfs_alloc_key_t;
+....
+
+=== Inode B+ tree branch block record
+
+The inode B+ tree branch block record (xfs_inobt_key_t) is 4 bytes of size and
+consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | Number of the first inode in the branch
+|===
+
+=== Inode B+ tree leaf block record
+
+The inode B+ tree leaf block record (xfs_inobt_rec_t) is 16 bytes of size and
+consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | Number of the first inode of the inode chunk
+| 4 | 4 | | Number of unused (free) inodes of the inode chunk
+| 8 | 8 | | 64-bit bitmap that indicated which inodes of the inode chunk are unused (free)
+|===
+
+The inode chunk is a group of 64 inodes
+
+[yellow-background]*TODO confirm if the inode number correspond to an offset
+relative to the start of the allocation group where
+`offset = inode number x sector size`.*
+
+== Inode
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 2 | "IN" | Signature
+| 2 | 2 | | File mode +
+Contains file type and permissions +
+See section: <<file_mode,File mode>>
+| 4 | 1 | 1 +
+2 | Format version
+| 5 | 1 | | Data fork type
+| 6 | 2 | | Version 1 number of links
+| 8 | 4 | | Owner (or user) identifier (UID)
+| 12 | 4 | | Group identifier (GID)
+| 16 | 4 | | Number of links +
+[yellow-background]*Contains padding in older? versions of XFS*
+4+| _If format version is 1_
+| 20 | 2 | 0 | [yellow-background]*Unknown (reserved)*
+4+| _If format version is 2_
+| 20 | 2 | | Project identifier
+4+| _Common_
+| 22 | 8 | 0 | [yellow-background]*Unknown (padding)*
+| 30 | 2 | | Value that is incremented on flush
+| 32 | 8 | | (last) access time +
+Contains a POSIX timestamp in nano seconds
+| 40 | 8 | | (last) modification time +
+Contains a POSIX timestamp in nano seconds
+| 48 | 8 | | (last) inode change time +
+Contains a POSIX timestamp in nano seconds
+| 56 | 8 | | File (content) size
+| 64 | 8 | | Number of file (content) blocks
+|===
+
+[yellow-background]*TODO complete*
+
+....
+typedef struct xfs_dinode_core
+xfs_extlen_t
+xfs_extnum_t
+xfs_aextnum_t
+__uint8_t
+__int8_t
+__uint32_t
+__uint16_t
+__uint16_t
+__uint32_t
+} xfs_dinode_core_t;
+{
+di_extsize;
+di_nextents;
+di_anextents;
+di_forkoff;
+di_aformat;
+di_dmevmask;
+di_dmstate;
+di_flags;
+di_gen;
+....
+
+=== [[file_mode]]File mode
+
+[cols="1,1,5",options="header"]
+|===
+| Value | Identifier | Description
+3+| _Access other_ +
+_Bitmask: 0x0007 (S_IRWXO)_
+| 0x0001 | S_IXOTH | X-access for other
+| 0x0002 | S_IWOTH | W-access for other
+| 0x0004 | S_IROTH | R-access for other
+3+| _Access group_ +
+_Bitmask: 0x0038 (S_IRWXG)_
+| 0x0008 | S_IXGRP | X-access for group
+| 0x0010 | S_IWGRP | W-access for group
+| 0x0020 | S_IRGRP | R-access for group
+3+| _Access owner (or user)_ +
+_Bitmask: 0x01c0 (S_IRWXU)_
+| 0x0040 | S_IXUSR | X-access for owner (or user)
+| 0x0080 | S_IWUSR | W-access for owner (or user)
+| 0x0100 | S_IRUSR | R-access for owner (or user)
+3+| _Other_
+| 0x0200 | S_ISTXT | Sticky bit
+| 0x0400 | S_ISGID | Set group identifer (GID) on execution
+| 0x0800 | S_ISUID | Set owner (or user) identifer (UID) on execution
+3+| _Type of file_ +
+_Bitmask: 0xf000 (S_IFMT)_
+| 0x1000 | S_IFIFO | Named pipe (FIFO)
+| 0x2000 | S_IFCHR | Character device
+| 0x4000 | S_IFDIR | Directory
+| 0x6000 | S_IFBLK | Block device
+| 0x8000 | S_IFREG | Regular file
+| 0xa000 | S_IFLNK | Symbolic link
+| 0xc000 | S_IFSOCK | Socket
+|===
+
+=== Data fork type
+
+....
+typedef enum xfs_dinode_fmt {
+XFS_DINODE_FMT_DEV,
+XFS_DINODE_FMT_LOCAL,
+XFS_DINODE_FMT_EXTENTS,
+XFS_DINODE_FMT_BTREE,
+XFS_DINODE_FMT_UUID
+} xfs_dinode_fmt_t;
 ....
 
 :numbered!:

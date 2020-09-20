@@ -1,5 +1,5 @@
 /*
- * Input/Output (IO) handle functions
+ * Inode B+ tree functions
  *
  * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,12 +19,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_IO_HANDLE_H )
-#define _LIBFSXFS_IO_HANDLE_H
+#if !defined( _LIBFSXFS_INODE_BTREE_H )
+#define _LIBFSXFS_INODE_BTREE_H
 
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 
@@ -32,42 +33,39 @@
 extern "C" {
 #endif
 
-typedef struct libfsxfs_io_handle libfsxfs_io_handle_t;
+typedef struct libfsxfs_inode_btree libfsxfs_inode_btree_t;
 
-struct libfsxfs_io_handle
+struct libfsxfs_inode_btree
 {
-	/* The format version
+	/* B+ tree root block number
 	 */
-	int format_version;
+	uint32_t root_block_number;
 
-	/* The block size
+	/* B+ tree depth
 	 */
-	uint32_t block_size;
-
-	/* Inode size
-	 */
-	uint16_t inode_size;
-
-	/* Value to indicate if abort was signalled
-	 */
-	int abort;
+	uint32_t depth;
 };
 
-int libfsxfs_io_handle_initialize(
-     libfsxfs_io_handle_t **io_handle,
+int libfsxfs_inode_btree_initialize(
+     libfsxfs_inode_btree_t **inode_btree,
+     uint32_t root_block_number,
+     uint32_t depth,
      libcerror_error_t **error );
 
-int libfsxfs_io_handle_free(
-     libfsxfs_io_handle_t **io_handle,
+int libfsxfs_inode_btree_free(
+     libfsxfs_inode_btree_t **inode_btree,
      libcerror_error_t **error );
 
-int libfsxfs_io_handle_clear(
+int libfsxfs_inode_btree_get_inode_by_number(
+     libfsxfs_inode_btree_t *inode_btree,
      libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     uint64_t inode_number,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_IO_HANDLE_H ) */
+#endif /* !defined( _LIBFSXFS_INODE_BTREE_H ) */
 

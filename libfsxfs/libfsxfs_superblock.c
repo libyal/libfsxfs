@@ -22,10 +22,7 @@
 #include <common.h>
 #include <byte_stream.h>
 #include <memory.h>
-#include <narrow_string.h>
-#include <system_string.h>
 #include <types.h>
-#include <wide_string.h>
 
 #include "libfsxfs_debug.h"
 #include "libfsxfs_libbfio.h"
@@ -245,6 +242,14 @@ int libfsxfs_superblock_read_data(
 	superblock->format_version = (uint8_t) ( version_and_feature_flags & 0x000f );
 	superblock->feature_flags  = version_and_feature_flags & 0xfff0;
 
+	byte_stream_copy_to_uint16_big_endian(
+	 ( (fsxfs_superblock_t *) data )->sector_size,
+	 superblock->sector_size );
+
+	byte_stream_copy_to_uint16_big_endian(
+	 ( (fsxfs_superblock_t *) data )->inode_size,
+	 superblock->inode_size );
+
 	if( memory_copy(
 	     superblock->volume_label,
 	     ( (fsxfs_superblock_t *) data )->volume_label,
@@ -391,21 +396,15 @@ int libfsxfs_superblock_read_data(
 		 superblock->format_version,
 		 superblock->feature_flags );
 
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_superblock_t *) data )->sector_size,
-		 value_16bit );
 		libcnotify_printf(
 		 "%s: sector size\t\t\t\t: %" PRIu16 "\n",
 		 function,
-		 value_16bit );
+		 superblock->sector_size );
 
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_superblock_t *) data )->inode_size,
-		 value_16bit );
 		libcnotify_printf(
 		 "%s: inode size\t\t\t\t: %" PRIu16 "\n",
 		 function,
-		 value_16bit );
+		 superblock->inode_size );
 
 		byte_stream_copy_to_uint16_big_endian(
 		 ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block,
@@ -635,6 +634,30 @@ int libfsxfs_superblock_read_data(
 		 "%s: unsupported features flags: 0x%04" PRIx16 ".",
 		 function,
 		 superblock->feature_flags );
+
+		return( -1 );
+	}
+	if( superblock->sector_size != 512 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: unsupported sector size: %" PRIu16 ".",
+		 function,
+		 superblock->sector_size );
+
+		return( -1 );
+	}
+	if( superblock->inode_size == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: unsupported inode size: %" PRIu16 ".",
+		 function,
+		 superblock->inode_size );
 
 		return( -1 );
 	}

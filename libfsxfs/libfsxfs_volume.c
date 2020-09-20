@@ -27,6 +27,8 @@
 
 #include "libfsxfs_debug.h"
 #include "libfsxfs_definitions.h"
+#include "libfsxfs_inode_btree.h"
+#include "libfsxfs_inode_information.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
@@ -910,6 +912,22 @@ int libfsxfs_volume_close(
 			result = -1;
 		}
 	}
+	if( internal_volume->inode_btree != NULL )
+	{
+		if( libfsxfs_inode_btree_free(
+		     &( internal_volume->inode_btree ),
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free inode B+ tree.",
+			 function );
+
+			result = -1;
+		}
+	}
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
 	if( libcthreads_read_write_lock_release_for_write(
 	     internal_volume->read_write_lock,
@@ -936,8 +954,10 @@ int libfsxfs_internal_volume_open_read(
      libbfio_handle_t *file_io_handle,
      libcerror_error_t **error )
 {
-	static char *function     = "libfsxfs_internal_volume_open_read";
-	off64_t superblock_offset = 0;
+	libfsxfs_inode_information_t *inode_information = NULL;
+	static char *function                           = "libfsxfs_internal_volume_open_read";
+	off64_t inode_information_offset                = 0;
+	off64_t superblock_offset                       = 0;
 
 	if( internal_volume == NULL )
 	{
@@ -972,6 +992,27 @@ int libfsxfs_internal_volume_open_read(
 
 		return( -1 );
 	}
+	if( internal_volume->inode_btree != NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid volume - inode B+ tree value already set.",
+		 function );
+
+		return( -1 );
+	}
+#if defined( HAVE_DEBUG_OUTPUT )
+	if( libcnotify_verbose != 0 )
+	{
+		libcnotify_printf(
+		 "Reading superblock: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").\n",
+		 0,
+		 superblock_offset,
+		 superblock_offset );
+	}
+#endif
 	if( libfsxfs_superblock_initialize(
 	     &( internal_volume->superblock ),
 	     error ) != 1 )
@@ -1003,11 +1044,114 @@ int libfsxfs_internal_volume_open_read(
 
 		goto on_error;
 	}
-/* TODO */
+	internal_volume->io_handle->format_version = internal_volume->superblock->format_version;
+	internal_volume->io_handle->block_size     = internal_volume->superblock->block_size;
+	internal_volume->io_handle->inode_size     = internal_volume->superblock->inode_size;
 
+#if defined( HAVE_DEBUG_OUTPUT )
+	if( libcnotify_verbose != 0 )
+	{
+		libcnotify_printf(
+		 "Reading inode information: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").\n",
+		 0,
+		 superblock_offset,
+		 superblock_offset );
+	}
+#endif
+	inode_information_offset = 2 * internal_volume->superblock->sector_size;
+
+	if( libfsxfs_inode_information_initialize(
+	     &inode_information,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create inode information.",
+		 function );
+
+		goto on_error;
+	}
+	if( libfsxfs_inode_information_read_file_io_handle(
+	     inode_information,
+	     internal_volume->io_handle,
+	     file_io_handle,
+	     inode_information_offset,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_IO,
+		 LIBCERROR_IO_ERROR_READ_FAILED,
+		 "%s: unable to read inode information: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").",
+		 function,
+		 0,
+		 inode_information_offset,
+		 inode_information_offset );
+
+		goto on_error;
+	}
+	if( libfsxfs_inode_btree_initialize(
+	     &( internal_volume->inode_btree ),
+	     inode_information->inode_btree_root_block_number,
+	     inode_information->inode_btree_depth,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create inode B+ tree.",
+		 function );
+
+		goto on_error;
+	}
+	if( libfsxfs_inode_btree_get_inode_by_number(
+	     internal_volume->inode_btree,
+	     internal_volume->io_handle,
+	     file_io_handle,
+	     internal_volume->superblock->root_directory_inode_number,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_IO,
+		 LIBCERROR_IO_ERROR_READ_FAILED,
+		 "%s: unable to retrieve root directory inode: %" PRIu64 "\n",
+		 function,
+		 internal_volume->superblock->root_directory_inode_number );
+
+		goto on_error;
+	}
+	if( libfsxfs_inode_information_free(
+	     &inode_information,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+		 "%s: unable to free inode information.",
+		 function );
+
+		goto on_error;
+	}
 	return( 1 );
 
 on_error:
+	if( inode_information != NULL )
+	{
+		libfsxfs_inode_information_free(
+		 &inode_information,
+		 NULL );
+	}
+	if( internal_volume->inode_btree != NULL )
+	{
+		libfsxfs_inode_btree_free(
+		 &( internal_volume->inode_btree ),
+		 NULL );
+	}
 	if( internal_volume->superblock != NULL )
 	{
 		libfsxfs_superblock_free(
@@ -1015,6 +1159,87 @@ on_error:
 		 NULL );
 	}
 	return( -1 );
+}
+
+/* Retrieves the format version
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_volume_get_format_version(
+     libfsxfs_volume_t *volume,
+     uint8_t *format_version,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_volume_t *internal_volume = NULL;
+	static char *function                       = "libfsxfs_volume_get_format_version";
+
+	if( volume == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid volume.",
+		 function );
+
+		return( -1 );
+	}
+	internal_volume = (libfsxfs_internal_volume_t *) volume;
+
+	if( internal_volume->io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+		 "%s: invalid volume - missing IO handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( format_version == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid format version.",
+		 function );
+
+		return( -1 );
+	}
+#if defined( HAVE_LIBFSEXT_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_read(
+	     internal_volume->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	*format_version = internal_volume->io_handle->format_version;
+
+#if defined( HAVE_LIBFSEXT_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_read(
+	     internal_volume->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( 1 );
 }
 
 /* Retrieves the size of the UTF-8 encoded label

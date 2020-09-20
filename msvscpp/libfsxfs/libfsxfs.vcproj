@@ -174,11 +174,27 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_btree_block.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_btree_header.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_debug.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_error.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_inode_btree.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_inode_information.c"
 				>
 			</File>
 			<File
@@ -208,7 +224,23 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\..\libfsxfs\fsxfs_btree.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\fsxfs_inode_information.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\fsxfs_superblock.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_btree_block.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_btree_header.h"
 				>
 			</File>
 			<File
@@ -225,6 +257,14 @@
 			</File>
 			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_extern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_inode_btree.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_inode_information.h"
 				>
 			</File>
 			<File

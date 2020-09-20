@@ -1,5 +1,5 @@
 /*
- * Input/Output (IO) handle functions
+ * B+ tree structures of the X File System (XFS)
  *
  * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,55 +19,49 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_IO_HANDLE_H )
-#define _LIBFSXFS_IO_HANDLE_H
+#if !defined( _FSXFS_BTREE_H )
+#define _FSXFS_BTREE_H
 
 #include <common.h>
 #include <types.h>
-
-#include "libfsxfs_libbfio.h"
-#include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
 extern "C" {
 #endif
 
-typedef struct libfsxfs_io_handle libfsxfs_io_handle_t;
+typedef struct fsxfs_btree_header fsxfs_btree_header_t;
 
-struct libfsxfs_io_handle
+struct fsxfs_btree_header
 {
-	/* The format version
+	/* Signature
+	 * Consists of 4 bytes
 	 */
-	int format_version;
+	uint8_t signature[ 4 ];
 
-	/* The block size
+	/* Level
+	 * Consists of 2 bytes
 	 */
-	uint32_t block_size;
+	uint8_t level[ 2 ];
 
-	/* Inode size
+	/* Number of records
+	 * Consists of 2 bytes
 	 */
-	uint16_t inode_size;
+	uint8_t number_of_records[ 2 ];
 
-	/* Value to indicate if abort was signalled
+	/* Previous B+ tree block number
+	 * Consists of 4 bytes
 	 */
-	int abort;
+	uint8_t previous_btree_block_number[ 4 ];
+
+	/* Next B+ tree block number
+	 * Consists of 4 bytes
+	 */
+	uint8_t next_btree_block_number[ 4 ];
 };
-
-int libfsxfs_io_handle_initialize(
-     libfsxfs_io_handle_t **io_handle,
-     libcerror_error_t **error );
-
-int libfsxfs_io_handle_free(
-     libfsxfs_io_handle_t **io_handle,
-     libcerror_error_t **error );
-
-int libfsxfs_io_handle_clear(
-     libfsxfs_io_handle_t *io_handle,
-     libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_IO_HANDLE_H ) */
+#endif /* !defined( _FSXFS_BTREE_H ) */
 

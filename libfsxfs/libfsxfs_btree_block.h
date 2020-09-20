@@ -1,5 +1,5 @@
 /*
- * Input/Output (IO) handle functions
+ * B+ tree block functions
  *
  * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,12 +19,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_IO_HANDLE_H )
-#define _LIBFSXFS_IO_HANDLE_H
+#if !defined( _LIBFSXFS_BTREE_BLOCK_H )
+#define _LIBFSXFS_BTREE_BLOCK_H
 
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_btree_header.h"
+#include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 
@@ -32,42 +34,41 @@
 extern "C" {
 #endif
 
-typedef struct libfsxfs_io_handle libfsxfs_io_handle_t;
+extern const char *fsxfs_btree_block_signature;
 
-struct libfsxfs_io_handle
+typedef struct libfsxfs_btree_block libfsxfs_btree_block_t;
+
+struct libfsxfs_btree_block
 {
-	/* The format version
+	/* Header
 	 */
-	int format_version;
-
-	/* The block size
-	 */
-	uint32_t block_size;
-
-	/* Inode size
-	 */
-	uint16_t inode_size;
-
-	/* Value to indicate if abort was signalled
-	 */
-	int abort;
+	libfsxfs_btree_header_t *header;
 };
 
-int libfsxfs_io_handle_initialize(
-     libfsxfs_io_handle_t **io_handle,
+int libfsxfs_btree_block_initialize(
+     libfsxfs_btree_block_t **btree_block,
      libcerror_error_t **error );
 
-int libfsxfs_io_handle_free(
-     libfsxfs_io_handle_t **io_handle,
+int libfsxfs_btree_block_free(
+     libfsxfs_btree_block_t **btree_block,
      libcerror_error_t **error );
 
-int libfsxfs_io_handle_clear(
+int libfsxfs_btree_block_read_data(
+     libfsxfs_btree_block_t *btree_block,
+     const uint8_t *data,
+     size_t data_size,
+     libcerror_error_t **error );
+
+int libfsxfs_btree_block_read_file_io_handle(
+     libfsxfs_btree_block_t *btree_block,
      libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     off64_t file_offset,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_IO_HANDLE_H ) */
+#endif /* !defined( _LIBFSXFS_BTREE_BLOCK_H ) */
 

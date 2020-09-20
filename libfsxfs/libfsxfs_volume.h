@@ -26,6 +26,7 @@
 #include <types.h>
 
 #include "libfsxfs_extern.h"
+#include "libfsxfs_inode_btree.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcdata.h"
@@ -45,6 +46,10 @@ struct libfsxfs_internal_volume
 	/* The superblock
 	 */
 	libfsxfs_superblock_t *superblock;
+
+	/* The inode B+ tree
+	 */
+	libfsxfs_inode_btree_t *inode_btree;
 
 	/* The IO handle
 	 */
@@ -117,6 +122,12 @@ int libfsxfs_volume_close(
 int libfsxfs_internal_volume_open_read(
      libfsxfs_internal_volume_t *internal_volume,
      libbfio_handle_t *file_io_handle,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_format_version(
+     libfsxfs_volume_t *volume,
+     uint8_t *format_version,
      libcerror_error_t **error );
 
 LIBFSXFS_EXTERN \

@@ -1,5 +1,5 @@
 /*
- * Library io_handle type test program
+ * Library inode_btree type test program
  *
  * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -33,30 +33,32 @@
 #include "fsxfs_test_memory.h"
 #include "fsxfs_test_unused.h"
 
-#include "../libfsxfs/libfsxfs_io_handle.h"
+#include "../libfsxfs/libfsxfs_inode_btree.h"
 
 #if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
 
-/* Tests the libfsxfs_io_handle_initialize function
+/* Tests the libfsxfs_inode_btree_initialize function
  * Returns 1 if successful or 0 if not
  */
-int fsxfs_test_io_handle_initialize(
+int fsxfs_test_inode_btree_initialize(
      void )
 {
-	libcerror_error_t *error        = NULL;
-	libfsxfs_io_handle_t *io_handle = NULL;
-	int result                      = 0;
+	libcerror_error_t *error            = NULL;
+	libfsxfs_inode_btree_t *inode_btree = NULL;
+	int result                          = 0;
 
 #if defined( HAVE_FSXFS_TEST_MEMORY )
-	int number_of_malloc_fail_tests = 1;
-	int number_of_memset_fail_tests = 1;
-	int test_number                 = 0;
+	int number_of_malloc_fail_tests     = 1;
+	int number_of_memset_fail_tests     = 1;
+	int test_number                     = 0;
 #endif
 
 	/* Test regular cases
 	 */
-	result = libfsxfs_io_handle_initialize(
-	          &io_handle,
+	result = libfsxfs_inode_btree_initialize(
+	          &inode_btree,
+	          128,
+	          1,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -65,15 +67,15 @@ int fsxfs_test_io_handle_initialize(
 	 1 );
 
 	FSXFS_TEST_ASSERT_IS_NOT_NULL(
-	 "io_handle",
-	 io_handle );
+	 "inode_btree",
+	 inode_btree );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
 	 "error",
 	 error );
 
-	result = libfsxfs_io_handle_free(
-	          &io_handle,
+	result = libfsxfs_inode_btree_free(
+	          &inode_btree,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -82,8 +84,8 @@ int fsxfs_test_io_handle_initialize(
 	 1 );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
-	 "io_handle",
-	 io_handle );
+	 "inode_btree",
+	 inode_btree );
 
 	FSXFS_TEST_ASSERT_IS_NULL(
 	 "error",
@@ -91,8 +93,10 @@ int fsxfs_test_io_handle_initialize(
 
 	/* Test error cases
 	 */
-	result = libfsxfs_io_handle_initialize(
+	result = libfsxfs_inode_btree_initialize(
 	          NULL,
+	          128,
+	          1,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -107,13 +111,15 @@ int fsxfs_test_io_handle_initialize(
 	libcerror_error_free(
 	 &error );
 
-	io_handle = (libfsxfs_io_handle_t *) 0x12345678UL;
+	inode_btree = (libfsxfs_inode_btree_t *) 0x12345678UL;
 
-	result = libfsxfs_io_handle_initialize(
-	          &io_handle,
+	result = libfsxfs_inode_btree_initialize(
+	          &inode_btree,
+	          128,
+	          1,
 	          &error );
 
-	io_handle = NULL;
+	inode_btree = NULL;
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
 	 "result",
@@ -133,22 +139,24 @@ int fsxfs_test_io_handle_initialize(
 	     test_number < number_of_malloc_fail_tests;
 	     test_number++ )
 	{
-		/* Test libfsxfs_io_handle_initialize with malloc failing
+		/* Test libfsxfs_inode_btree_initialize with malloc failing
 		 */
 		fsxfs_test_malloc_attempts_before_fail = test_number;
 
-		result = libfsxfs_io_handle_initialize(
-		          &io_handle,
+		result = libfsxfs_inode_btree_initialize(
+		          &inode_btree,
+		          128,
+		          1,
 		          &error );
 
 		if( fsxfs_test_malloc_attempts_before_fail != -1 )
 		{
 			fsxfs_test_malloc_attempts_before_fail = -1;
 
-			if( io_handle != NULL )
+			if( inode_btree != NULL )
 			{
-				libfsxfs_io_handle_free(
-				 &io_handle,
+				libfsxfs_inode_btree_free(
+				 &inode_btree,
 				 NULL );
 			}
 		}
@@ -160,8 +168,8 @@ int fsxfs_test_io_handle_initialize(
 			 -1 );
 
 			FSXFS_TEST_ASSERT_IS_NULL(
-			 "io_handle",
-			 io_handle );
+			 "inode_btree",
+			 inode_btree );
 
 			FSXFS_TEST_ASSERT_IS_NOT_NULL(
 			 "error",
@@ -175,22 +183,24 @@ int fsxfs_test_io_handle_initialize(
 	     test_number < number_of_memset_fail_tests;
 	     test_number++ )
 	{
-		/* Test libfsxfs_io_handle_initialize with memset failing
+		/* Test libfsxfs_inode_btree_initialize with memset failing
 		 */
 		fsxfs_test_memset_attempts_before_fail = test_number;
 
-		result = libfsxfs_io_handle_initialize(
-		          &io_handle,
+		result = libfsxfs_inode_btree_initialize(
+		          &inode_btree,
+		          128,
+		          1,
 		          &error );
 
 		if( fsxfs_test_memset_attempts_before_fail != -1 )
 		{
 			fsxfs_test_memset_attempts_before_fail = -1;
 
-			if( io_handle != NULL )
+			if( inode_btree != NULL )
 			{
-				libfsxfs_io_handle_free(
-				 &io_handle,
+				libfsxfs_inode_btree_free(
+				 &inode_btree,
 				 NULL );
 			}
 		}
@@ -202,8 +212,8 @@ int fsxfs_test_io_handle_initialize(
 			 -1 );
 
 			FSXFS_TEST_ASSERT_IS_NULL(
-			 "io_handle",
-			 io_handle );
+			 "inode_btree",
+			 inode_btree );
 
 			FSXFS_TEST_ASSERT_IS_NOT_NULL(
 			 "error",
@@ -223,19 +233,19 @@ on_error:
 		libcerror_error_free(
 		 &error );
 	}
-	if( io_handle != NULL )
+	if( inode_btree != NULL )
 	{
-		libfsxfs_io_handle_free(
-		 &io_handle,
+		libfsxfs_inode_btree_free(
+		 &inode_btree,
 		 NULL );
 	}
 	return( 0 );
 }
 
-/* Tests the libfsxfs_io_handle_free function
+/* Tests the libfsxfs_inode_btree_free function
  * Returns 1 if successful or 0 if not
  */
-int fsxfs_test_io_handle_free(
+int fsxfs_test_inode_btree_free(
      void )
 {
 	libcerror_error_t *error = NULL;
@@ -243,7 +253,7 @@ int fsxfs_test_io_handle_free(
 
 	/* Test error cases
 	 */
-	result = libfsxfs_io_handle_free(
+	result = libfsxfs_inode_btree_free(
 	          NULL,
 	          &error );
 
@@ -266,134 +276,6 @@ on_error:
 	{
 		libcerror_error_free(
 		 &error );
-	}
-	return( 0 );
-}
-
-/* Tests the libfsxfs_io_handle_clear function
- * Returns 1 if successful or 0 if not
- */
-int fsxfs_test_io_handle_clear(
-     void )
-{
-	libcerror_error_t *error        = NULL;
-	libfsxfs_io_handle_t *io_handle = NULL;
-	int result                      = 0;
-
-	/* Initialize test
-	 */
-	result = libfsxfs_io_handle_initialize(
-	          &io_handle,
-	          &error );
-
-	FSXFS_TEST_ASSERT_EQUAL_INT(
-	 "result",
-	 result,
-	 1 );
-
-	FSXFS_TEST_ASSERT_IS_NOT_NULL(
-	 "io_handle",
-	 io_handle );
-
-	FSXFS_TEST_ASSERT_IS_NULL(
-	 "error",
-	 error );
-
-	/* Test regular cases
-	 */
-	result = libfsxfs_io_handle_clear(
-	          io_handle,
-	          &error );
-
-	FSXFS_TEST_ASSERT_EQUAL_INT(
-	 "result",
-	 result,
-	 1 );
-
-	FSXFS_TEST_ASSERT_IS_NULL(
-	 "error",
-	 error );
-
-	/* Test error cases
-	 */
-	result = libfsxfs_io_handle_clear(
-	          NULL,
-	          &error );
-
-	FSXFS_TEST_ASSERT_EQUAL_INT(
-	 "result",
-	 result,
-	 -1 );
-
-	FSXFS_TEST_ASSERT_IS_NOT_NULL(
-	 "error",
-	 error );
-
-	libcerror_error_free(
-	 &error );
-
-#if defined( HAVE_FSXFS_TEST_MEMORY )
-
-	/* Test libfsxfs_io_handle_clear with memset failing
-	 */
-	fsxfs_test_memset_attempts_before_fail = 0;
-
-	result = libfsxfs_io_handle_clear(
-	          io_handle,
-	          &error );
-
-	if( fsxfs_test_memset_attempts_before_fail != -1 )
-	{
-		fsxfs_test_memset_attempts_before_fail = -1;
-	}
-	else
-	{
-		FSXFS_TEST_ASSERT_EQUAL_INT(
-		 "result",
-		 result,
-		 -1 );
-
-		FSXFS_TEST_ASSERT_IS_NOT_NULL(
-		 "error",
-		 error );
-
-		libcerror_error_free(
-		 &error );
-	}
-#endif /* defined( HAVE_FSXFS_TEST_MEMORY ) */
-
-	/* Clean up
-	 */
-	result = libfsxfs_io_handle_free(
-	          &io_handle,
-	          &error );
-
-	FSXFS_TEST_ASSERT_EQUAL_INT(
-	 "result",
-	 result,
-	 1 );
-
-	FSXFS_TEST_ASSERT_IS_NULL(
-	 "io_handle",
-	 io_handle );
-
-	FSXFS_TEST_ASSERT_IS_NULL(
-	 "error",
-	 error );
-
-	return( 1 );
-
-on_error:
-	if( error != NULL )
-	{
-		libcerror_error_free(
-		 &error );
-	}
-	if( io_handle != NULL )
-	{
-		libfsxfs_io_handle_free(
-		 &io_handle,
-		 NULL );
 	}
 	return( 0 );
 }
@@ -418,16 +300,12 @@ int main(
 #if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
 
 	FSXFS_TEST_RUN(
-	 "libfsxfs_io_handle_initialize",
-	 fsxfs_test_io_handle_initialize );
+	 "libfsxfs_inode_btree_initialize",
+	 fsxfs_test_inode_btree_initialize );
 
 	FSXFS_TEST_RUN(
-	 "libfsxfs_io_handle_free",
-	 fsxfs_test_io_handle_free );
-
-	FSXFS_TEST_RUN(
-	 "libfsxfs_io_handle_clear",
-	 fsxfs_test_io_handle_clear );
+	 "libfsxfs_inode_btree_free",
+	 fsxfs_test_inode_btree_free );
 
 #endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
 
