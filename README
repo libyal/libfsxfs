@@ -7,6 +7,14 @@ Project information:
 * Status: experimental
 * Licence: LGPLv3+
 
+Read-only supported XFS formats:
+
+* version 5
+
+Unsupported XFS format features:
+
+* XFS version 1, 2, 3 or 4
+
 For more information see:
 
 * Project documentation: https://github.com/libyal/libfsxfs/wiki/Home

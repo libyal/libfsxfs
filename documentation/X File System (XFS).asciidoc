@@ -1,5 +1,5 @@
 = X File System (XFS)
-Analysis the SGI X file system
+Analysis of SGI XFS
 
 :toc:
 :toclevels: 4
@@ -9,7 +9,8 @@ Analysis the SGI X file system
 == Summary
 
 The X File System (XFS) is a file system that originates from SGI but is used
-in various Linux distributions like RHEL.
+in various Linux distributions like RHEL. Some sources indicate that X was a
+a placeholder for a name that never given.
 
 This document is intended as a working document of the data format specification
 for the libfsxfs project.
@@ -50,23 +51,432 @@ in the section entitled "GNU Free Documentation License".
 == Overview
 
 The X File System (XFS) is a file system that originates from SGI but is used
-in various Linux distributions like RHEL.
+in various Linux distributions like RHEL. Some sources indicate that X was a
+a placeholder for a name that never given.
 
 [cols="1,5",options="header"]
 |===
 | Characteristics | Description
-| Byte order |
+| Byte order | big-endian
 | Date and time values |
 | Character strings |
 |===
 
-=== Heading 2
+== Terminology
+
+=== Absolute and relative inode numbers
+
+[yellow-background]*TODO describe*
+
+== The allocation group
+
+An allocation group consist of:
+
+* a sector containing a superblock
+* a sector containing allocation group free block information
+* a sector containing allocation group inode B+ tree information
+* a sector containing allocation group internal free list
+* blocks containing
+  * root of the inode B+ tree
+  * root of the free space B+ tree
+  * free list
+  * inodes table
+
+== The superblock
+
+The XFS superblock (xfs_sb_t) is 208 bytes of size and consists of:
 
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
-| 0 | 4 | | Signature
+| 0 | 4 | "XFSB" | Signature
+| 4 | 4 | | Block size +
+Typicaly 4096 bytes (4 KiB), can range from 512 to 65536 bytes
+| 8 | 8 | | Total number of blocks
+| 16 | 8 | | Number of real-time (device) blocks
+| 24 | 8 | | Number of real-time (device) extents
+| 32 | 16 | | File system (or volume) identifier +
+Contains an UUID
+| 48 | 8 | | Journal block number +
+Contains 0 if the journal is stored on a separate device
+| 56 | 8 | | Root directory inode number
+| 64 | 8 | | Real-time bitmap extents inode number
+| 72 | 8 | | Real-time bitmap summary inode number
+| 80 | 4 | | Real-time extent size +
+Contains number of blocks
+| 84 | 4 | | Allocation group size +
+Contains number of blocks
+| 88 | 4 | | Number of allocation groups
+| 92 | 4 | | Real-time bitmap size +
+Contains number of blocks
+| 96 | 4 | | Journal size +
+Contains number of blocks
+| 100 | 2 | | Version and feature flags +
+The 4 LSB contain the version the remaining bits are used to store the <<feature_flags,feature flags>>
+| 102 | 2 | | Sector size (in bytes)
+| 104 | 2 | | Inode size (in bytes) +
+Supported range 256 - 2048
+| 106 | 2 | | Number of inodes per block
+| 108 | 12 | | Volume label (or name)
+| 120 | 1 | | Block size in log2 +
+Where value = ( 2 ^ value in log2 ) or 0 if value in log2 is 0
+| 121 | 1 | | Sector size in log2 +
+Where value = ( 2 ^ value in log2 ) or 0 if value in log2 is 0
+| 122 | 1 | | Inode size in log2 +
+Where value = ( 2 ^ value in log2 ) or 0 if value in log2 is 0
+| 123 | 1 | | Number of inodes per block in log2 +
+Where value = ( 2 ^ value in log2 ) or 0 if value in log2 is 0
+| 124 | 1 | | Allocation group size in log2 +
+Where value = ( 2 ^ value in log2 ) or 0 if value in log2 is 0
+| 125 | 1 | | Number of real-time (device) extents in log2 +
+Where value = ( 2 ^ value in log2 ) or 0 if value in log2 is 0
+| 126 | 1 | | Creation flag +
+Value to indicate file system is being created
+| 127 | 1 | | Inodes percentage +
+Contains the percentage of the maximum space of the volume to use for inodes
+4+| _Only used in the first superblock_
+| 128 | 8 | | Number of inodes
+| 136 | 8 | | Number of free inodes
+| 144 | 8 | | Number of free data blocks
+| 152 | 8 | | Number of free real-time extents
+4+| _Only used if the XFS_SB_VERSION_QUOTABIT feature flag is set_
+| 160 | 8 | | User quota inode number
+| 168 | 8 | | Group (or project) quota inode number
+| 176 | 2 | | Quota flags +
+See sction: <<quota_flags,Quota flags>>
+4+| _Common_
+| 178 | 1 | | Miscellaneous flags +
+See sction: <<miscellaneous_flags,Miscellaneous flags>>
+| 179 | 1 | 0 | [yellow-background]*Unknown (reserved or shared version number)*
+4+| _Only used if the XFS_SB_VERSION_ALIGNBIT feature flag is set_
+| 180 | 4 | | Inode chunk alignment size +
+Contains number of blocks
+4+| _Common_
+| 184 | 4 | | Stripe or RAID unit size +
+Contains number of blocks
+| 188 | 4 | | Stripe of RAID width +
+Contains number of blocks
+| 192 | 1 | | Directory block allocation size in log2
+| 193 | 1 | | Journal device sector size in log2
+| 194 | 2 | | Journal device sector size (in bytes)
+4+| _Only used if the XFS_SB_VERSION_LOGV2BIT feature flag is set_
+| 196 | 4 | | Journal device stripe or RAID unit size
+4+| _Common_
+| 200 | 4 | | Secondary feature flags +
+See section: <<secondary_feature_flags,Secondary feature flags>>
+| 204 | 4 | | Copy of secondary feature flags +
+Introduced to work-around 64-bit alignment errors +
+See section: <<secondary_feature_flags,Secondary feature flags>>
+4+| _If version >= 5_
 |===
+
+....
+	uint32_t	sb_features_compat;
+	uint32_t	sb_features_ro_compat;
+	uint32_t	sb_features_incompat;
+	uint32_t	sb_features_log_incompat;
+	uint32_t	sb_crc;		/* superblock crc */
+	xfs_extlen_t	sb_spino_align;	/* sparse inode chunk alignment */
+	xfs_ino_t	sb_pquotino;	/* project quota inode */
+	xfs_lsn_t	sb_lsn;		/* last write sequence */
+	uuid_t		sb_meta_uuid;	/* metadata file system unique id */
+....
+
+=== [[feature_flags]]Feature flags
+
+[cols="1,1,5",options="header"]
+|===
+| Value | Identifier | Description
+| 0x0010 | XFS_SB_VERSION_ATTRBIT | Inodes support extended attributes
+| 0x0020 | XFS_SB_VERSION_NLINKBIT | Inodes has 32-bit number of links value
+| 0x0040 | XFS_SB_VERSION_QUOTABIT | Quotas enabled
+| 0x0080 | XFS_SB_VERSION_ALIGNBIT | Use inode chunk alignment
+| 0x0100 | XFS_SB_VERSION_DALIGNBIT | Has underlying stripe or RAID
+| 0x0200 | XFS_SB_VERSION_SHAREDBIT | [yellow-background]*Unknown (set if reserved shared version is used)*
+| 0x0400 | XFS_SB_VERSION_LOGV2BIT | Has version 2 journaling logs
+| 0x0800 | XFS_SB_VERSION_SECTORBIT | Sector size is not 512 bytes
+| 0x1000 | XFS_SB_VERSION_EXTFLGBIT | Unwritten extents are used +
+Should always be set.
+| 0x2000 | XFS_SB_VERSION_DIRV2BIT | Version 2 directories are used +
+Should always be set.
+| 0x4000 | XFS_SB_VERSION_BORGBIT | [yellow-background]*Unknown (ASCII only case-insensitive)*
+| 0x8000 | XFS_SB_VERSION_MOREBITSBIT | Secondary feature flags are used
+|===
+
+=== [[secondary_feature_flags]]Secondary feature flags
+
+[cols="1,1,5",options="header"]
+|===
+| Value | Identifier | Description
+| 0x00000001 | XFS_SB_VERSION2_RESERVED1BIT | [yellow-background]*Unknown (reserved)*
+| 0x00000002 | XFS_SB_VERSION2_LAZYSBCOUNTBIT | Has lazy global counters +
+Free space and inode values are only tracked in the primary superblock
+| 0x00000004 | XFS_SB_VERSION2_RESERVED4BIT | [yellow-background]*Unknown (reserved)*
+| 0x00000008 | XFS_SB_VERSION2_ATTR2BIT | Version 2 extended attributes are used
+| 0x00000010 | XFS_SB_VERSION2_PARENTBIT | Inodes have a parent pointer
+3+|
+| 0x00000080 | XFS_SB_VERSION2_PROJID32BIT | Has 32-bit project identifiers
+| 0x00000100 | XFS_SB_VERSION2_CRCBIT | Has metadata checksums
+| 0x00000200 | XFS_SB_VERSION2_FTYPE | Directory entries contain a file type
+|===
+
+=== [[miscellaneous_flags]]Miscellaneous flags
+
+[cols="1,1,5",options="header"]
+|===
+| Value | Identifier | Description
+| 0x01 | XFS_SBF_READONLY | Read-only file system
+|===
+
+=== [[quota_flags]]Quota flags
+
+[cols="1,1,5",options="header"]
+|===
+| Value | Identifier | Description
+| 0x0001 | XFS_UQUOTA_ACCT | User quota accounting is enabled
+| 0x0002 | XFS_UQUOTA_ENFD | User quotas are enforced
+| 0x0004 | XFS_UQUOTA_CHKD | User quotas have been checked and updated on disk
+| 0x0008 | XFS_PQUOTA_ACCT | Project quota accounting is enabled
+| 0x0010 | XFS_OQUOTA_ENFD | Other (group/project) quotas are enforced
+| 0x0020 | XFS_OQUOTA_CHKD | Other (group/project) quotas have been checked
+| 0x0040 | XFS_GQUOTA_ACCT | Group quota accounting is enabled
+| 0x0080 | XFS_GQUOTA_ENFD | Group quotas are enforced
+| 0x0100 | XFS_GQUOTA_CHKD | Group quotas have been checked
+| 0x0200 | XFS_PQUOTA_ENFD | Project quotas are enforced
+| 0x0400 | XFS_PQUOTA_CHKD | Project quotas have been checked
+|===
+
+== Allocation group free block information
+
+The allocation group free block information stores 2 B+ trees to track:
+
+* the free space by block number (block offset B+ tree)
+* the size of the free space block (block count B+ tree)
+
+The allocation group free block information (xfs_agf_t) is 64 bytes of size
+and consists of: 
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | "XAGF" | Signature
+| 4 | 4 | 1 | Version
+| 8 | 4 | | Sequence number +
+Contains the allocation group number of the corresponding sector
+| 12 | 4 | | [yellow-background]*Unknown (Allocation group size)* +
+Contains number of blocks
+| 16 | 4 | | Free space counts B+ tree root block number
+| 20 | 4 | | Free space sizes B+ tree root block number
+| 24 | 4 | | [yellow-background]*Unknown (reserved)*
+| 28 | 4 | | Free space counts B+ tree height/depth
+| 32 | 4 | | Free space sizes B+ tree height/depth
+| 36 | 4 | | [yellow-background]*Unknown (reserved)*
+| 40 | 4 | | Index of the first "free list" block
+| 44 | 4 | | Index of the last "free list" block
+| 48 | 4 | | "Free list" size +
+Contains number of blocks
+| 52 | 4 | | Number of free blocks in the allocation group
+| 56 | 4 | | Longest contiguous free space in the allocation group +
+Contains number of blocks
+4+| _Only used if the XFS_SB_VERSION2_LAZYSBCOUNTBIT feature flag is set_
+| 60 | 4 | | Number of blocks used for the free space B+ trees
+4+| _If version >= 5_
+| 64 | 0 | | 
+|===
+
+....
+/* version 5 filesystem fields start here */
+uuid_t
+agf_uuid;
+__be32
+agf_rmap_blocks;
+__be32
+agf_refcount_blocks;
+__be32
+agf_refcount_root;
+__be32
+agf_refcount_level;
+__be64
+agf_spare64[14];
+/* unlogged fields, written during buffer writeback. */
+__be64
+agf_lsn;
+__be32
+agf_crc;
+__be32
+agf_spare2;
+....
+
+== Allocation group free space B+ trees
+
+=== Free B+ tree header
+
+The free B+ tree header (xfs_btree_sblock_t) is 16 bytes of size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | "AB3B" +
+"AB3C" +
+"ABTB" +
+"ABTC" | Signature
+| 4 | 2 | | Level (or depth)
+| 6 | 2 | | Number of records
+| 8 | 4 | | Previous free B+ tree header block number
+| 12 | 4 | | Next free B+ tree header block number
+|===
+
+==== Free B+ tree header signatures
+
+[cols="1,5",options="header"]
+|===
+| Signature | Description
+| "AB3B" | Version 5 free space block offset B+ tree
+| "AB3C" | Version 5 free space block count B+ tree
+| "ABTB" | Free space block offset B+ tree
+| "ABTC" | Free space block count B+ tree
+|===
+
+=== Free B+ tree branch node
+
+....
+typedef __be32 xfs_alloc_ptr_t;
+....
+
+=== Free B+ tree leaf value
+
+....
+typedef struct xfs_alloc_rec {
+__be32
+ar_startblock;
+__be32
+ar_blockcount;
+} xfs_alloc_rec_t, xfs_alloc_key_t;
+....
+
+== Allocation group free list
+
+An allocation group free list consists of:
+
+* As of version 5, allocation group free list header
+* Array of free block numbers
+
+=== Allocation group free list header
+
+The allocation group free list header is 36 bytes of size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | "AGFL" | Signature
+| 4 | 4 | | Sequence number +
+Contains the allocation group number of the corresponding sector
+| 8 | 16 | | Block type identifier +
+Contains an UUID
+| 24 | 8 | | Log sequence number
+| 32 | 4 | | Checksum of the sector
+|===
+
+[yellow-background]*TODO describe sb_uuid or sb_meta_uuid*
+
+== Allocation group inode information
+
+The allocation group inode information (xfs_agi_t) is 296 bytes of size
+and consists of: 
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | "XAGI" | Signature
+| 4 | 4 | 1 | Version
+| 8 | 4 | | Sequence number +
+Contains the allocation group number of the corresponding sector
+| 12 | 4 | | [yellow-background]*Unknown (Allocation group size)* +
+Contains number of blocks
+| 16 | 4 | | Number of inodes allocated of the allocation group
+| 20 | 4 | | Inode B+ tree root block number
+| 24 | 4 | | Inode B+ tree height/depth
+| 28 | 4 | | Number of free inodes of the allocation group
+| 32 | 4 | | Last allocated chunk +
+Contains a relative inode number
+| 36 | 4 | | [yellow-background]*Unknown (deprecated)* +
+Always set to NULL (-1)
+| 40 | 64 x 4 | | Hash table of unlinked (deleted) inodes that are still being referenced
+4+| _If version >= 5_
+| 296 | 0 | | 
+|===
+
+....
+/*
+* v5 filesystem fields start here; this marks the end of logging region 1
+* and start of logging region 2.
+*/
+uuid_t
+agi_uuid;
+__be32
+agi_crc;
+__be32
+agi_pad32;
+__be64
+agi_lsn;
+__be32
+__be32
+agi_free_root;
+agi_free_level;
+....
+
+== Allocation group inode B+ trees
+
+=== Inode B+ tree header
+
+The inode B+ tree header (xfs_btree_sblock_t) is 16 bytes of size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | "FIB3" +
+"FIBT" +
+"IAB3" +
+"IABT" | Signature
+| 4 | 2 | | Level (or depth)
+| 6 | 2 | | Number of records
+| 8 | 4 | | Previous inode B+ tree header block number
+| 12 | 4 | | Next inode B+ tree header block number
+|===
+
+==== Inode B+ tree header signatures
+
+[cols="1,5",options="header"]
+|===
+| Signature | Description
+| "FIB3" | Version 5 free inode B+tree
+| "FIBT" | free inode B+tree
+| "IAB3" | Version 5 (allocated) inode B+tree
+| "IABT" | (allocated) inode B+tree
+|===
+
+=== Inode B+ tree branch node
+
+....
+struct xfs_inobt_key {
+__be32
+ir_startino;
+};
+typedef __be32 xfs_inobt_ptr_t;
+....
+
+=== Inode B+ tree leaf value
+
+....
+struct xfs_inobt_rec {
+__be32
+__be32
+__be64
+};
+ir_startino;
+ir_freecount;
+ir_free;
+....
 
 :numbered!:
 [appendix]
@@ -76,10 +486,16 @@ in various Linux distributions like RHEL.
 
 [cols="1,5",options="header"]
 |===
-| Title: |
-| Author(s): |
-| Date: |
-| URL: |
+| Title: | XFS Filesystem Structure - 3rd Edition
+| Author(s): | Silicon Graphics Inc.
+| Date: | May 2018
+| URL: | https://mirrors.edge.kernel.org/pub/linux/utils/fs/xfs/docs/xfs_filesystem_structure.pdf
+|===
+
+[cols="1,5",options="header"]
+|===
+| Title: | XFS Filesystem Structure
+| URL: | https://kernel.googlesource.com/pub/scm/fs/xfs/xfs-documentation/+/master/design/XFS_Filesystem_Structure
 |===
 
 [appendix]

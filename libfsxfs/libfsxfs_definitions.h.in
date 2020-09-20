@@ -1,0 +1,121 @@
+/*
+ * The internal definitions
+ *
+ * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
+ *
+ * Refer to AUTHORS for acknowledgements.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#if !defined( _LIBFSXFS_INTERNAL_DEFINITIONS_H )
+#define _LIBFSXFS_INTERNAL_DEFINITIONS_H
+
+#include <common.h>
+#include <byte_stream.h>
+
+#define LIBFSXFS_ENDIAN_BIG						_BYTE_STREAM_ENDIAN_BIG
+#define LIBFSXFS_ENDIAN_LITTLE						_BYTE_STREAM_ENDIAN_LITTLE
+
+/* Define HAVE_LOCAL_LIBFSXFS for local use of libfsxfs
+ */
+#if !defined( HAVE_LOCAL_LIBFSXFS )
+#include <libfsxfs/definitions.h>
+
+/* The definitions in <libfsxfs/definitions.h> are copied here
+ * for local use of libfsxfs
+ */
+#else
+#define LIBFSXFS_VERSION						@VERSION@
+
+/* The version string
+ */
+#define LIBFSXFS_VERSION_STRING						"@VERSION@"
+
+/* The file access
+ * bit 1        set to 1 for read access
+ * bit 2        set to 1 for write access
+ * bit 3-8      not used
+ */
+enum LIBFSXFS_ACCESS_FLAGS
+{
+	LIBFSXFS_ACCESS_FLAG_READ					= 0x01,
+/* Reserved: not supported yet */
+	LIBFSXFS_ACCESS_FLAG_WRITE					= 0x02
+};
+
+/* The file access macros
+ */
+#define LIBFSXFS_OPEN_READ						( LIBFSXFS_ACCESS_FLAG_READ )
+/* Reserved: not supported yet */
+#define LIBFSXFS_OPEN_WRITE						( LIBFSXFS_ACCESS_FLAG_WRITE )
+/* Reserved: not supported yet */
+#define LIBFSXFS_OPEN_READ_WRITE					( LIBFSXFS_ACCESS_FLAG_READ | LIBFSXFS_ACCESS_FLAG_WRITE )
+
+/* The path segment separator
+ */
+#define LIBFSXFS_SEPARATOR						'/'
+
+/* The file types
+ */
+enum LIBFSXFS_FILE_TYPES
+{
+	LIBFSXFS_FILE_TYPE_FIFO						= 0x1000,
+	LIBFSXFS_FILE_TYPE_CHARACTER_DEVICE				= 0x2000,
+	LIBFSXFS_FILE_TYPE_DIRECTORY					= 0x4000,
+	LIBFSXFS_FILE_TYPE_BLOCK_DEVICE					= 0x6000,
+	LIBFSXFS_FILE_TYPE_REGULAR_FILE					= 0x8000,
+	LIBFSXFS_FILE_TYPE_SYMBOLIC_LINK				= 0xa000,
+	LIBFSXFS_FILE_TYPE_SOCKET					= 0xc000,
+};
+
+/* The extent flag definitions
+ */
+enum LIBFSXFS_EXTENT_FLAGS
+{
+	/* The extent is sparse
+	 */
+	LIBFSXFS_EXTENT_FLAG_IS_SPARSE					= 0x00000001UL
+};
+
+#endif /* !defined( HAVE_LOCAL_LIBFSXFS ) */
+
+/* The incompatible features flags
+ */
+enum LIBFSXFS_INCOMPATIBLE_FEATURES_FLAGS
+{
+	LIBFSXFS_INCOMPATIBLE_FEATURES_FLAG_64BIT_SUPPORT		= 0x00000080UL,
+};
+
+/* The inode flags types
+ */
+enum LIBFSXFS_INODE_FLAGS
+{
+	LIBFSXFS_INODE_FLAG_COMPRESSED_DATA				= 0x00000200UL,
+
+	LIBFSXFS_INODE_FLAG_HAS_EXTENTS					= 0x00080000UL,
+
+	LIBFSXFS_INODE_FLAG_INLINE_DATA					= 0x10000000UL,
+};
+
+#define LIBFSXFS_INODE_NUMBER_ROOT_DIRECTORY				2
+
+#define LIBFSXFS_DIRECTORY_ENTRIES_TREE_MAXIMUM_NUMBER_OF_SUB_NODES	257
+#define LIBFSXFS_MAXIMUM_CACHE_ENTRIES_BLOCKS				8
+#define LIBFSXFS_MAXIMUM_CACHE_ENTRIES_INODES				32
+
+#define LIBFSXFS_MAXIMUM_RECURSION_DEPTH				256
+
+#endif /* !defined( _LIBFSXFS_INTERNAL_DEFINITIONS_H ) */
+

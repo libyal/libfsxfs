@@ -1,0 +1,200 @@
+environment:
+  matrix:
+  - TARGET: vs2008
+    BUILD_ENVIRONMENT: msbuild
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    VisualStudioVersion: 9.0
+    platform: Win32
+    configuration: Release
+  - TARGET: vs2010
+    BUILD_ENVIRONMENT: msbuild
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    VisualStudioVersion: 10.0
+    platform: Win32
+    configuration: VSDebug
+  - TARGET: vs2012
+    BUILD_ENVIRONMENT: msbuild
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    VisualStudioVersion: 11.0
+    platform: x64
+    configuration: Release
+  - TARGET: vs2013
+    BUILD_ENVIRONMENT: msbuild
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    VisualStudioVersion: 12.0
+    platform: Win32
+    configuration: Release
+  - TARGET: vs2015
+    BUILD_ENVIRONMENT: msbuild
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    VisualStudioVersion: 14.0
+    platform: Win32
+    configuration: Release
+  - TARGET: vs2017
+    BUILD_ENVIRONMENT: msbuild
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    VisualStudioVersion: 15.0
+    configuration: Release
+  - TARGET: vs2019
+    BUILD_ENVIRONMENT: msbuild
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    VisualStudioVersion: 16.0
+    configuration: Release
+  - TARGET: python27
+    BUILD_ENVIRONMENT: python
+    PYTHON: "C:\\Python27\\python.exe"
+  - TARGET: python27-x64
+    BUILD_ENVIRONMENT: python
+    PYTHON: "C:\\Python27-x64\\python.exe"
+  - TARGET: python38
+    BUILD_ENVIRONMENT: python
+    PYTHON: "C:\\Python38\\python.exe"
+  - TARGET: python38-x64
+    BUILD_ENVIRONMENT: python
+    PYTHON: "C:\\Python38-x64\\python.exe"
+  - TARGET: python38-x64
+    BUILD_ENVIRONMENT: python
+    APPVEYOR_BUILD_WORKER_IMAGE: macos
+    PYTHON: "/usr/local/bin/python3.8"
+    HOMEBREW_NO_INSTALL_CLEANUP: 1
+  - TARGET: cygwin-gcc
+    BUILD_ENVIRONMENT: cygwin
+    CONFIGURE_OPTIONS: ""
+  - TARGET: cygwin-gcc-no-optimization
+    BUILD_ENVIRONMENT: cygwin
+    CONFIGURE_OPTIONS: "--enable-shared=no"
+    CFLAGS: "--coverage -O0"
+    CPPFLAGS: "-DOPTIMIZATION_DISABLED"
+    LDFLAGS: "--coverage"
+  - TARGET: cygwin-gcc-python
+    BUILD_ENVIRONMENT: cygwin
+    CONFIGURE_OPTIONS: "--enable-python"
+  - TARGET: cygwin-gcc-python2
+    BUILD_ENVIRONMENT: cygwin
+    CONFIGURE_OPTIONS: "--enable-python2"
+    PYTHON_VERSION: 2
+  - TARGET: cygwin-gcc-python3
+    BUILD_ENVIRONMENT: cygwin
+    CONFIGURE_OPTIONS: "--enable-python3"
+    PYTHON_VERSION: 3
+  - TARGET: cygwin-gcc-static-executables
+    BUILD_ENVIRONMENT: cygwin
+    CONFIGURE_OPTIONS: "--enable-static-executables"
+  - TARGET: cygwin64-gcc
+    BUILD_ENVIRONMENT: cygwin64
+    CONFIGURE_OPTIONS: ""
+  - TARGET: cygwin64-gcc-no-optimization
+    BUILD_ENVIRONMENT: cygwin64
+    CONFIGURE_OPTIONS: "--enable-shared=no"
+    CFLAGS: "--coverage -O0"
+    CPPFLAGS: "-DOPTIMIZATION_DISABLED"
+    LDFLAGS: "--coverage"
+  - TARGET: cygwin64-gcc-python
+    BUILD_ENVIRONMENT: cygwin64
+    CONFIGURE_OPTIONS: "--enable-python"
+  - TARGET: cygwin64-gcc-python2
+    BUILD_ENVIRONMENT: cygwin64
+    CONFIGURE_OPTIONS: "--enable-python2"
+    PYTHON_VERSION: 2
+  - TARGET: cygwin64-gcc-python3
+    BUILD_ENVIRONMENT: cygwin64
+    CONFIGURE_OPTIONS: "--enable-python3"
+    PYTHON_VERSION: 3
+  - TARGET: cygwin64-gcc-static-executables
+    BUILD_ENVIRONMENT: cygwin64
+    CONFIGURE_OPTIONS: "--enable-static-executables"
+  - TARGET: mingw-gcc
+    BUILD_ENVIRONMENT: mingw
+    CONFIGURE_OPTIONS: ""
+  - TARGET: mingw-gcc-no-optimization
+    BUILD_ENVIRONMENT: mingw
+    CONFIGURE_OPTIONS: "--enable-shared=no"
+    CFLAGS: "--coverage -O0"
+    CPPFLAGS: "-DOPTIMIZATION_DISABLED"
+    LDFLAGS: "--coverage"
+  - TARGET: mingw-gcc-static-executables
+    BUILD_ENVIRONMENT: mingw
+    CONFIGURE_OPTIONS: "--enable-static-executables"
+  - TARGET: mingw-w64-gcc
+    BUILD_ENVIRONMENT: mingw-w64
+    CONFIGURE_OPTIONS: ""
+  - TARGET: mingw-w64-gcc-no-optimization
+    BUILD_ENVIRONMENT: mingw-w64
+    CONFIGURE_OPTIONS: "--enable-shared=no"
+    CFLAGS: "--coverage -O0"
+    CPPFLAGS: "-DOPTIMIZATION_DISABLED"
+    LDFLAGS: "--coverage"
+  - TARGET: mingw-w64-gcc-static-executables
+    BUILD_ENVIRONMENT: mingw-w64
+    CONFIGURE_OPTIONS: "--enable-static-executables"
+
+install:
+- cmd: git clone https://github.com/codecov/codecov-bash.git ..\codecov-bash
+- cmd: if [%BUILD_ENVIRONMENT%]==[msbuild] (
+    git clone https://github.com/libyal/vstools.git ..\vstools )
+- sh: if test ${BUILD_ENVIRONMENT} = "python"; then brew update; fi
+- sh: if test ${BUILD_ENVIRONMENT} = "python"; then brew install gnu-sed python3 || true; fi
+- ps: If ($env:BUILD_ENVIRONMENT -eq "python") {
+    Invoke-Expression "${env:PYTHON} -m pip install -U pip setuptools twine wheel" }
+- cmd: if [%BUILD_ENVIRONMENT%]==[cygwin] (
+    C:\cygwin\setup-x86.exe -qgnNdO -l C:\cygwin\var\cache\setup -R c:\cygwin -s http://cygwin.mirror.constant.com -P python2-devel -P python3-devel )
+- cmd: if [%BUILD_ENVIRONMENT%]==[cygwin64] (
+    C:\cygwin64\setup-x86_64.exe -qgnNdO -l C:\cygwin64\var\cache\setup -R c:\cygwin64 -s http://cygwin.mirror.constant.com -P python2-devel -P python3-devel )
+
+build_script:
+- ps: If ($env:BUILD_ENVIRONMENT -eq "msbuild" -or ($env:BUILD_ENVIRONMENT -eq "python" -and $isWindows)) {
+    .\synclibs.ps1;
+    .\autogen.ps1 }
+- ps: If ($env:TARGET -eq "vs2008") {
+    .\build.ps1 -VisualStudioVersion 2008 -VSToolsOptions "" }
+- ps: If ($env:TARGET -eq "vs2010") {
+    .\build.ps1 -VisualStudioVersion 2010 -VSToolsOptions "--no-python-dll" }
+- ps: If ($env:TARGET -eq "vs2012") {
+    .\build.ps1 -VisualStudioVersion 2012 -VSToolsOptions "--extend-with-x64 --python-path C:\\Python27-x64" }
+- ps: If ($env:TARGET -eq "vs2013") {
+    .\build.ps1 -VisualStudioVersion 2013 -VSToolsOptions "" }
+- ps: If ($env:TARGET -eq "vs2015") {
+    .\build.ps1 -VisualStudioVersion 2015 -VSToolsOptions "" }
+- ps: If ($env:TARGET -eq "vs2017") {
+    .\build.ps1 -VisualStudioVersion 2017 -Platform Win32 -VSToolsOptions "--extend-with-x64 --no-python-dll --with-dokany";
+    .\build.ps1 -VisualStudioVersion 2017 -Platform x64 -VSToolsOptions "--extend-with-x64 --no-python-dll --with-dokany" }
+- ps: If ($env:TARGET -eq "vs2019") {
+    .\build.ps1 -VisualStudioVersion 2019 -VSToolsOptions "--extend-with-x64 --no-python-dll --with-dokany" }
+- cmd: if [%BUILD_ENVIRONMENT%]==[python] (
+    "%PYTHON%" setup.py bdist_msi bdist_wheel )
+- sh: if test ${BUILD_ENVIRONMENT} = "python"; then ./synclibs.sh && ./autogen.sh && ./configure ${CONFIGURE_OPTIONS} && make > /dev/null; fi
+- sh: if test ${BUILD_ENVIRONMENT} = "python"; then ${PYTHON} setup.py bdist_wheel; fi
+- cmd: if [%BUILD_ENVIRONMENT%]==[cygwin] (
+    xcopy /i /q /s C:\projects\libfsxfs C:\cygwin\home\appveyor\libfsxfs &&
+    C:\cygwin\bin\bash -e -l -c "cd libfsxfs && ./synclibs.sh --use-head && ./autogen.sh && ./configure ${CONFIGURE_OPTIONS} && make > /dev/null" )
+- cmd: if [%BUILD_ENVIRONMENT%]==[cygwin64] (
+    xcopy /i /q /s C:\projects\libfsxfs C:\cygwin64\home\appveyor\libfsxfs &&
+    C:\cygwin64\bin\bash -e -l -c "cd libfsxfs && ./synclibs.sh --use-head && ./autogen.sh && ./configure ${CONFIGURE_OPTIONS} && make > /dev/null" )
+- cmd: if [%BUILD_ENVIRONMENT%]==[mingw] (
+    xcopy /i /q /s C:\projects\libfsxfs C:\MinGW\msys\1.0\home\appveyor\libfsxfs &&
+    C:\MinGW\msys\1.0\bin\bash -e -l -c "cd libfsxfs && sed 's/@VERSION@/0.29/g' m4/pkg.m4.in > m4/pkg.m4 && ./synclibs.sh --use-head && ./autogen.sh && ./configure ${CONFIGURE_OPTIONS} && make > /dev/null" )
+- cmd: if [%BUILD_ENVIRONMENT%]==[mingw-w64] (
+    xcopy /i /q /s C:\projects\libfsxfs C:\msys64\home\appveyor\libfsxfs &&
+    C:\msys64\usr\bin\bash -e -l -c "cd libfsxfs && ./synclibs.sh --use-head && ./autogen.sh && ./configure ${CONFIGURE_OPTIONS} && make > /dev/null" )
+
+test_script:
+- cmd: rem Run tests
+- ps: If ($env:BUILD_ENVIRONMENT -eq "msbuild") {
+    .\runtests.ps1 }
+- cmd: if [%BUILD_ENVIRONMENT%]==[cygwin] (
+    C:\cygwin\bin\bash -l -c "cd libfsxfs && make check CHECK_WITH_STDERR=1; RESULT=$?; if test ${RESULT} -ne 0 && test -f tests/test-suite.log; then cat tests/test-suite.log; fi; exit ${RESULT};" )
+- cmd: if [%BUILD_ENVIRONMENT%]==[cygwin64] (
+    C:\cygwin64\bin\bash -l -c "cd libfsxfs && make check CHECK_WITH_STDERR=1; RESULT=$?; if test ${RESULT} -ne 0 && test -f tests/test-suite.log; then cat tests/test-suite.log; fi; exit ${RESULT};" )
+- cmd: if [%BUILD_ENVIRONMENT%]==[mingw] (
+    C:\MinGW\msys\1.0\bin\bash -l -c "cd libfsxfs && make check CHECK_WITH_STDERR=1; RESULT=$?; if test ${RESULT} -ne 0 && test -f tests/test-suite.log; then cat tests/test-suite.log; fi; exit ${RESULT};" )
+- cmd: if [%BUILD_ENVIRONMENT%]==[mingw-w64] (
+    C:\msys64\usr\bin\bash -l -c "cd libfsxfs && make check CHECK_WITH_STDERR=1; RESULT=$?; if test ${RESULT} -ne 0 && test -f tests/test-suite.log; then cat tests/test-suite.log; fi; exit ${RESULT};" )
+
+after_test:
+- cmd: if [%TARGET%]==[mingw-gcc-no-optimization] (
+    copy C:\projects\codecov-bash\codecov C:\MinGW\msys\1.0\home\appveyor\libfsxfs\codecov.sh &&
+    C:\MinGW\msys\1.0\bin\bash -e -l -c "cd libfsxfs && chmod a+x ./codecov.sh && ./codecov.sh -n ${TARGET}" )
+
+artifacts:
+- path: dist\*.whl
+
