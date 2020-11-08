@@ -51,9 +51,10 @@
 
 enum FSXFSINFO_MODES
 {
-	FSXFSINFO_MODE_FILE_ENTRY,
+	FSXFSINFO_MODE_FILE_ENTRIES,
+	FSXFSINFO_MODE_FILE_ENTRY_BY_IDENTIFIER,
+	FSXFSINFO_MODE_FILE_ENTRY_BY_PATH,
 	FSXFSINFO_MODE_FILE_SYSTEM_HIERARCHY,
-	FSXFSINFO_MODE_INODE,
 	FSXFSINFO_MODE_VOLUME
 };
 
@@ -73,11 +74,12 @@ void usage_fprint(
 	                 " File System (ext) volume.\n\n" );
 
 	fprintf( stream, "Usage: fsxfsinfo [ -B bodyfile ] [ -E inode_number ] [ -F file_entry ]\n"
-	                 "                 [ -o offset ] [ -hHvV ] source\n\n" );
+	                 "                 [ -o offset ] [ -dhHvV ] source\n\n" );
 
 	fprintf( stream, "\tsource: the source file or device\n\n" );
 
 	fprintf( stream, "\t-B:     output file system information as a bodyfile\n" );
+	fprintf( stream, "\t-d:     calculate a MD5 hash of a file entry to include in the bodyfile\n" );
 	fprintf( stream, "\t-E:     show information about a specific inode or \"all\".\n" );
 	fprintf( stream, "\t-F:     show information about a specific file entry path.\n" );
 	fprintf( stream, "\t-h:     shows this help\n" );
@@ -139,18 +141,19 @@ int wmain( int argc, wchar_t * const argv[] )
 int main( int argc, char * const argv[] )
 #endif
 {
-	libfsxfs_error_t *error                  = NULL;
-	system_character_t *option_bodyfile      = NULL;
-	system_character_t *option_file_entry    = NULL;
-	system_character_t *option_inode_number  = NULL;
-	system_character_t *option_volume_offset = NULL;
-	system_character_t *source               = NULL;
-	char *program                            = "fsxfsinfo";
-	system_integer_t option                  = 0;
-	size_t string_length                     = 0;
-	uint64_t inode_number                    = 0;
-	int option_mode                          = FSXFSINFO_MODE_VOLUME;
-	int verbose                              = 0;
+	libfsxfs_error_t *error                          = NULL;
+	system_character_t *option_bodyfile              = NULL;
+	system_character_t *option_file_entry_identifier = NULL;
+	system_character_t *option_file_entry_path       = NULL;
+	system_character_t *option_volume_offset         = NULL;
+	system_character_t *source                       = NULL;
+	char *program                                    = "fsxfsinfo";
+	system_integer_t option                          = 0;
+	size_t string_length                             = 0;
+	uint64_t file_entry_identifier                   = 0;
+	uint8_t calculate_md5                            = 0;
+	int option_mode                                  = FSXFSINFO_MODE_VOLUME;
+	int verbose                                      = 0;
 
 	libcnotify_stream_set(
 	 stderr,
@@ -185,7 +188,7 @@ int main( int argc, char * const argv[] )
 	while( ( option = fsxfstools_getopt(
 	                   argc,
 	                   argv,
-	                   _SYSTEM_STRING( "B:E:F:hHo:vV" ) ) ) != (system_integer_t) -1 )
+	                   _SYSTEM_STRING( "B:dE:F:hHo:vV" ) ) ) != (system_integer_t) -1 )
 	{
 		switch( option )
 		{
@@ -206,17 +209,23 @@ int main( int argc, char * const argv[] )
 
 				break;
 
+			case (system_integer_t) 'd':
+				calculate_md5 = 1;
+
+				break;
+
 			case (system_integer_t) 'E':
-				option_mode         = FSXFSINFO_MODE_INODE;
-				option_inode_number = optarg;
+				option_mode                  = FSXFSINFO_MODE_FILE_ENTRY_BY_IDENTIFIER;
+				option_file_entry_identifier = optarg;
 
 				break;
 
 			case (system_integer_t) 'F':
-				option_mode       = FSXFSINFO_MODE_FILE_ENTRY;
-				option_file_entry = optarg;
+				option_mode            = FSXFSINFO_MODE_FILE_ENTRY_BY_PATH;
+				option_file_entry_path = optarg;
 
 				break;
+
 
 			case (system_integer_t) 'h':
 				usage_fprint(
@@ -269,6 +278,7 @@ int main( int argc, char * const argv[] )
 
 	if( info_handle_initialize(
 	     &fsxfsinfo_info_handle,
+	     calculate_md5,
 	     &error ) != 1 )
 	{
 		fprintf(
@@ -321,13 +331,82 @@ int main( int argc, char * const argv[] )
 
 		goto on_error;
 	}
+	if( option_mode == FSXFSINFO_MODE_FILE_ENTRY_BY_IDENTIFIER )
+	{
+		if( option_file_entry_identifier == NULL )
+		{
+			fprintf(
+			 stderr,
+			 "Mising file entry identifier string.\n" );
+
+			goto on_error;
+		}
+		string_length = system_string_length(
+				 option_file_entry_identifier );
+
+		if( ( string_length == 3 )
+		 && ( system_string_compare(
+		       option_file_entry_identifier,
+		       _SYSTEM_STRING( "all" ),
+		       3 ) == 0 ) )
+		{
+			option_mode = FSXFSINFO_MODE_FILE_ENTRIES;
+		}
+		else if( info_handle_system_string_copy_from_64_bit_in_decimal(
+		          option_file_entry_identifier,
+		          string_length + 1,
+		          &file_entry_identifier,
+		          &error ) != 1 )
+		{
+			fprintf(
+			 stderr,
+			 "Unable to copy file entry identifier string to 64-bit decimal.\n" );
+
+			goto on_error;
+		}
+		else if( file_entry_identifier > (uint64_t) UINT32_MAX )
+		{
+			fprintf(
+			 stderr,
+			 "Invalid file entry identifier value out of bounds." );
+
+			goto on_error;
+		}
+	}
 	switch( option_mode )
 	{
-/* TODO
-		case FSXFSINFO_MODE_FILE_ENTRY:
+		case FSXFSINFO_MODE_FILE_ENTRIES:
+			if( info_handle_file_entries_fprint(
+			     fsxfsinfo_info_handle,
+			     &error ) != 1 )
+			{
+				fprintf(
+				 stderr,
+				 "Unable to print file entries.\n" );
+
+				goto on_error;
+			}
+			break;
+
+		case FSXFSINFO_MODE_FILE_ENTRY_BY_IDENTIFIER:
+			if( info_handle_file_entry_fprint_by_identifier(
+			     fsxfsinfo_info_handle,
+			     (uint32_t) file_entry_identifier,
+			     &error ) != 1 )
+			{
+				fprintf(
+				 stderr,
+				 "Unable to print file entry: %" PRIu64 ".\n",
+				 file_entry_identifier );
+
+				goto on_error;
+			}
+			break;
+
+		case FSXFSINFO_MODE_FILE_ENTRY_BY_PATH:
 			if( info_handle_file_entry_fprint_by_path(
 			     fsxfsinfo_info_handle,
-			     option_file_entry,
+			     option_file_entry_path,
 			     &error ) != 1 )
 			{
 				fprintf(
@@ -350,73 +429,6 @@ int main( int argc, char * const argv[] )
 				goto on_error;
 			}
 			break;
-
-		case FSXFSINFO_MODE_INODE:
-			if( option_inode_number == NULL )
-			{
-				fprintf(
-				 stderr,
-				 "Mising inode number string.\n" );
-
-				goto on_error;
-			}
-			string_length = system_string_length(
-					 option_inode_number );
-
-			if( ( string_length == 3 )
-			 && ( system_string_compare(
-			       option_inode_number,
-			       _SYSTEM_STRING( "all" ),
-			       3 ) == 0 ) )
-			{
-				if( info_handle_inodes_fprint(
-				     fsxfsinfo_info_handle,
-				     &error ) != 1 )
-				{
-					fprintf(
-					 stderr,
-					 "Unable to print inodes.\n" );
-
-					goto on_error;
-				}
-			}
-			else if( info_handle_system_string_copy_from_64_bit_in_decimal(
-			          option_inode_number,
-			          string_length + 1,
-			          &inode_number,
-			          &error ) == 1 )
-			{
-				if( inode_number > (uint64_t) UINT32_MAX )
-				{
-					fprintf(
-					 stderr,
-					 "Invalid inode number value out of bounds." );
-
-					goto on_error;
-				}
-				if( info_handle_file_entry_fprint_by_inode(
-				     fsxfsinfo_info_handle,
-				     (uint32_t) inode_number,
-				     &error ) != 1 )
-				{
-					fprintf(
-					 stderr,
-					 "Unable to print inode: %" PRIu64 ".\n",
-					 inode_number );
-
-					goto on_error;
-				}
-			}
-			else
-			{
-				fprintf(
-				 stderr,
-				 "Unable to copy inode number string to 64-bit decimal.\n" );
-
-				goto on_error;
-			}
-			break;
-*/
 
 		case FSXFSINFO_MODE_VOLUME:
 		default:

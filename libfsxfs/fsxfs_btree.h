@@ -59,6 +59,26 @@ struct fsxfs_btree_header
 	uint8_t next_btree_block_number[ 4 ];
 };
 
+typedef struct fsxfs_inode_btree_record fsxfs_inode_btree_record_t;
+
+struct fsxfs_inode_btree_record
+{
+	/* Inode number
+	 * Consists of 4 bytes
+	 */
+	uint8_t inode_number[ 4 ];
+
+	/* Number of unused inodes
+	 * Consists of 4 bytes
+	 */
+	uint8_t number_of_unused_inodes[ 4 ];
+
+	/* Inode chunk allocation bitmap
+	 * Consists of 8 bytes
+	 */
+	uint8_t chunk_allocation_bitmap[ 8 ];
+};
+
 #if defined( __cplusplus )
 }
 #endif

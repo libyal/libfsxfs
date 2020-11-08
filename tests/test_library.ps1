@@ -6,7 +6,7 @@ $ExitSuccess = 0
 $ExitFailure = 1
 $ExitIgnore = 77
 
-$LibraryTests = "btree_block btree_header error inode_btree inode_information io_handle notify superblock"
+$LibraryTests = "btree_block btree_header error inode_btree inode_btree_record inode_information io_handle notify superblock"
 $LibraryTestsWithInput = "support volume"
 $OptionSets = "offset"
 

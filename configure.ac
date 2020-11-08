@@ -2,7 +2,7 @@ AC_PREREQ( 2.59 )
 
 AC_INIT(
  [libfsxfs],
- [20200920],
+ [20201108],
  [joachim.metz@gmail.com])
 
 AC_CONFIG_SRCDIR(
@@ -103,8 +103,8 @@ AX_LIBFCACHE_CHECK_ENABLE
 dnl Check if libfdata or required headers and functions are available
 AX_LIBFDATA_CHECK_ENABLE
 
-dnl Check if libfguid or required headers and functions are available
-AX_LIBFGUID_CHECK_ENABLE
+dnl Check if libfdatetime or required headers and functions are available
+AX_LIBFDATETIME_CHECK_ENABLE
 
 dnl Check if libfguid or required headers and functions are available
 AX_LIBFGUID_CHECK_ENABLE
@@ -128,6 +128,9 @@ AS_IF(
     ])
   ])
 
+dnl Check if libhmac or required headers and functions are available
+AX_LIBHMAC_CHECK_ENABLE
+
 dnl Check if fsxfstools required headers and functions are available
 AX_FSXFSTOOLS_CHECK_LOCAL
 
@@ -143,10 +146,17 @@ CFLAGS="$CFLAGS -Wall";
 
 dnl Check if requires and build requires should be set in spec file
 AS_IF(
- [test "x$ac_cv_libcerror" = xyes || test "x$ac_cv_libcthreads" = xyes || test "x$ac_cv_libcdata" = xyes || test "x$ac_cv_libclocale" = xyes || test "x$ac_cv_libcnotify" = xyes || test "x$ac_cv_libcsplit" = xyes || test "x$ac_cv_libuna" = xyes || test "x$ac_cv_libcfile" = xyes || test "x$ac_cv_libcpath" = xyes || test "x$ac_cv_libbfio" = xyes || test "x$ac_cv_libfcache" = xyes || test "x$ac_cv_libfdata" = xyes | test "x$ac_cv_libfguid" = xyes],
+ [test "x$ac_cv_libcerror" = xyes || test "x$ac_cv_libcthreads" = xyes || test "x$ac_cv_libcdata" = xyes || test "x$ac_cv_libclocale" = xyes || test "x$ac_cv_libcnotify" = xyes || test "x$ac_cv_libcsplit" = xyes || test "x$ac_cv_libuna" = xyes || test "x$ac_cv_libcfile" = xyes || test "x$ac_cv_libcpath" = xyes || test "x$ac_cv_libbfio" = xyes || test "x$ac_cv_libfcache" = xyes || test "x$ac_cv_libfdata" = xyes || test "x$ac_cv_libfdatetime" = xyes || test "x$ac_cv_libfguid" = xyes],
  [AC_SUBST(
   [libfsxfs_spec_requires],
   [Requires:])
+ ])
+
+AS_IF(
+ [test "x$ac_cv_libhmac" = xyes || test "x$ac_cv_libcrypto" != xno],
+ [AC_SUBST(
+  [libfsxfs_spec_tools_build_requires],
+  [BuildRequires:])
  ])
 
 dnl Set the date for the dpkg files
@@ -175,11 +185,13 @@ AC_CONFIG_FILES([libcpath/Makefile])
 AC_CONFIG_FILES([libbfio/Makefile])
 AC_CONFIG_FILES([libfcache/Makefile])
 AC_CONFIG_FILES([libfdata/Makefile])
+AC_CONFIG_FILES([libfdatetime/Makefile])
 AC_CONFIG_FILES([libfguid/Makefile])
 AC_CONFIG_FILES([libfsxfs/Makefile])
 AC_CONFIG_FILES([pyfsxfs/Makefile])
 AC_CONFIG_FILES([pyfsxfs-python2/Makefile])
 AC_CONFIG_FILES([pyfsxfs-python3/Makefile])
+AC_CONFIG_FILES([libhmac/Makefile])
 AC_CONFIG_FILES([fsxfstools/Makefile])
 AC_CONFIG_FILES([po/Makefile.in])
 AC_CONFIG_FILES([po/Makevars])
@@ -219,7 +231,10 @@ Building:
    libbfio support:                            $ac_cv_libbfio
    libfcache support:                          $ac_cv_libfcache
    libfdata support:                           $ac_cv_libfdata
+   libfdatetime support:                       $ac_cv_libfdatetime
    libfguid support:                           $ac_cv_libfguid
+   libhmac support:                            $ac_cv_libhmac
+   MD5 support:                                $ac_cv_libhmac_md5
 
 Features:
    Multi-threading support:                    $ac_cv_libcthreads_multi_threading

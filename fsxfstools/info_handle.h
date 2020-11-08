@@ -50,6 +50,10 @@ struct info_handle
 	 */
 	libfsxfs_volume_t *input_volume;
 
+	/* Value to indicate if the MD5 hash should be calculated
+	 */
+	uint8_t calculate_md5;
+
 	/* The bodyfile output stream
 	 */
 	FILE *bodyfile_stream;
@@ -71,6 +75,7 @@ int info_handle_system_string_copy_from_64_bit_in_decimal(
 
 int info_handle_initialize(
      info_handle_t **info_handle,
+     uint8_t calculate_md5,
      libcerror_error_t **error );
 
 int info_handle_free(
@@ -97,6 +102,44 @@ int info_handle_open_input(
      libcerror_error_t **error );
 
 int info_handle_close_input(
+     info_handle_t *info_handle,
+     libcerror_error_t **error );
+
+int info_handle_file_entry_calculate_md5(
+     info_handle_t *info_handle,
+     libfsxfs_file_entry_t *file_entry,
+     char *md5_string,
+     size_t md5_string_size,
+     libcerror_error_t **error );
+
+int info_handle_name_value_fprint(
+     info_handle_t *info_handle,
+     const system_character_t *value_string,
+     size_t value_string_length,
+     libcerror_error_t **error );
+
+int info_handle_file_system_hierarchy_fprint_file_entry(
+     info_handle_t *info_handle,
+     libfsxfs_file_entry_t *file_entry,
+     const system_character_t *path,
+     size_t path_length,
+     libcerror_error_t **error );
+
+int info_handle_file_entries_fprint(
+     info_handle_t *info_handle,
+     libcerror_error_t **error );
+
+int info_handle_file_entry_fprint_by_identifier(
+     info_handle_t *info_handle,
+     uint32_t file_entry_identifier,
+     libcerror_error_t **error );
+
+int info_handle_file_entry_fprint_by_path(
+     info_handle_t *info_handle,
+     const system_character_t *path,
+     libcerror_error_t **error );
+
+int info_handle_file_system_hierarchy_fprint(
      info_handle_t *info_handle,
      libcerror_error_t **error );
 

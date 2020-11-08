@@ -21,6 +21,7 @@ lib_LTLIBRARIES = libfsxfs.la
 
 libfsxfs_la_SOURCES = \
 	fsxfs_btree.h \
+	fsxfs_inode.h \
 	fsxfs_inode_information.h \
 	fsxfs_superblock.h \
 	libfsxfs.c \
@@ -30,7 +31,11 @@ libfsxfs_la_SOURCES = \
 	libfsxfs_definitions.h \
 	libfsxfs_error.c libfsxfs_error.h \
 	libfsxfs_extern.h \
+	libfsxfs_file_entry.c libfsxfs_file_entry.h \
+	libfsxfs_file_system.c libfsxfs_file_system.h \
+	libfsxfs_inode.c libfsxfs_inode.h \
 	libfsxfs_inode_btree.c libfsxfs_inode_btree.h \
+	libfsxfs_inode_btree_record.c libfsxfs_inode_btree_record.h \
 	libfsxfs_inode_information.c libfsxfs_inode_information.h \
 	libfsxfs_io_handle.c libfsxfs_io_handle.h \
 	libfsxfs_libbfio.h \
@@ -41,6 +46,7 @@ libfsxfs_la_SOURCES = \
 	libfsxfs_libcthreads.h \
 	libfsxfs_libfcache.h \
 	libfsxfs_libfdata.h \
+	libfsxfs_libfdatetime.h \
 	libfsxfs_libfguid.h \
 	libfsxfs_libuna.h \
 	libfsxfs_notify.c libfsxfs_notify.h \

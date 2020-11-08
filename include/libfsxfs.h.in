@@ -311,6 +311,49 @@ int libfsxfs_volume_get_utf16_label(
      size_t utf16_string_size,
      libfsxfs_error_t **error );
 
+/* Retrieves the root directory file entry
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_root_directory(
+     libfsxfs_volume_t *volume,
+     libfsxfs_file_entry_t **file_entry,
+     libfsxfs_error_t **error );
+
+/* Retrieves the file entry for an UTF-8 encoded path
+ * Returns 1 if successful, 0 if no such file entry or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_file_entry_by_utf8_path(
+     libfsxfs_volume_t *volume,
+     const uint8_t *utf8_string,
+     size_t utf8_string_length,
+     libfsxfs_file_entry_t **file_entry,
+     libfsxfs_error_t **error );
+
+/* Retrieves the file entry for an UTF-16 encoded path
+ * Returns 1 if successful, 0 if no such file entry or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_file_entry_by_utf16_path(
+     libfsxfs_volume_t *volume,
+     const uint16_t *utf16_string,
+     size_t utf16_string_length,
+     libfsxfs_file_entry_t **file_entry,
+     libfsxfs_error_t **error );
+
+/* -------------------------------------------------------------------------
+ * File entry functions
+ * ------------------------------------------------------------------------- */
+
+/* Frees a file entry
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_free(
+     libfsxfs_file_entry_t **file_entry,
+     libfsxfs_error_t **error );
+
 #if defined( __cplusplus )
 }
 #endif

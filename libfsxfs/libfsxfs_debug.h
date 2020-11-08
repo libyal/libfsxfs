@@ -34,6 +34,12 @@ extern "C" {
 
 #if defined( HAVE_DEBUG_OUTPUT )
 
+void libfsxfs_debug_print_file_mode(
+      uint16_t file_mode );
+
+const char *libfsxfs_debug_print_fork_type(
+             uint8_t fork_type );
+
 int libfsxfs_debug_print_guid_value(
      const char *function_name,
      const char *value_name,

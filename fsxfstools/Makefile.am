@@ -12,6 +12,11 @@ AM_CPPFLAGS = \
 	@LIBBFIO_CPPFLAGS@ \
 	@LIBFCACHE_CPPFLAGS@ \
 	@LIBFDATA_CPPFLAGS@ \
+	@LIBFDATETIME_CPPFLAGS@ \
+	@LIBFGUID_CPPFLAGS@ \
+	@LIBHMAC_CPPFLAGS@ \
+	@LIBCRYPTO_CPPFLAGS@ \
+	@PTHREAD_CPPFLAGS@ \
 	@LIBFSXFS_DLL_IMPORT@
 
 AM_LDFLAGS = @STATIC_LDFLAGS@
@@ -20,6 +25,7 @@ bin_PROGRAMS = \
 	fsxfsinfo
 
 fsxfsinfo_SOURCES = \
+	digest_hash.c digest_hash.h \
 	fsxfsinfo.c \
 	fsxfstools_getopt.c fsxfstools_getopt.h \
 	fsxfstools_i18n.h \
@@ -30,6 +36,7 @@ fsxfsinfo_SOURCES = \
 	fsxfstools_libfcache.h \
 	fsxfstools_libfdata.h \
 	fsxfstools_libfsxfs.h \
+	fsxfstools_libhmac.h \
 	fsxfstools_libuna.h \
 	fsxfstools_output.c fsxfstools_output.h \
 	fsxfstools_signal.c fsxfstools_signal.h \
@@ -37,6 +44,11 @@ fsxfsinfo_SOURCES = \
 	info_handle.c info_handle.h
 
 fsxfsinfo_LDADD = \
+	@LIBHMAC_LIBADD@ \
+	@LIBCRYPTO_LIBADD@ \
+	@LIBDL_LIBADD@ \
+	@LIBFGUID_LIBADD@ \
+	@LIBFDATETIME_LIBADD@ \
 	@LIBBFIO_LIBADD@ \
 	@LIBCPATH_LIBADD@ \
 	@LIBCFILE_LIBADD@ \

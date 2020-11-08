@@ -32,6 +32,167 @@
 
 #if defined( HAVE_DEBUG_OUTPUT )
 
+/* Prints the file mode
+ */
+void libfsxfs_debug_print_file_mode(
+      uint16_t file_mode )
+{
+	if( ( file_mode & 0x0007 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\tAccess other: " );
+
+		if( ( file_mode & 0x0004 ) != 0 )
+		{
+			libcnotify_printf(
+			 "R" );
+		}
+		if( ( file_mode & 0x0002 ) != 0 )
+		{
+			libcnotify_printf(
+			 "W" );
+		}
+		if( ( file_mode & 0x0001 ) != 0 )
+		{
+			libcnotify_printf(
+			 "X" );
+		}
+		libcnotify_printf(
+		 "\n" );
+	}
+	if( ( file_mode & 0x0038 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\tAccess group: " );
+
+		if( ( file_mode & 0x0020 ) != 0 )
+		{
+			libcnotify_printf(
+			 "R" );
+		}
+		if( ( file_mode & 0x0010 ) != 0 )
+		{
+			libcnotify_printf(
+			 "W" );
+		}
+		if( ( file_mode & 0x0008 ) != 0 )
+		{
+			libcnotify_printf(
+			 "X" );
+		}
+		libcnotify_printf(
+		 "\n" );
+	}
+	if( ( file_mode & 0x01c0 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\tAccess user: " );
+
+		if( ( file_mode & 0x0100 ) != 0 )
+		{
+			libcnotify_printf(
+			 "R" );
+		}
+		if( ( file_mode & 0x0080 ) != 0 )
+		{
+			libcnotify_printf(
+			 "W" );
+		}
+		if( ( file_mode & 0x0040 ) != 0 )
+		{
+			libcnotify_printf(
+			 "X" );
+		}
+		libcnotify_printf(
+		 "\n" );
+	}
+	if( ( file_mode & 0x0200 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\tSticky bit (S_ISTXT)" );
+	}
+	if( ( file_mode & 0x0400 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\tSet group identifer (GID) on execution (S_ISGID)\n" );
+	}
+	if( ( file_mode & 0x0800 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\tSet user identifer (UID) on execution (S_ISUID)\n" );
+	}
+	switch( file_mode & 0xf000 )
+	{
+		case 0x1000:
+			libcnotify_printf(
+			 "\tNamed pipe (FIFO) (S_IFIFO)\n" );
+			break;
+
+		case 0x2000:
+			libcnotify_printf(
+			 "\tCharacter device (S_IFCHR)\n" );
+			break;
+
+		case 0x4000:
+			libcnotify_printf(
+			 "\tDirectory (S_IFDIR)\n" );
+			break;
+
+		case 0x6000:
+			libcnotify_printf(
+			 "\tBlock device (S_IFBLK)\n" );
+			break;
+
+		case 0x8000:
+			libcnotify_printf(
+			 "\tRegular file (S_IFREG)\n" );
+			break;
+
+		case 0xa000:
+			libcnotify_printf(
+			 "\tSymbolic link (S_IFLNK)\n" );
+			break;
+
+		case 0xc000:
+			libcnotify_printf(
+			 "\tSocket (S_IFSOCK)\n" );
+			break;
+
+		default:
+			break;
+	}
+	libcnotify_printf(
+	 "\n" );
+}
+
+/* Prints the fork type
+ */
+const char *libfsxfs_debug_print_fork_type(
+             uint8_t fork_type )
+{
+	switch( fork_type )
+	{
+		case 0:
+			return( "XFS_DINODE_FMT_DEV" );
+
+		case 1:
+			return( "XFS_DINODE_FMT_LOCAL" );
+
+		case 2:
+			return( "XFS_DINODE_FMT_EXTENTS" );
+
+		case 3:
+			return( "XFS_DINODE_FMT_BTREE" );
+
+		case 4:
+			return( "XFS_DINODE_FMT_UUID" );
+
+		case 5:
+			return( "XFS_DINODE_FMT_RMAP" );
+	}
+	return( "Unknown" );
+}
+
 /* Prints a GUID/UUID value
  * Returns 1 if successful or -1 on error
  */

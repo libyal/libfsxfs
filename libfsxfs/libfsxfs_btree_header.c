@@ -142,12 +142,10 @@ int libfsxfs_btree_header_read_data(
      size_t data_size,
      libcerror_error_t **error )
 {
-	static char *function   = "libfsxfs_btree_header_read_data";
-	uint32_t format_version = 0;
+	static char *function = "libfsxfs_btree_header_read_data";
 
 #if defined( HAVE_DEBUG_OUTPUT )
-	uint32_t value_32bit    = 0;
-	uint16_t value_16bit    = 0;
+	uint32_t value_32bit  = 0;
 #endif
 
 	if( btree_header == NULL )

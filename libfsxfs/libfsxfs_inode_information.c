@@ -34,8 +34,6 @@
 
 #include "fsxfs_inode_information.h"
 
-const char *fsxfs_inode_information_signature = "XAGI";
-
 /* Creates inode information
  * Make sure the value inode_information is referencing, is set to NULL
  * Returns 1 if successful or -1 on error
@@ -226,7 +224,7 @@ int libfsxfs_inode_information_read_data(
 
 	if( memory_compare(
 	     ( (fsxfs_inode_information_t *) data )->signature,
-	     fsxfs_inode_information_signature,
+	     "XAGI",
 	     4 ) != 0 )
 	{
 		libcerror_error_set(

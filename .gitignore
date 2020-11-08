@@ -130,7 +130,10 @@ stamp-h[1-9]
 /tests/fsxfs_test_btree_block
 /tests/fsxfs_test_btree_header
 /tests/fsxfs_test_error
+/tests/fsxfs_test_file_entry
+/tests/fsxfs_test_inode
 /tests/fsxfs_test_inode_btree
+/tests/fsxfs_test_inode_btree_record
 /tests/fsxfs_test_inode_information
 /tests/fsxfs_test_io_handle
 /tests/fsxfs_test_notify
@@ -152,5 +155,7 @@ stamp-h[1-9]
 /libcthreads
 /libfcache
 /libfdata
+/libfdatetime
 /libfguid
+/libhmac
 /libuna

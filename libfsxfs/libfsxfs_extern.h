@@ -30,7 +30,11 @@
 
 #include <libfsxfs/extern.h>
 
+#if defined( __CYGWIN__ )
+#define LIBFSXFS_EXTERN_VARIABLE	extern
+#else
 #define LIBFSXFS_EXTERN_VARIABLE	LIBFSXFS_EXTERN
+#endif
 
 #else
 #define LIBFSXFS_EXTERN		/* extern */

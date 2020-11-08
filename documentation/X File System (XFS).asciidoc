@@ -506,16 +506,22 @@ consist of:
 | Offset | Size | Value | Description
 | 0 | 4 | | Number of the first inode of the inode chunk
 | 4 | 4 | | Number of unused (free) inodes of the inode chunk
-| 8 | 8 | | 64-bit bitmap that indicated which inodes of the inode chunk are unused (free)
+| 8 | 8 | | Inode chunk allocation bitmap +
+Bitmap to indicated which inodes of the inode chunk are unused (free)
 |===
 
-The inode chunk is a group of 64 inodes
+The inode chunk is a group of 64 inodes. The file offset of the inode chunk
+is calculated as following:
 
-[yellow-background]*TODO confirm if the inode number correspond to an offset
-relative to the start of the allocation group where
-`offset = inode number x sector size`.*
+....
+file offset = allocation group file offset + ( inode number x inode size )
+....
 
 == Inode
+
+=== Inode version 1
+
+The inode version 1 (xfs_dinode_core_t) is 96 bytes of size and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -524,56 +530,148 @@ relative to the start of the allocation group where
 | 2 | 2 | | File mode +
 Contains file type and permissions +
 See section: <<file_mode,File mode>>
-| 4 | 1 | 1 +
-2 | Format version
-| 5 | 1 | | Data fork type
-| 6 | 2 | | Version 1 number of links
+| 4 | 1 | 1 | Format version
+| 5 | 1 | | (Data) fork type +
+See section: <<fork_type,Fork type>>
+| 6 | 2 | | Number of links
 | 8 | 4 | | Owner (or user) identifier (UID)
 | 12 | 4 | | Group identifier (GID)
-| 16 | 4 | | Number of links +
-[yellow-background]*Contains padding in older? versions of XFS*
-4+| _If format version is 1_
-| 20 | 2 | 0 | [yellow-background]*Unknown (reserved)*
-4+| _If format version is 2_
-| 20 | 2 | | Project identifier
-4+| _Common_
-| 22 | 8 | 0 | [yellow-background]*Unknown (padding)*
-| 30 | 2 | | Value that is incremented on flush
-| 32 | 8 | | (last) access time +
-Contains a POSIX timestamp in nano seconds
-| 40 | 8 | | (last) modification time +
-Contains a POSIX timestamp in nano seconds
-| 48 | 8 | | (last) inode change time +
-Contains a POSIX timestamp in nano seconds
-| 56 | 8 | | File (content) size
-| 64 | 8 | | Number of file (content) blocks
+| 16 | 14 | 0 | [yellow-background]*Unknown (padding)*
+| 30 | 2 | | Flush counter +
+Contains a value that is incremented on flush
+| 32 | 4 | | (last) access time +
+Contains a POSIX timestamp in seconds
+| 36 | 4 | | (last) access time fraction of second +
+Contains number of nano seconds
+| 40 | 4 | | (last) modification time +
+Contains a POSIX timestamp in seconds
+| 44 | 4 | | (last) modification time fraction of second +
+Contains number of nano seconds
+| 48 | 4 | | (last) inode change time +
+Contains a POSIX timestamp in seconds
+| 52 | 4 | | (last) inode change time fraction of second +
+Contains number of nano seconds
+| 56 | 8 | | (Data) size
+| 64 | 8 | | Number of (data) blocks
+| 72 | 4 | | Extent size
+| 76 | 4 | | Number of data extents
+| 80 | 2 | | Number of (extended) attribute extents
+| 84 | 1 | | (Extended) attribute fork descriptor offset
+| 83 | 1 | | [yellow-background]*Unknown (format of the attribute fork)*
+| 84 | 4 | | [yellow-background]*Unknown (DMAPI event mask)*
+| 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
+| 90 | 2 | | Inode flags
+| 92 | 4 | | Generation number
 |===
 
-[yellow-background]*TODO complete*
+=== Inode version 2
 
-....
-typedef struct xfs_dinode_core
-xfs_extlen_t
-xfs_extnum_t
-xfs_aextnum_t
-__uint8_t
-__int8_t
-__uint32_t
-__uint16_t
-__uint16_t
-__uint32_t
-} xfs_dinode_core_t;
-{
-di_extsize;
-di_nextents;
-di_anextents;
-di_forkoff;
-di_aformat;
-di_dmevmask;
-di_dmstate;
-di_flags;
-di_gen;
-....
+The inode version 2 (xfs_dinode_core_t) is 96 bytes of size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 2 | "IN" | Signature
+| 2 | 2 | | File mode +
+Contains file type and permissions +
+See section: <<file_mode,File mode>>
+| 4 | 1 | 2 | Format version
+| 5 | 1 | | (Data) fork type +
+See section: <<fork_type,Fork type>>
+| 6 | 2 | | [yellow-background]*Unknown*
+| 8 | 4 | | Owner (or user) identifier (UID)
+| 12 | 4 | | Group identifier (GID)
+| 16 | 4 | | Number of links
+| 20 | 2 | | Project identifier
+| 22 | 8 | 0 | [yellow-background]*Unknown (padding)*
+| 30 | 2 | | Flush counter +
+Contains a value that is incremented on flush
+| 32 | 4 | | (last) access time +
+Contains a POSIX timestamp in seconds
+| 36 | 4 | | (last) access time fraction of second +
+Contains number of nano seconds
+| 40 | 4 | | (last) modification time +
+Contains a POSIX timestamp in seconds
+| 44 | 4 | | (last) modification time fraction of second +
+Contains number of nano seconds
+| 48 | 4 | | (last) inode change time +
+Contains a POSIX timestamp in seconds
+| 52 | 4 | | (last) inode change time fraction of second +
+Contains number of nano seconds
+| 56 | 8 | | (Data) size
+| 64 | 8 | | Number of (data) blocks
+| 72 | 4 | | Extent size
+| 76 | 4 | | Number of data extents
+| 80 | 2 | | Number of (extended) attribute extents
+| 84 | 1 | | (Extended) attribute fork descriptor offset
+| 83 | 1 | | [yellow-background]*Unknown (format of the attribute fork)*
+| 84 | 4 | | [yellow-background]*Unknown (DMAPI event mask)*
+| 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
+| 90 | 2 | | Inode flags
+| 92 | 4 | | Generation number
+|===
+
+=== Inode version 3
+
+The inode version 3 (xfs_dinode_core_t) is 176 bytes of size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 2 | "IN" | Signature
+| 2 | 2 | | File mode +
+Contains file type and permissions +
+See section: <<file_mode,File mode>>
+| 4 | 1 | 3 | Format version
+| 5 | 1 | | (Data) fork type +
+See section: <<fork_type,Fork type>>
+| 6 | 2 | | [yellow-background]*Unknown*
+| 8 | 4 | | Owner (or user) identifier (UID)
+| 12 | 4 | | Group identifier (GID)
+| 16 | 4 | | Number of links
+| 20 | 2 | | Project identifier
+| 22 | 8 | 0 | [yellow-background]*Unknown (padding)*
+| 30 | 2 | | Flush counter +
+Contains a value that is incremented on flush
+| 32 | 4 | | (last) access time +
+Contains a POSIX timestamp in seconds
+| 36 | 4 | | (last) access time fraction of second +
+Contains number of nano seconds
+| 40 | 4 | | (last) modification time +
+Contains a POSIX timestamp in seconds
+| 44 | 4 | | (last) modification time fraction of second +
+Contains number of nano seconds
+| 48 | 4 | | (last) inode change time +
+Contains a POSIX timestamp in seconds
+| 52 | 4 | | (last) inode change time fraction of second +
+Contains number of nano seconds
+| 56 | 8 | | (Data) size
+| 64 | 8 | | Number of (data) blocks
+| 72 | 4 | | Extent size
+| 76 | 4 | | Number of data extents
+| 80 | 2 | | Number of (extended) attribute extents
+| 84 | 1 | | (Extended) attribute fork descriptor offset
+| 83 | 1 | | [yellow-background]*Unknown (format of the attribute fork)*
+| 84 | 4 | | [yellow-background]*Unknown (DMAPI event mask)*
+| 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
+| 90 | 2 | | Inode flags
+| 92 | 4 | | Generation number
+| 96 | 4 | | [yellow-background]*Unknown (next unlinked inode)*
+| 100 | 4 | | Checksum
+| 104 | 8 | | Change count +
+Contains the number of changes made to the inode
+| 112 | 8 | | Log sequence number
+| 120 | 8 | | Extended inode flags
+| 128 | 4 | | Copy-on-write (COW) extent size
+| 132 | 12 | | [yellow-background]*Unknown (padding)*
+| 144 | 4 | | Creation time +
+Contains a POSIX timestamp in seconds
+| 148 | 4 | | Creation time fraction of second +
+Contains number of nano seconds
+| 152 | 8 | | Inode number
+| 160 | 16 | | Inode type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+|===
 
 === [[file_mode]]File mode
 
@@ -610,16 +708,42 @@ _Bitmask: 0xf000 (S_IFMT)_
 | 0xc000 | S_IFSOCK | Socket
 |===
 
-=== Data fork type
+=== [[fork_type]]Fork type
+
+[cols="1,1,5",options="header"]
+|===
+| Value | Identifier | Description
+| 0 | XFS_DINODE_FMT_DEV | [yellow-background]*Unknown (Used for character and block devices)*
+| 1 | XFS_DINODE_FMT_LOCAL | Data is stored inline (in the inode)
+| 2 | XFS_DINODE_FMT_EXTENTS | Data is referrenced by extents
+| 3 | XFS_DINODE_FMT_BTREE | Data is referrence by a B+ tree node
+| 4 | XFS_DINODE_FMT_UUID | [yellow-background]*Unknown (currently not used)*
+| 5 | XFS_DINODE_FMT_RMAP | Data is referrence by a reverse mapping
+|===
+
+=== Inode flags
 
 ....
-typedef enum xfs_dinode_fmt {
-XFS_DINODE_FMT_DEV,
-XFS_DINODE_FMT_LOCAL,
-XFS_DINODE_FMT_EXTENTS,
-XFS_DINODE_FMT_BTREE,
-XFS_DINODE_FMT_UUID
-} xfs_dinode_fmt_t;
+XFS_DIFLAG_REALTIME The inode's data is located on the real-time device.
+XFS_DIFLAG_PREALLOC The inode's extents have been preallocated.
+XFS_DIFLAG_NEWRTBM Specifies the sb_rbmino uses the new real-time
+bitmap format
+XFS_DIFLAG_IMMUTABLE Specifies the inode cannot be modified.
+XFS_DIFLAG_APPEND The inode is in append only mode.
+XFS_DIFLAG_SYNC The inode is written synchronously.
+XFS_DIFLAG_NOATIME The inode's di_atime is not updated.
+XFS_DIFLAG_NODUMP Specifies the inode is to be ignored by xfsdump.
+XFS_DIFLAG_RTINHERIT For directory inodes, new inodes inherit the
+XFS_DIFLAG_REALTIME bit.
+XFS_DIFLAG_PROJINHERIT For directory inodes, new inodes inherit the
+di_projid value.
+XFS_DIFLAG_NOSYMLINKS For directory inodes, symlinks cannot be created.
+XFS_DIFLAG_EXTSIZE Specifies the extent size for real-time files or a and
+extent size hint for regular files.
+XFS_DIFLAG_EXTSZINHERIT For directory inodes, new inodes inherit the
+di_extsize value.
+XFS_DIFLAG_NODEFRAG Specifies the inode is to be ignored when
+defragmenting the filesystem.
 ....
 
 :numbered!:

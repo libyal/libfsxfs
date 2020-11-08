@@ -28,19 +28,20 @@
 #include <wide_string.h>
 
 #include "libfsxfs_btree_block.h"
-#include "libfsxfs_io_handle.h"
+#include "libfsxfs_inode_btree_record.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
 
 #include "fsxfs_btree.h"
 
-/* Creates a btree_block
+/* Creates a B+ tree block
  * Make sure the value btree_block is referencing, is set to NULL
  * Returns 1 if successful or -1 on error
  */
 int libfsxfs_btree_block_initialize(
      libfsxfs_btree_block_t **btree_block,
+     size_t block_size,
      libcerror_error_t **error )
 {
 	static char *function = "libfsxfs_btree_block_initialize";
@@ -67,8 +68,20 @@ int libfsxfs_btree_block_initialize(
 
 		return( -1 );
 	}
+	if( ( block_size == 0 )
+	 || ( block_size > (size_t) MEMORY_MAXIMUM_ALLOCATION_SIZE ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid IO handle - block size value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
 	*btree_block = memory_allocate_structure(
-	                 libfsxfs_btree_block_t );
+	                libfsxfs_btree_block_t );
 
 	if( *btree_block == NULL )
 	{
@@ -93,8 +106,29 @@ int libfsxfs_btree_block_initialize(
 		 "%s: unable to clear B+ tree block.",
 		 function );
 
+		memory_free(
+		 *btree_block );
+
+		*btree_block = NULL;
+
+		return( -1 );
+	}
+	( *btree_block )->data = (uint8_t *) memory_allocate(
+	                                      sizeof( uint8_t ) * block_size );
+
+	if( ( *btree_block )->data == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+		 "%s: unable to create B+ tree block data.",
+		 function );
+
 		goto on_error;
 	}
+	( *btree_block )->data_size = block_size;
+
 	return( 1 );
 
 on_error:
@@ -108,7 +142,7 @@ on_error:
 	return( -1 );
 }
 
-/* Frees a btree_block
+/* Frees a B+ tree block
  * Returns 1 if successful or -1 on error
  */
 int libfsxfs_btree_block_free(
@@ -147,6 +181,11 @@ int libfsxfs_btree_block_free(
 				result = -1;
 			}
 		}
+		if( ( *btree_block )->data != NULL )
+		{
+			memory_free(
+			 ( *btree_block )->data );
+		}
 		memory_free(
 		 *btree_block );
 
@@ -155,7 +194,7 @@ int libfsxfs_btree_block_free(
 	return( result );
 }
 
-/* Reads the btree_block data
+/* Reads the B+ tree block data
  * Returns 1 if successful or -1 on error
  */
 int libfsxfs_btree_block_read_data(
@@ -164,8 +203,8 @@ int libfsxfs_btree_block_read_data(
      size_t data_size,
      libcerror_error_t **error )
 {
-	static char *function    = "libfsxfs_btree_block_read_data";
-	size_t records_data_size = 0;
+	static char *function   = "libfsxfs_btree_block_read_data";
+	size_t record_data_size = 0;
 
 	if( btree_block == NULL )
 	{
@@ -253,7 +292,15 @@ int libfsxfs_btree_block_read_data(
 
 		goto on_error;
 	}
-	if( (size_t) btree_block->header->number_of_records > ( ( data_size - ( sizeof( fsxfs_btree_header_t ) + 40 ) ) / 16 ) )
+	if( btree_block->header->level == 0 )
+	{
+		record_data_size = 16;
+	}
+	else
+	{
+		record_data_size = 4;
+	}
+	if( (size_t) btree_block->header->number_of_records > ( ( data_size - ( sizeof( fsxfs_btree_header_t ) + 40 ) ) / record_data_size ) )
 	{
 		libcerror_error_set(
 		 error,
@@ -264,7 +311,8 @@ int libfsxfs_btree_block_read_data(
 
 		goto on_error;
 	}
-	records_data_size = 16 * btree_block->header->number_of_records;
+	btree_block->records_data      = &( data[ sizeof( fsxfs_btree_header_t ) + 40 ] );
+	btree_block->records_data_size = record_data_size * btree_block->header->number_of_records;
 
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
@@ -273,13 +321,11 @@ int libfsxfs_btree_block_read_data(
 		 "%s: B+ tree records data:\n",
 		 function );
 		libcnotify_print_data(
-		 &( data[ sizeof( fsxfs_btree_header_t ) + 40 ] ),
-		 records_data_size,
+		 btree_block->records_data,
+		 btree_block->records_data_size,
 		 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
-
-/* TODO read records */
 
 	return( 1 );
 
@@ -298,34 +344,31 @@ on_error:
  */
 int libfsxfs_btree_block_read_file_io_handle(
      libfsxfs_btree_block_t *btree_block,
-     libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      off64_t file_offset,
      libcerror_error_t **error )
 {
-	uint8_t *block_data   = NULL;
 	static char *function = "libfsxfs_btree_block_read_file_io_handle";
 	ssize_t read_count    = 0;
 
-	if( io_handle == NULL )
+	if( btree_block == NULL )
 	{
 		libcerror_error_set(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
-		 "%s: invalid IO handle.",
+		 "%s: invalid B+ tree block.",
 		 function );
 
 		return( -1 );
 	}
-	if( ( io_handle->block_size == 0 )
-	 || ( io_handle->block_size > (size_t) MEMORY_MAXIMUM_ALLOCATION_SIZE ) )
+	if( btree_block->header != NULL )
 	{
 		libcerror_error_set(
 		 error,
-		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-		 "%s: invalid IO handle - block size value out of bounds.",
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid B+ tree block - header value already set.",
 		 function );
 
 		return( -1 );
@@ -355,29 +398,15 @@ int libfsxfs_btree_block_read_file_io_handle(
 		 file_offset,
 		 file_offset );
 
-		goto on_error;
-	}
-	block_data = (uint8_t *) memory_allocate(
-	                          sizeof( uint8_t ) * io_handle->block_size );
-
-	if( block_data == NULL )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_MEMORY,
-		 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
-		 "%s: unable to create block data.",
-		 function );
-
-		goto on_error;
+		return( -1 );
 	}
 	read_count = libbfio_handle_read_buffer(
 	              file_io_handle,
-	              block_data,
-	              io_handle->block_size,
+	              btree_block->data,
+	              btree_block->data_size,
 	              error );
 
-	if( read_count != (ssize_t) io_handle->block_size )
+	if( read_count != (ssize_t) btree_block->data_size )
 	{
 		libcerror_error_set(
 		 error,
@@ -388,12 +417,12 @@ int libfsxfs_btree_block_read_file_io_handle(
 		 file_offset,
 		 file_offset );
 
-		goto on_error;
+		return( -1 );
 	}
 	if( libfsxfs_btree_block_read_data(
 	     btree_block,
-	     block_data,
-	     io_handle->block_size,
+	     btree_block->data,
+	     btree_block->data_size,
 	     error ) != 1 )
 	{
 		libcerror_error_set(
@@ -405,19 +434,8 @@ int libfsxfs_btree_block_read_file_io_handle(
 		 file_offset,
 		 file_offset );
 
-		goto on_error;
+		return( -1 );
 	}
-	memory_free(
-	 block_data );
-
 	return( 1 );
-
-on_error:
-	if( block_data != NULL )
-	{
-		memory_free(
-		 block_data );
-	}
-	return( -1 );
 }
 

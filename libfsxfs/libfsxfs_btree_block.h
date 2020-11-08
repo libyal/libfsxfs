@@ -26,7 +26,6 @@
 #include <types.h>
 
 #include "libfsxfs_btree_header.h"
-#include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 
@@ -34,19 +33,34 @@
 extern "C" {
 #endif
 
-extern const char *fsxfs_btree_block_signature;
-
 typedef struct libfsxfs_btree_block libfsxfs_btree_block_t;
 
 struct libfsxfs_btree_block
 {
+	/* Data
+	 */
+	uint8_t *data;
+
+	/* Data size
+	 */
+	size_t data_size;
+
 	/* Header
 	 */
 	libfsxfs_btree_header_t *header;
+
+	/* Records data
+	 */
+	const uint8_t *records_data;
+
+	/* Records data size
+	 */
+	size_t records_data_size;
 };
 
 int libfsxfs_btree_block_initialize(
      libfsxfs_btree_block_t **btree_block,
+     size_t block_size,
      libcerror_error_t **error );
 
 int libfsxfs_btree_block_free(
@@ -61,7 +75,6 @@ int libfsxfs_btree_block_read_data(
 
 int libfsxfs_btree_block_read_file_io_handle(
      libfsxfs_btree_block_t *btree_block,
-     libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      off64_t file_offset,
      libcerror_error_t **error );

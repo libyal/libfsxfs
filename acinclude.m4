@@ -1,6 +1,6 @@
 dnl Checks for required headers and functions
 dnl
-dnl Version: 20200919
+dnl Version: 20200713
 
 dnl Function to detect if libfsxfs dependencies are available
 AC_DEFUN([AX_LIBFSXFS_CHECK_LOCAL],

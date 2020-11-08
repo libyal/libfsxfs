@@ -190,7 +190,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_file_entry.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_file_system.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_inode.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_inode_btree.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_inode_btree_record.c"
 				>
 			</File>
 			<File
@@ -228,6 +244,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\fsxfs_inode.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\fsxfs_inode_information.h"
 				>
 			</File>
@@ -260,7 +280,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_file_entry.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_file_system.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_inode.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_inode_btree.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_inode_btree_record.h"
 				>
 			</File>
 			<File
@@ -301,6 +337,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_libfdata.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_libfdatetime.h"
 				>
 			</File>
 			<File

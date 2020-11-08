@@ -31,8 +31,6 @@
 extern "C" {
 #endif
 
-extern const char *fsxfs_btree_header_signature;
-
 typedef struct libfsxfs_btree_header libfsxfs_btree_header_t;
 
 struct libfsxfs_btree_header

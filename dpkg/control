@@ -13,8 +13,8 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libfsxfs1
 Replaces: libfsxfs1
 Suggests: libfsxfs-dbg
-Description: Library to support the Extended File System (ext) format
- libfsxfs is a library to support the Extended File System (ext) format.
+Description: Library to support the X File System (XFS) format
+ libfsxfs is a library to support the X File System (XFS) format.
 
 Package: libfsxfs-dbg
 Architecture: any
@@ -36,8 +36,8 @@ Architecture: any
 Depends: libfsxfs (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libfsxfs-utils
 Replaces: libfsxfs-utils
-Description: Several tools for reading Extended File System (ext) volumes
- Several tools for reading Extended File System (ext) volumes.
+Description: Several tools for reading X File System (XFS) volumes
+ Several tools for reading X File System (XFS) volumes.
 
 Package: libfsxfs-tools-dbg
 Section: debug

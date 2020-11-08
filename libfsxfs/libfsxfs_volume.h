@@ -26,6 +26,7 @@
 #include <types.h>
 
 #include "libfsxfs_extern.h"
+#include "libfsxfs_file_system.h"
 #include "libfsxfs_inode_btree.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
@@ -46,6 +47,10 @@ struct libfsxfs_internal_volume
 	/* The superblock
 	 */
 	libfsxfs_superblock_t *superblock;
+
+	/* The file system
+	 */
+	libfsxfs_file_system_t *file_system;
 
 	/* The inode B+ tree
 	 */
@@ -154,6 +159,28 @@ int libfsxfs_volume_get_utf16_label(
      libfsxfs_volume_t *volume,
      uint16_t *utf16_string,
      size_t utf16_string_size,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_root_directory(
+     libfsxfs_volume_t *volume,
+     libfsxfs_file_entry_t **file_entry,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_file_entry_by_utf8_path(
+     libfsxfs_volume_t *volume,
+     const uint8_t *utf8_string,
+     size_t utf8_string_length,
+     libfsxfs_file_entry_t **file_entry,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_file_entry_by_utf16_path(
+     libfsxfs_volume_t *volume,
+     const uint16_t *utf16_string,
+     size_t utf16_string_length,
+     libfsxfs_file_entry_t **file_entry,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )

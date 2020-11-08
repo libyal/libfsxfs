@@ -20,12 +20,13 @@
  */
 
 #include <common.h>
-#include <byte_stream.h>
 #include <memory.h>
 #include <types.h>
 
 #include "libfsxfs_btree_block.h"
+#include "libfsxfs_btree_header.h"
 #include "libfsxfs_inode_btree.h"
+#include "libfsxfs_inode_btree_record.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
@@ -148,10 +149,12 @@ int libfsxfs_inode_btree_get_inode_by_number(
      uint64_t inode_number,
      libcerror_error_t **error )
 {
-	libfsxfs_btree_block_t *btree_block = NULL;
-	static char *function               = "libfsxfs_inode_btree_get_inode_by_number";
-	off64_t btree_block_offset          = 0;
-	int result                          = 0;
+	libfsxfs_btree_block_t *btree_block               = NULL;
+	libfsxfs_inode_btree_record_t *inode_btree_record = NULL;
+	static char *function                             = "libfsxfs_inode_btree_get_inode_by_number";
+	size_t data_offset                                = 0;
+	off64_t btree_block_offset                        = 0;
+	int result                                        = 0;
 
 	if( inode_btree == NULL )
 	{
@@ -175,8 +178,10 @@ int libfsxfs_inode_btree_get_inode_by_number(
 
 		return( -1 );
 	}
+/* TODO cache block */
 	if( libfsxfs_btree_block_initialize(
 	     &btree_block,
+	     io_handle->block_size,
 	     error ) != 1 )
 	{
 		libcerror_error_set(
@@ -192,7 +197,6 @@ int libfsxfs_inode_btree_get_inode_by_number(
 
 	if( libfsxfs_btree_block_read_file_io_handle(
 	     btree_block,
-	     io_handle,
 	     file_io_handle,
 	     btree_block_offset,
 	     error ) != 1 )
@@ -223,11 +227,64 @@ int libfsxfs_inode_btree_get_inode_by_number(
 
 		goto on_error;
 	}
-/* TODO traverse records */
-/* TODO traverse tree nodes */
+/* TODO traverse sub nodes */
+	while( data_offset < btree_block->records_data_size )
+	{
+		if( libfsxfs_inode_btree_record_initialize(
+		     &inode_btree_record,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create inode B+ tree record.",
+			 function );
 
-	result = 1;
+			goto on_error;
+		}
+		if( libfsxfs_inode_btree_record_read_data(
+		     inode_btree_record,
+		     &( btree_block->records_data[ data_offset ] ),
+		     16,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read inode B+ tree record.",
+			 function );
 
+			goto on_error;
+		}
+		data_offset += 16;
+
+		if( ( inode_number >= inode_btree_record->inode_number )
+		 && ( inode_number < ( inode_btree_record->inode_number + 64 ) ) )
+		{
+/* TODO check bitmap */
+			result = 1;
+		}
+/* TODO cache records in block */
+		if( libfsxfs_inode_btree_record_free(
+		     &inode_btree_record,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free inode B+ tree record.",
+			 function );
+
+			goto on_error;
+		}
+		if( result != 0 )
+		{
+			break;
+		}
+	}
 	if( libfsxfs_btree_block_free(
 	     &btree_block,
 	     error ) != 1 )
@@ -244,6 +301,12 @@ int libfsxfs_inode_btree_get_inode_by_number(
 	return( result );
 
 on_error:
+	if( inode_btree_record != NULL )
+	{
+		libfsxfs_inode_btree_record_free(
+		 &inode_btree_record,
+		 NULL );
+	}
 	if( btree_block != NULL )
 	{
 		libfsxfs_btree_block_free(

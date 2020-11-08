@@ -27,11 +27,14 @@
 #include <types.h>
 #include <wide_string.h>
 
+#include "digest_hash.h"
 #include "fsxfstools_libbfio.h"
 #include "fsxfstools_libcerror.h"
 #include "fsxfstools_libclocale.h"
 #include "fsxfstools_libcnotify.h"
 #include "fsxfstools_libfsxfs.h"
+#include "fsxfstools_libhmac.h"
+#include "fsxfstools_libuna.h"
 #include "info_handle.h"
 
 #if !defined( LIBFSXFS_HAVE_BFIO )
@@ -168,6 +171,7 @@ int info_handle_system_string_copy_from_64_bit_in_decimal(
  */
 int info_handle_initialize(
      info_handle_t **info_handle,
+     uint8_t calculate_md5,
      libcerror_error_t **error )
 {
 	static char *function = "info_handle_initialize";
@@ -235,6 +239,7 @@ int info_handle_initialize(
 
 		goto on_error;
 	}
+	( *info_handle )->calculate_md5 = calculate_md5;
 	( *info_handle )->notify_stream = INFO_HANDLE_NOTIFY_STREAM;
 
 	return( 1 );
@@ -626,6 +631,1143 @@ int info_handle_close_input(
 	}
 	return( 0 );
 }
+
+#ifdef TODO
+
+/* Calculates the MD5 of the contents of a file entry
+ * Returns 1 if successful or -1 on error
+ */
+int info_handle_file_entry_calculate_md5(
+     info_handle_t *info_handle,
+     libfsxfs_file_entry_t *file_entry,
+     char *md5_string,
+     size_t md5_string_size,
+     libcerror_error_t **error )
+{
+	uint8_t md5_hash[ LIBHMAC_MD5_HASH_SIZE ];
+	uint8_t read_buffer[ 4096 ];
+
+	libhmac_md5_context_t *md5_context = NULL;
+	static char *function              = "info_handle_file_entry_calculate_md5";
+	size64_t data_size                 = 0;
+	size_t read_size                   = 0;
+	ssize_t read_count                 = 0;
+
+	if( info_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid info handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( libfsxfs_file_entry_get_size(
+	     file_entry,
+	     &data_size,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve size.",
+		 function );
+
+		goto on_error;
+	}
+	if( libfsxfs_file_entry_seek_offset(
+	     file_entry,
+	     0,
+	     SEEK_SET,
+	     error ) == -1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_IO,
+		 LIBCERROR_IO_ERROR_SEEK_FAILED,
+		 "%s: unable to seek offset: 0 in file entry.",
+		 function );
+
+		goto on_error;
+	}
+	if( libhmac_md5_initialize(
+	     &md5_context,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to initialize MD5 context.",
+		 function );
+
+		goto on_error;
+	}
+	while( data_size > 0 )
+	{
+		read_size = 4096;
+
+		if( (size64_t) read_size > data_size )
+		{
+			read_size = (size_t) data_size;
+		}
+		read_count = libfsxfs_file_entry_read_buffer(
+		              file_entry,
+		              read_buffer,
+		              read_size,
+		              error );
+
+		if( read_count != (ssize_t) read_size )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read from file entry.",
+			 function );
+
+			goto on_error;
+		}
+		data_size -= read_size;
+
+		if( libhmac_md5_update(
+		     md5_context,
+		     read_buffer,
+		     read_size,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+			 "%s: unable to update MD5 hash.",
+			 function );
+
+			goto on_error;
+		}
+	}
+	if( libhmac_md5_finalize(
+	     md5_context,
+	     md5_hash,
+	     LIBHMAC_MD5_HASH_SIZE,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+		 "%s: unable to finalize MD5 hash.",
+		 function );
+
+		goto on_error;
+	}
+	if( libhmac_md5_free(
+	     &md5_context,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+		 "%s: unable to free MD5 context.",
+		 function );
+
+		goto on_error;
+	}
+	if( digest_hash_copy_to_string(
+	     md5_hash,
+	     LIBHMAC_MD5_HASH_SIZE,
+	     md5_string,
+	     md5_string_size,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to set MD5 hash string.",
+		 function );
+
+		goto on_error;
+	}
+	return( 1 );
+
+on_error:
+	if( md5_context != NULL )
+	{
+		libhmac_md5_free(
+		 &md5_context,
+		 NULL );
+	}
+	return( -1 );
+}
+
+#endif /* TODO */
+
+/* Prints a file entry or data stream name
+ * Returns 1 if successful or -1 on error
+ */
+int info_handle_name_value_fprint(
+     info_handle_t *info_handle,
+     const system_character_t *value_string,
+     size_t value_string_length,
+     libcerror_error_t **error )
+{
+	system_character_t *escaped_value_string     = NULL;
+	static char *function                        = "info_handle_name_value_fprint";
+	libuna_unicode_character_t unicode_character = 0;
+	size_t escaped_value_string_index            = 0;
+	size_t escaped_value_string_size             = 0;
+	size_t value_string_index                    = 0;
+	int print_count                              = 0;
+	int result                                   = 0;
+
+	if( info_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid info handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( value_string == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid value string.",
+		 function );
+
+		return( -1 );
+	}
+	/* To ensure normalization in the escaped string is handled correctly
+	 * it stored in a temporary variable. Note that there is a worst-case of
+	 * a 1 to 4 ratio for each escaped character.
+	 */
+	if( value_string_length > (size_t) ( ( SSIZE_MAX - 1 ) / ( sizeof( system_character_t ) * 4 ) ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_EXCEEDS_MAXIMUM,
+		 "%s: invalid value string length value exceeds maximum.",
+		 function );
+
+		return( -1 );
+	}
+	escaped_value_string_size = ( value_string_length * 4 ) + 1;
+
+	escaped_value_string = (system_character_t *) memory_allocate(
+	                                               sizeof( system_character_t ) * escaped_value_string_size );
+
+	if( escaped_value_string == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+		 "%s: unable to create escaped value string.",
+		 function );
+
+		goto on_error;
+	}
+	while( value_string_index < value_string_length )
+	{
+#if defined( HAVE_WIDE_SYSTEM_CHARACTER )
+		result = libuna_unicode_character_copy_from_utf16(
+		          &unicode_character,
+		          (libuna_utf16_character_t *) value_string,
+		          value_string_length,
+		          &value_string_index,
+		          error );
+#else
+		result = libuna_unicode_character_copy_from_utf8(
+		          &unicode_character,
+		          (libuna_utf8_character_t *) value_string,
+		          value_string_length,
+		          &value_string_index,
+		          error );
+#endif
+		if( result != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_CONVERSION,
+			 LIBCERROR_CONVERSION_ERROR_INPUT_FAILED,
+			 "%s: unable to copy Unicode character from value string.",
+			 function );
+
+			goto on_error;
+		}
+		/* Replace:
+		 *   Control characters ([U+0-U+1f, U+7f-U+9f]) by \x##
+		 */
+		if( ( unicode_character <= 0x1f )
+		 || ( ( unicode_character >= 0x7f )
+		  &&  ( unicode_character <= 0x9f ) ) )
+		{
+			print_count = system_string_sprintf(
+			               &( escaped_value_string[ escaped_value_string_index ] ),
+			               escaped_value_string_size - escaped_value_string_index,
+			               "\\x%02" PRIx32 "",
+			               unicode_character );
+
+			if( print_count < 0 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_CONVERSION,
+				 LIBCERROR_CONVERSION_ERROR_INPUT_FAILED,
+				 "%s: unable to copy escaped Unicode character to escaped value string.",
+				 function );
+
+				goto on_error;
+			}
+			escaped_value_string_index += print_count;
+		}
+		else
+		{
+#if defined( HAVE_WIDE_SYSTEM_CHARACTER )
+			result = libuna_unicode_character_copy_to_utf16(
+			          unicode_character,
+			          (libuna_utf16_character_t *) escaped_value_string,
+			          escaped_value_string_size,
+			          &escaped_value_string_index,
+			          error );
+#else
+			result = libuna_unicode_character_copy_to_utf8(
+			          unicode_character,
+			          (libuna_utf8_character_t *) escaped_value_string,
+			          escaped_value_string_size,
+			          &escaped_value_string_index,
+			          error );
+#endif
+			if( result != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_CONVERSION,
+				 LIBCERROR_CONVERSION_ERROR_INPUT_FAILED,
+				 "%s: unable to copy Unicode character to escaped value string.",
+				 function );
+
+				goto on_error;
+			}
+		}
+	}
+	escaped_value_string[ escaped_value_string_index ] = 0;
+
+	if( info_handle->bodyfile_stream != NULL )
+	{
+		fprintf(
+		 info_handle->bodyfile_stream,
+		 "%" PRIs_SYSTEM "",
+		 escaped_value_string );
+	}
+	else
+	{
+		fprintf(
+		 info_handle->notify_stream,
+		 "%" PRIs_SYSTEM "",
+		 escaped_value_string );
+	}
+	memory_free(
+	 escaped_value_string );
+
+	return( 1 );
+
+on_error:
+	if( escaped_value_string != NULL )
+	{
+		memory_free(
+		 escaped_value_string );
+	}
+	return( -1 );
+}
+
+/* Prints file entry information as part of the file system hierarchy
+ * Returns 1 if successful or -1 on error
+ */
+int info_handle_file_system_hierarchy_fprint_file_entry(
+     info_handle_t *info_handle,
+     libfsxfs_file_entry_t *file_entry,
+     const system_character_t *path,
+     size_t path_length,
+     libcerror_error_t **error )
+{
+	libfsxfs_file_entry_t *sub_file_entry = NULL;
+	system_character_t *file_entry_name   = NULL;
+	system_character_t *sub_path          = NULL;
+	static char *function                 = "info_handle_file_system_hierarchy_fprint_file_entry";
+	size_t file_entry_name_length         = 0;
+	size_t file_entry_name_size           = 0;
+	size_t sub_path_size                  = 0;
+	uint32_t file_entry_identifier        = 0;
+	int number_of_sub_file_entries        = 0;
+	int result                            = 0;
+	int sub_file_entry_index              = 0;
+
+	if( info_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid info handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( path == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid path.",
+		 function );
+
+		return( -1 );
+	}
+	if( path_length > (size_t) ( SSIZE_MAX - 1 ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_EXCEEDS_MAXIMUM,
+		 "%s: invalid path length value exceeds maximum.",
+		 function );
+
+		return( -1 );
+	}
+#ifdef TODO
+	if( libfsxfs_file_entry_get_inode_number(
+	     file_entry,
+	     &file_entry_identifier,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve inode number.",
+		 function );
+
+		goto on_error;
+	}
+#if defined( HAVE_WIDE_SYSTEM_CHARACTER )
+	result = libfsxfs_file_entry_get_utf16_name_size(
+	          file_entry,
+	          &file_entry_name_size,
+	          error );
+#else
+	result = libfsxfs_file_entry_get_utf8_name_size(
+	          file_entry,
+	          &file_entry_name_size,
+	          error );
+#endif
+	if( result == -1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve file entry name string size.",
+		 function );
+
+		goto on_error;
+	}
+	if( ( result == 1 )
+	 && ( file_entry_name_size > 0 ) )
+	{
+		file_entry_name = system_string_allocate(
+		                   file_entry_name_size );
+
+		if( file_entry_name == NULL )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_MEMORY,
+			 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+			 "%s: unable to create file entry name string.",
+			 function );
+
+			goto on_error;
+		}
+#if defined( HAVE_WIDE_SYSTEM_CHARACTER )
+		result = libfsxfs_file_entry_get_utf16_name(
+		          file_entry,
+		          (uint16_t *) file_entry_name,
+		          file_entry_name_size,
+		          error );
+#else
+		result = libfsxfs_file_entry_get_utf8_name(
+		          file_entry,
+		          (uint8_t *) file_entry_name,
+		          file_entry_name_size,
+		          error );
+#endif
+		if( result != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve file entry name string.",
+			 function );
+
+			goto on_error;
+		}
+		file_entry_name_length = file_entry_name_size - 1;
+	}
+	if( info_handle->bodyfile_stream != NULL )
+	{
+		if( info_handle_file_entry_value_with_name_fprint(
+		     info_handle,
+		     file_entry,
+		     path,
+		     path_length,
+		     file_entry_name,
+		     file_entry_name_length,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+			 "%s: unable to print file entry.",
+			 function );
+
+			goto on_error;
+		}
+	}
+	else
+	{
+		if( info_handle_name_value_fprint(
+		     info_handle,
+		     path,
+		     path_length,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+			 "%s: unable to print path string.",
+			 function );
+
+			goto on_error;
+		}
+		if( ( file_entry_name != NULL )
+		 && ( file_entry_identifier != 2 ) )
+		{
+			if( info_handle_name_value_fprint(
+			     info_handle,
+			     file_entry_name,
+			     file_entry_name_length,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+				 "%s: unable to print file entry name string.",
+				 function );
+
+				goto on_error;
+			}
+		}
+		fprintf(
+		 info_handle->notify_stream,
+		 "\n" );
+	}
+	if( libfsxfs_file_entry_get_number_of_sub_file_entries(
+	     file_entry,
+	     &number_of_sub_file_entries,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve number of sub file entries.",
+		 function );
+
+		goto on_error;
+	}
+	if( number_of_sub_file_entries > 0 )
+	{
+		sub_path_size = path_length + 1;
+
+		if( file_entry_name != NULL )
+		{
+			sub_path_size += file_entry_name_size;
+		}
+		sub_path = system_string_allocate(
+		            sub_path_size );
+
+		if( sub_path == NULL )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_MEMORY,
+			 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+			 "%s: unable to create sub path.",
+			 function );
+
+			goto on_error;
+		}
+		if( system_string_copy(
+		     sub_path,
+		     path,
+		     path_length ) == NULL )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_MEMORY,
+			 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
+			 "%s: unable to copy path to sub path.",
+			 function );
+
+			goto on_error;
+		}
+		if( file_entry_name != NULL )
+		{
+			if( system_string_copy(
+			     &( sub_path[ path_length ] ),
+			     file_entry_name,
+			     file_entry_name_size - 1 ) == NULL )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_MEMORY,
+				 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
+				 "%s: unable to copy file entry name to sub path.",
+				 function );
+
+				goto on_error;
+			}
+			sub_path[ sub_path_size - 2 ] = (system_character_t) LIBFSXFS_SEPARATOR;
+		}
+		sub_path[ sub_path_size - 1 ] = (system_character_t) 0;
+
+		for( sub_file_entry_index = 0;
+		     sub_file_entry_index < number_of_sub_file_entries;
+		     sub_file_entry_index++ )
+		{
+			if( libfsxfs_file_entry_get_sub_file_entry_by_index(
+			     file_entry,
+			     sub_file_entry_index,
+			     &sub_file_entry,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+				 "%s: unable to retrieve sub file entry: %d.",
+				 function,
+				 sub_file_entry_index );
+
+				goto on_error;
+			}
+			if( info_handle_file_system_hierarchy_fprint_file_entry(
+			     info_handle,
+			     sub_file_entry,
+			     sub_path,
+			     sub_path_size - 1,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+				 "%s: unable to print file entry: %d information.",
+				 function,
+				 sub_file_entry_index );
+
+				goto on_error;
+			}
+			if( libfsxfs_file_entry_free(
+			     &sub_file_entry,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free sub file entry: %d.",
+				 function,
+				 sub_file_entry_index );
+
+				goto on_error;
+			}
+		}
+		if( sub_path != NULL )
+		{
+			memory_free(
+			 sub_path );
+
+			sub_path = NULL;
+		}
+	}
+#endif
+	if( file_entry_name != NULL )
+	{
+		memory_free(
+		 file_entry_name );
+
+		file_entry_name = NULL;
+	}
+	return( 1 );
+
+on_error:
+	if( sub_file_entry != NULL )
+	{
+		libfsxfs_file_entry_free(
+		 &sub_file_entry,
+		 NULL );
+	}
+	if( sub_path != NULL )
+	{
+		memory_free(
+		 sub_path );
+	}
+	if( file_entry_name != NULL )
+	{
+		memory_free(
+		 file_entry_name );
+	}
+	return( -1 );
+}
+
+/* Prints the file entries information
+ * Returns 1 if successful or -1 on error
+ */
+int info_handle_file_entries_fprint(
+     info_handle_t *info_handle,
+     libcerror_error_t **error )
+{
+	static char *function           = "info_handle_file_entries_fprint";
+	uint64_t file_entry_identifier  = 0;
+	uint32_t number_of_file_entries = 0;
+
+#ifdef TODO
+	if( libfsxfs_volume_get_number_of_file_entries(
+	     info_handle->input_volume,
+	     &number_of_file_entries,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve number of file entries.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	for( file_entry_identifier = 0;
+	     file_entry_identifier < (uint64_t) number_of_file_entries;
+	     file_entry_identifier++ )
+	{
+		if( info_handle_file_entry_fprint_by_identifier(
+		     info_handle,
+		     (uint32_t) file_entry_identifier,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+			 "%s: unable to print file entry: %" PRIu64 " information.",
+			 function,
+			 file_entry_identifier );
+
+			return( -1 );
+		}
+	}
+	return( 1 );
+}
+
+/* Prints the file entry information for a specific identifier
+ * Returns 1 if successful, 0 if not or -1 on error
+ */
+int info_handle_file_entry_fprint_by_identifier(
+     info_handle_t *info_handle,
+     uint32_t file_entry_identifier,
+     libcerror_error_t **error )
+{
+	libfsxfs_file_entry_t *file_entry = NULL;
+	static char *function             = "info_handle_file_entry_fprint_by_identifier";
+	int is_empty                      = 0;
+
+	if( info_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid info handle.",
+		 function );
+
+		return( -1 );
+	}
+#ifdef TODO
+	if( libfsxfs_volume_get_file_entry_by_inode(
+	     info_handle->input_volume,
+	     file_entry_identifier,
+	     &file_entry,
+	     error ) != 1 )
+	{
+		if( ( error != NULL )
+		 && ( *error != NULL ) )
+		{
+			libcnotify_print_error_backtrace(
+			 *error );
+		}
+		libcerror_error_free(
+		 error );
+
+		fprintf(
+		 info_handle->notify_stream,
+		 "Error reading file entry: %" PRIu32 "\n\n",
+		 file_entry_identifier );
+
+		return( 0 );
+	}
+#endif
+	fprintf(
+	 info_handle->notify_stream,
+	 "File entry: %" PRIu32 " information:\n",
+	 file_entry_identifier );
+
+#ifdef TODO
+	is_empty = libfsxfs_file_entry_is_empty(
+	            file_entry,
+	            error );
+
+	if( is_empty == -1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to determine if file entry is empty.",
+		 function );
+
+		goto on_error;
+	}
+	else if( is_empty != 0 )
+	{
+		fprintf(
+		 info_handle->notify_stream,
+		 "\tIs empty\n" );
+	}
+	else
+	{
+/* TODO implement is allocated */
+		if( info_handle_file_entry_value_with_name_fprint(
+		     info_handle,
+		     file_entry,
+		     NULL,
+		     0,
+		     NULL,
+		     0,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+			 "%s: unable to print file entry.",
+			 function );
+
+			goto on_error;
+		}
+	}
+#endif
+	if( libfsxfs_file_entry_free(
+	     &file_entry,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+		 "%s: unable to free file entry.",
+		 function );
+
+		goto on_error;
+	}
+	fprintf(
+	 info_handle->notify_stream,
+	 "\n" );
+
+	return( 1 );
+
+on_error:
+	if( file_entry != NULL )
+	{
+		libfsxfs_file_entry_free(
+		 &file_entry,
+		 NULL );
+	}
+	return( -1 );
+}
+
+/* Prints the file entry information for a specific path
+ * Returns 1 if successful or -1 on error
+ */
+int info_handle_file_entry_fprint_by_path(
+     info_handle_t *info_handle,
+     const system_character_t *path,
+     libcerror_error_t **error )
+{
+	libfsxfs_file_entry_t *file_entry = NULL;
+	static char *function              = "info_handle_file_entry_fprint_by_path";
+	size_t path_length                 = 0;
+	int result                         = 0;
+
+	if( info_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid info handle.",
+		 function );
+
+		return( -1 );
+	}
+	path_length = system_string_length(
+	               path );
+
+#ifdef TODO
+#if defined( HAVE_WIDE_SYSTEM_CHARACTER )
+	result = libfsxfs_volume_get_file_entry_by_utf16_path(
+	          info_handle->input_volume,
+	          (uint16_t *) path,
+	          path_length,
+	          &file_entry,
+	          error );
+#else
+	result = libfsxfs_volume_get_file_entry_by_utf8_path(
+	          info_handle->input_volume,
+	          (uint8_t *) path,
+	          path_length,
+	          &file_entry,
+	          error );
+#endif
+	if( result == -1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve file entry.",
+		 function );
+
+		goto on_error;
+	}
+	else if( result == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: file entry not found.",
+		 function );
+
+		goto on_error;
+	}
+#endif
+	fprintf(
+	 info_handle->notify_stream,
+	 "X File System information:\n\n" );
+
+	fprintf(
+	 info_handle->notify_stream,
+	 "File entry:\n" );
+
+	fprintf(
+	 info_handle->notify_stream,
+	 "\tPath\t\t\t: " );
+
+	if( info_handle_name_value_fprint(
+	     info_handle,
+	     path,
+	     path_length,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+		 "%s: unable to print path string.",
+		 function );
+
+		goto on_error;
+	}
+	fprintf(
+	 info_handle->notify_stream,
+	 "\n" );
+
+#ifdef TODO
+	if( info_handle_file_entry_value_with_name_fprint(
+	     info_handle,
+	     file_entry,
+	     path,
+	     path_length,
+	     NULL,
+	     0,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+		 "%s: unable to print file entry.",
+		 function );
+
+		goto on_error;
+	}
+#endif
+	if( libfsxfs_file_entry_free(
+	     &file_entry,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+		 "%s: unable to free file entry.",
+		 function );
+
+		goto on_error;
+	}
+	fprintf(
+	 info_handle->notify_stream,
+	 "\n" );
+
+	return( 1 );
+
+on_error:
+	if( file_entry != NULL )
+	{
+		libfsxfs_file_entry_free(
+		 &file_entry,
+		 NULL );
+	}
+	return( -1 );
+}
+
+/* Prints the file system hierarchy information
+ * Returns 1 if successful or -1 on error
+ */
+int info_handle_file_system_hierarchy_fprint(
+     info_handle_t *info_handle,
+     libcerror_error_t **error )
+{
+	libfsxfs_file_entry_t *file_entry = NULL;
+	static char *function             = "info_handle_file_system_hierarchy_fprint";
+	int result                        = 0;
+
+	if( info_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid info handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( info_handle->bodyfile_stream == NULL )
+	{
+		fprintf(
+		 info_handle->notify_stream,
+		 "X File System information:\n\n" );
+
+		fprintf(
+		 info_handle->notify_stream,
+		 "File system hierarchy:\n" );
+	}
+	result = libfsxfs_volume_get_root_directory(
+	          info_handle->input_volume,
+	          &file_entry,
+	          error );
+
+	if( result == -1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve root directory file entry.",
+		 function );
+
+		goto on_error;
+	}
+	else if( result != 0 )
+	{
+		if( info_handle_file_system_hierarchy_fprint_file_entry(
+		     info_handle,
+		     file_entry,
+		     _SYSTEM_STRING( "/" ),
+		     1,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+			 "%s: unable to print root directory file entry information.",
+			 function );
+
+			goto on_error;
+		}
+		if( libfsxfs_file_entry_free(
+		     &file_entry,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free file entry.",
+			 function );
+
+			goto on_error;
+		}
+	}
+	if( info_handle->bodyfile_stream == NULL )
+	{
+		fprintf(
+		 info_handle->notify_stream,
+		 "\n" );
+	}
+	return( 1 );
+
+on_error:
+	if( file_entry != NULL )
+	{
+		libfsxfs_file_entry_free(
+		 &file_entry,
+		 NULL );
+	}
+	return( -1 );
+}
+
 
 /* Prints the volume information
  * Returns 1 if successful or -1 on error

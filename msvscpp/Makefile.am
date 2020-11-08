@@ -3,6 +3,7 @@ MSVSCPP_FILES = \
 	fsxfs_test_btree_header/fsxfs_test_btree_header.vcproj \
 	fsxfs_test_error/fsxfs_test_error.vcproj \
 	fsxfs_test_inode_btree/fsxfs_test_inode_btree.vcproj \
+	fsxfs_test_inode_btree_record/fsxfs_test_inode_btree_record.vcproj \
 	fsxfs_test_inode_information/fsxfs_test_inode_information.vcproj \
 	fsxfs_test_io_handle/fsxfs_test_io_handle.vcproj \
 	fsxfs_test_notify/fsxfs_test_notify.vcproj \
@@ -21,8 +22,10 @@ MSVSCPP_FILES = \
 	libcthreads/libcthreads.vcproj \
 	libfcache/libfcache.vcproj \
 	libfdata/libfdata.vcproj \
+	libfdatetime/libfdatetime.vcproj \
 	libfguid/libfguid.vcproj \
 	libfsxfs/libfsxfs.vcproj \
+	libhmac/libhmac.vcproj \
 	libuna/libuna.vcproj \
 	pyfsxfs/pyfsxfs.vcproj \
 	libfsxfs.sln

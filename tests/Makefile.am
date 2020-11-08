@@ -42,6 +42,7 @@ check_PROGRAMS = \
 	fsxfs_test_btree_header \
 	fsxfs_test_error \
 	fsxfs_test_inode_btree \
+	fsxfs_test_inode_btree_record \
 	fsxfs_test_inode_information \
 	fsxfs_test_io_handle \
 	fsxfs_test_notify \
@@ -101,6 +102,18 @@ fsxfs_test_inode_btree_SOURCES = \
 	fsxfs_test_unused.h
 
 fsxfs_test_inode_btree_LDADD = \
+	../libfsxfs/libfsxfs.la \
+	@LIBCERROR_LIBADD@
+
+fsxfs_test_inode_btree_record_SOURCES = \
+	fsxfs_test_inode_btree_record.c \
+	fsxfs_test_libcerror.h \
+	fsxfs_test_libfsxfs.h \
+	fsxfs_test_macros.h \
+	fsxfs_test_memory.c fsxfs_test_memory.h \
+	fsxfs_test_unused.h
+
+fsxfs_test_inode_btree_record_LDADD = \
 	../libfsxfs/libfsxfs.la \
 	@LIBCERROR_LIBADD@
 

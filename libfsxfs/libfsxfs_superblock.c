@@ -649,7 +649,9 @@ int libfsxfs_superblock_read_data(
 
 		return( -1 );
 	}
-	if( superblock->inode_size == 0 )
+/* TOFO check if inode size a multitude of 2 */
+	if( ( superblock->inode_size == 0 )
+	 || ( superblock->inode_size > 2048 ) )
 	{
 		libcerror_error_set(
 		 error,
