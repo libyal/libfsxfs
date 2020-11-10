@@ -32,6 +32,121 @@
 
 #if defined( HAVE_DEBUG_OUTPUT )
 
+/* Prints the feature flags
+ */
+void libfsxfs_debug_print_feature_flags(
+      uint16_t feature_flags )
+{
+	if( ( feature_flags & 0x0010 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_ATTRBIT)\n" );
+	}
+	if( ( feature_flags & 0x0020 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_NLINKBIT)\n" );
+	}
+	if( ( feature_flags & 0x0040 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_QUOTABIT)\n" );
+	}
+	if( ( feature_flags & 0x0080 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_ALIGNBIT)\n" );
+	}
+	if( ( feature_flags & 0x0100 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_DALIGNBIT)\n" );
+	}
+	if( ( feature_flags & 0x0200 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_SHAREDBIT)\n" );
+	}
+	if( ( feature_flags & 0x0400 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_LOGV2BIT)\n" );
+	}
+	if( ( feature_flags & 0x0800 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_SECTORBIT)\n" );
+	}
+	if( ( feature_flags & 0x1000 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_EXTFLGBIT)\n" );
+	}
+	if( ( feature_flags & 0x2000 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_DIRV2BIT)\n" );
+	}
+	if( ( feature_flags & 0x4000 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_BORGBIT)\n" );
+	}
+	if( ( feature_flags & 0x8000 ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION_MOREBITSBIT)\n" );
+	}
+}
+
+/* Prints the secondary feature flags
+ */
+void libfsxfs_debug_print_secondary_feature_flags(
+      uint32_t secondary_feature_flags )
+{
+	if( ( secondary_feature_flags & 0x00000001UL ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION2_RESERVED1BIT)\n" );
+	}
+	if( ( secondary_feature_flags & 0x00000002UL ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION2_LAZYSBCOUNTBIT)\n" );
+	}
+	if( ( secondary_feature_flags & 0x00000004UL ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION2_RESERVED4BIT)\n" );
+	}
+	if( ( secondary_feature_flags & 0x00000008UL ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION2_ATTR2BIT)\n" );
+	}
+	if( ( secondary_feature_flags & 0x00000010UL ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION2_PARENTBIT)\n" );
+	}
+
+	if( ( secondary_feature_flags & 0x00000080UL ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION2_PROJID32BIT)\n" );
+	}
+	if( ( secondary_feature_flags & 0x00000100UL ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION2_CRCBIT)\n" );
+	}
+	if( ( secondary_feature_flags & 0x00000200UL ) != 0 )
+	{
+		libcnotify_printf(
+		 "\t(XFS_SB_VERSION2_FTYPE)\n" );
+	}
+}
+
 /* Prints the file mode
  */
 void libfsxfs_debug_print_file_mode(

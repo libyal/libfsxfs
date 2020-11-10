@@ -38,6 +38,7 @@
  */
 int libfsxfs_inode_initialize(
      libfsxfs_inode_t **inode,
+     size_t inode_size,
      libcerror_error_t **error )
 {
 	static char *function = "libfsxfs_inode_initialize";
@@ -60,6 +61,20 @@ int libfsxfs_inode_initialize(
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
 		 "%s: invalid inode value already set.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( inode_size != 256 )
+	 && ( inode_size != 512 )
+	 && ( inode_size != 1024 )
+	 && ( inode_size != 2048 ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid inode size value out of bounds.",
 		 function );
 
 		return( -1 );
@@ -90,8 +105,29 @@ int libfsxfs_inode_initialize(
 		 "%s: unable to clear inode.",
 		 function );
 
+		memory_free(
+		 *inode );
+
+		*inode = NULL;
+
+		return( -1 );
+	}
+	( *inode )->data = (uint8_t *) memory_allocate(
+	                                sizeof( uint8_t ) * inode_size );
+
+	if( ( *inode )->data == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+		 "%s: unable to create inode data.",
+		 function );
+
 		goto on_error;
 	}
+	( *inode )->data_size = inode_size;
+
 	return( 1 );
 
 on_error:
@@ -127,6 +163,11 @@ int libfsxfs_inode_free(
 	}
 	if( *inode != NULL )
 	{
+		if( ( *inode )->data != NULL )
+		{
+			memory_free(
+			 ( *inode )->data );
+		}
 		memory_free(
 		 *inode );
 
@@ -240,6 +281,8 @@ int libfsxfs_inode_read_data(
 	 ( (fsxfs_inode_v1_t *) data )->file_mode,
 	 inode->file_mode );
 
+	inode->format_version = format_version;
+
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->owner_identifier,
 	 inode->owner_identifier );
@@ -250,36 +293,61 @@ int libfsxfs_inode_read_data(
 
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->access_time,
-	 inode->access_time );
+	 value_32bit );
+
+	inode->access_time = (int32_t) value_32bit * (int64_t) 1000000000;
 
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->access_time_nano_seconds,
 	 value_32bit );
 
-	inode->access_time *= 1000000000;
-	inode->access_time += value_32bit;
-
+	if( inode->access_time > 0 )
+	{
+		inode->access_time += value_32bit;
+	}
+	else
+	{
+		inode->access_time -= value_32bit;
+	}
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->modification_time,
-	 inode->modification_time );
+	 value_32bit );
+
+	inode->modification_time = (int32_t) value_32bit * (int64_t) 1000000000;
 
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->modification_time_nano_seconds,
 	 value_32bit );
 
-	inode->modification_time *= 1000000000;
-	inode->modification_time += value_32bit;
-
+	if( inode->modification_time > 0 )
+	{
+		inode->modification_time += value_32bit;
+	}
+	else
+	{
+		inode->modification_time -= value_32bit;
+	}
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->inode_change_time,
-	 inode->inode_change_time );
+	 value_32bit );
+
+	inode->inode_change_time = (int32_t) value_32bit * (int64_t) 1000000000;
 
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->inode_change_time_nano_seconds,
 	 value_32bit );
 
-	inode->inode_change_time *= 1000000000;
-	inode->inode_change_time += value_32bit;
+	if( inode->inode_change_time > 0 )
+	{
+		inode->inode_change_time += value_32bit;
+	}
+	else
+	{
+		inode->inode_change_time -= value_32bit;
+	}
+	byte_stream_copy_to_uint64_big_endian(
+	 ( (fsxfs_inode_v1_t *) data )->data_size,
+	 inode->size );
 
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
@@ -430,13 +498,10 @@ int libfsxfs_inode_read_data(
 		 function,
 		 value_32bit );
 
-		byte_stream_copy_to_uint64_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->data_size,
-		 value_64bit );
 		libcnotify_printf(
 		 "%s: data size\t\t\t\t\t: %" PRIu64 "\n",
 		 function,
-		 value_64bit );
+		 inode->size );
 
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_inode_v1_t *) data )->extent_size,
@@ -522,6 +587,24 @@ int libfsxfs_inode_read_data(
 	}
 	if( format_version == 3 )
 	{
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v3_t *) data )->creation_time,
+		 value_32bit );
+
+		inode->creation_time = (int32_t) value_32bit * (int64_t) 1000000000;
+
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v3_t *) data )->creation_time_nano_seconds,
+		 value_32bit );
+
+		if( inode->creation_time > 0 )
+		{
+			inode->creation_time += value_32bit;
+		}
+		else
+		{
+			inode->creation_time -= value_32bit;
+		}
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
 		{
@@ -634,6 +717,34 @@ int libfsxfs_inode_read_data(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
+	if( ( (fsxfs_inode_v1_t *) data )->fork_type == 1 )
+	{
+		if( inode->size > ( data_size - inode_data_size ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: invalid data size value out of bounds.",
+			 function );
+
+			return( -1 );
+		}
+		inode->inline_data = &( data[ inode_data_size ] );
+
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: inline data:\n",
+			 function );
+			libcnotify_print_data(
+			 inode->inline_data,
+			 (size_t) inode->size,
+			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+	}
 	return( 1 );
 }
 
@@ -644,25 +755,19 @@ int libfsxfs_inode_read_file_io_handle(
      libfsxfs_inode_t *inode,
      libbfio_handle_t *file_io_handle,
      off64_t file_offset,
-     size_t inode_size,
      libcerror_error_t **error )
 {
-	uint8_t *inode_data   = NULL;
 	static char *function = "libfsxfs_inode_read_file_io_handle";
 	ssize_t read_count    = 0;
 
-	if( ( inode_size != 256 )
-	 && ( inode_size != 512 )
-	 && ( inode_size != 1024 )
-	 && ( inode_size != 2048 ) )
+	if( inode == NULL )
 	{
 		libcerror_error_set(
 		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: unsupported inode size: %" PRIzd ".",
-		 function,
-		 inode_size );
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
 
 		return( -1 );
 	}
@@ -691,29 +796,15 @@ int libfsxfs_inode_read_file_io_handle(
 		 file_offset,
 		 file_offset );
 
-		goto on_error;
-	}
-	inode_data = (uint8_t *) memory_allocate(
-	                          sizeof( uint8_t ) * inode_size );
-
-	if( inode_data == NULL )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_MEMORY,
-		 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
-		 "%s: unable to create inode data.",
-		 function );
-
-		goto on_error;
+		return( -1 );
 	}
 	read_count = libbfio_handle_read_buffer(
 	              file_io_handle,
-	              inode_data,
-	              inode_size,
+	              inode->data,
+	              inode->data_size,
 	              error );
 
-	if( read_count != (ssize_t) inode_size )
+	if( read_count != (ssize_t) inode->data_size )
 	{
 		libcerror_error_set(
 		 error,
@@ -724,12 +815,12 @@ int libfsxfs_inode_read_file_io_handle(
 		 file_offset,
 		 file_offset );
 
-		goto on_error;
+		return( -1 );
 	}
 	if( libfsxfs_inode_read_data(
 	     inode,
-	     inode_data,
-	     inode_size,
+	     inode->data,
+	     inode->data_size,
 	     error ) != 1 )
 	{
 		libcerror_error_set(
@@ -741,19 +832,275 @@ int libfsxfs_inode_read_file_io_handle(
 		 file_offset,
 		 file_offset );
 
-		goto on_error;
+		return( -1 );
 	}
-	memory_free(
-	 inode_data );
+	return( 1 );
+}
+
+/* Retrieves the creation time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+int libfsxfs_inode_get_creation_time(
+     libfsxfs_inode_t *inode,
+     int64_t *posix_time,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_creation_time";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( posix_time == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid POSIX time.",
+		 function );
+
+		return( -1 );
+	}
+	if( inode->format_version == 3 )
+	{
+		*posix_time = inode->creation_time;
+
+		return( 1 );
+	}
+	return( 0 );
+}
+
+/* Retrieves the modification time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_modification_time(
+     libfsxfs_inode_t *inode,
+     int64_t *posix_time,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_modification_time";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( posix_time == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid POSIX time.",
+		 function );
+
+		return( -1 );
+	}
+	*posix_time = inode->modification_time;
 
 	return( 1 );
+}
 
-on_error:
-	if( inode_data != NULL )
+/* Retrieves the access time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_access_time(
+     libfsxfs_inode_t *inode,
+     int64_t *posix_time,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_access_time";
+
+	if( inode == NULL )
 	{
-		memory_free(
-		 inode_data );
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
 	}
+	if( posix_time == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid POSIX time.",
+		 function );
+
+		return( -1 );
+	}
+	*posix_time = inode->access_time;
+
+	return( 1 );
+}
+
+/* Retrieves the inode change time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_inode_change_time(
+     libfsxfs_inode_t *inode,
+     int64_t *posix_time,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_inode_change_time";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( posix_time == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid POSIX time.",
+		 function );
+
+		return( -1 );
+	}
+	*posix_time = inode->inode_change_time;
+
+	return( 1 );
+}
+
+/* Retrieves the owner identifier
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_owner_identifier(
+     libfsxfs_inode_t *inode,
+     uint32_t *owner_identifier,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_owner_identifier";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( owner_identifier == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid owner identifier.",
+		 function );
+
+		return( -1 );
+	}
+	*owner_identifier = inode->owner_identifier;
+
+	return( 1 );
+}
+
+/* Retrieves the group identifier
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_group_identifier(
+     libfsxfs_inode_t *inode,
+     uint32_t *group_identifier,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_group_identifier";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( group_identifier == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid group identifier.",
+		 function );
+
+		return( -1 );
+	}
+	*group_identifier = inode->group_identifier;
+
+	return( 1 );
+}
+
+/* Retrieves the file mode
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_file_mode(
+     libfsxfs_inode_t *inode,
+     uint16_t *file_mode,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_file_mode";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( file_mode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file mode.",
+		 function );
+
+		return( -1 );
+	}
+	*file_mode = inode->file_mode;
+
 	return( 1 );
 }
 

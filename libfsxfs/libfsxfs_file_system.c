@@ -382,6 +382,7 @@ int libfsxfs_file_system_get_inode_by_number(
 	{
 		if( libfsxfs_inode_initialize(
 		     &safe_inode,
+		     io_handle->inode_size,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
@@ -399,7 +400,6 @@ int libfsxfs_file_system_get_inode_by_number(
 		     safe_inode,
 		     file_io_handle,
 		     file_offset,
-		     io_handle->inode_size,
 		     error ) != 1 )
 		{
 			libcerror_error_set(

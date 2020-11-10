@@ -395,6 +395,10 @@ int libfsxfs_superblock_read_data(
 		 version_and_feature_flags,
 		 superblock->format_version,
 		 superblock->feature_flags );
+		libfsxfs_debug_print_feature_flags(
+		 superblock->feature_flags );
+		libcnotify_printf(
+		 "\n" );
 
 		libcnotify_printf(
 		 "%s: sector size\t\t\t\t: %" PRIu16 "\n",
@@ -591,6 +595,10 @@ int libfsxfs_superblock_read_data(
 		 "%s: secondary feature flags\t\t\t: 0x%08" PRIx32 "\n",
 		 function,
 		 superblock->secondary_feature_flags );
+		libfsxfs_debug_print_secondary_feature_flags(
+		 superblock->secondary_feature_flags );
+		libcnotify_printf(
+		 "\n" );
 
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_superblock_t *) data )->secondary_feature_flags_copy,
@@ -599,13 +607,15 @@ int libfsxfs_superblock_read_data(
 		 "%s: secondary feature flags (copy)\t\t: 0x%08" PRIx32 "\n",
 		 function,
 		 value_32bit );
-
+		libfsxfs_debug_print_secondary_feature_flags(
+		 value_32bit );
 		libcnotify_printf(
 		 "\n" );
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-	if( superblock->format_version != 5 )
+	if( ( superblock->format_version != 4 )
+	 && ( superblock->format_version != 5 ) )
 	{
 		libcerror_error_set(
 		 error,

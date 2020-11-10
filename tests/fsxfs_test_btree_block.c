@@ -36,6 +36,7 @@
 #include "fsxfs_test_unused.h"
 
 #include "../libfsxfs/libfsxfs_btree_block.h"
+#include "../libfsxfs/libfsxfs_io_handle.h"
 
 uint8_t fsxfs_test_btree_block_data1[ 512 ] = {
 	0x49, 0x41, 0x42, 0x33, 0x00, 0x00, 0x00, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -319,10 +320,32 @@ int fsxfs_test_btree_block_read_data(
 {
 	libcerror_error_t *error            = NULL;
 	libfsxfs_btree_block_t *btree_block = NULL;
+	libfsxfs_io_handle_t *io_handle     = NULL;
 	int result                          = 0;
 
 	/* Initialize test
 	 */
+	result = libfsxfs_io_handle_initialize(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	io_handle->format_version = 5;
+	io_handle->block_size     = 1024;
+	io_handle->inode_size     = 128;
+
 	result = libfsxfs_btree_block_initialize(
 	          &btree_block,
 	          512,
@@ -345,6 +368,7 @@ int fsxfs_test_btree_block_read_data(
 	 */
 	result = libfsxfs_btree_block_read_data(
 	          btree_block,
+	          io_handle,
 	          fsxfs_test_btree_block_data1,
 	          512,
 	          &error );
@@ -362,6 +386,7 @@ int fsxfs_test_btree_block_read_data(
 	 */
 	result = libfsxfs_btree_block_read_data(
 	          NULL,
+	          io_handle,
 	          fsxfs_test_btree_block_data1,
 	          512,
 	          &error );
@@ -381,6 +406,7 @@ int fsxfs_test_btree_block_read_data(
 	result = libfsxfs_btree_block_read_data(
 	          btree_block,
 	          NULL,
+	          fsxfs_test_btree_block_data1,
 	          512,
 	          &error );
 
@@ -398,6 +424,26 @@ int fsxfs_test_btree_block_read_data(
 
 	result = libfsxfs_btree_block_read_data(
 	          btree_block,
+	          io_handle,
+	          NULL,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_btree_block_read_data(
+	          btree_block,
+	          io_handle,
 	          fsxfs_test_btree_block_data1,
 	          (size_t) SSIZE_MAX + 1,
 	          &error );
@@ -416,6 +462,7 @@ int fsxfs_test_btree_block_read_data(
 
 	result = libfsxfs_btree_block_read_data(
 	          btree_block,
+	          io_handle,
 	          fsxfs_test_btree_block_data1,
 	          0,
 	          &error );
@@ -451,6 +498,23 @@ int fsxfs_test_btree_block_read_data(
 	 "error",
 	 error );
 
+	result = libfsxfs_io_handle_free(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
 	return( 1 );
 
 on_error:
@@ -465,6 +529,12 @@ on_error:
 		 &btree_block,
 		 NULL );
 	}
+	if( io_handle != NULL )
+	{
+		libfsxfs_io_handle_free(
+		 &io_handle,
+		 NULL );
+	}
 	return( 0 );
 }
 
@@ -477,10 +547,32 @@ int fsxfs_test_btree_block_read_file_io_handle(
 	libbfio_handle_t *file_io_handle    = NULL;
 	libcerror_error_t *error            = NULL;
 	libfsxfs_btree_block_t *btree_block = NULL;
+	libfsxfs_io_handle_t *io_handle     = NULL;
 	int result                          = 0;
 
 	/* Initialize test
 	 */
+	result = libfsxfs_io_handle_initialize(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	io_handle->format_version = 5;
+	io_handle->block_size     = 1024;
+	io_handle->inode_size     = 128;
+
 	result = libfsxfs_btree_block_initialize(
 	          &btree_block,
 	          512,
@@ -524,6 +616,7 @@ int fsxfs_test_btree_block_read_file_io_handle(
 	 */
 	result = libfsxfs_btree_block_read_file_io_handle(
 	          btree_block,
+	          io_handle,
 	          file_io_handle,
 	          0,
 	          &error );
@@ -541,6 +634,7 @@ int fsxfs_test_btree_block_read_file_io_handle(
 	 */
 	result = libfsxfs_btree_block_read_file_io_handle(
 	          NULL,
+	          io_handle,
 	          file_io_handle,
 	          0,
 	          &error );
@@ -560,6 +654,7 @@ int fsxfs_test_btree_block_read_file_io_handle(
 	result = libfsxfs_btree_block_read_file_io_handle(
 	          btree_block,
 	          NULL,
+	          file_io_handle,
 	          0,
 	          &error );
 
@@ -577,6 +672,26 @@ int fsxfs_test_btree_block_read_file_io_handle(
 
 	result = libfsxfs_btree_block_read_file_io_handle(
 	          btree_block,
+	          io_handle,
+	          NULL,
+	          0,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_btree_block_read_file_io_handle(
+	          btree_block,
+	          io_handle,
 	          file_io_handle,
 	          -1,
 	          &error );
@@ -631,6 +746,7 @@ int fsxfs_test_btree_block_read_file_io_handle(
 
 	result = libfsxfs_btree_block_read_file_io_handle(
 	          btree_block,
+	          io_handle,
 	          file_io_handle,
 	          0,
 	          &error );
@@ -683,6 +799,23 @@ int fsxfs_test_btree_block_read_file_io_handle(
 	 "error",
 	 error );
 
+	result = libfsxfs_io_handle_free(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
 	return( 1 );
 
 on_error:
@@ -701,6 +834,12 @@ on_error:
 	{
 		libfsxfs_btree_block_free(
 		 &btree_block,
+		 NULL );
+	}
+	if( io_handle != NULL )
+	{
+		libfsxfs_io_handle_free(
+		 &io_handle,
 		 NULL );
 	}
 	return( 0 );

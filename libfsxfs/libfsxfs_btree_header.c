@@ -25,8 +25,10 @@
 #include <types.h>
 
 #include "libfsxfs_btree_header.h"
+#include "libfsxfs_debug.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
+#include "libfsxfs_libfguid.h"
 
 #include "fsxfs_btree.h"
 
@@ -138,14 +140,17 @@ int libfsxfs_btree_header_free(
  */
 int libfsxfs_btree_header_read_data(
      libfsxfs_btree_header_t *btree_header,
+     libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
      libcerror_error_t **error )
 {
-	static char *function = "libfsxfs_btree_header_read_data";
+	static char *function   = "libfsxfs_btree_header_read_data";
+	size_t header_data_size = 0;
 
 #if defined( HAVE_DEBUG_OUTPUT )
-	uint32_t value_32bit  = 0;
+	uint64_t value_64bit    = 0;
+	uint32_t value_32bit    = 0;
 #endif
 
 	if( btree_header == NULL )
@@ -159,6 +164,25 @@ int libfsxfs_btree_header_read_data(
 
 		return( -1 );
 	}
+	if( io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid IO handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( io_handle->format_version == 5 )
+	{
+		header_data_size = sizeof( fsxfs_btree_header_v5_t );
+	}
+	else
+	{
+		header_data_size = sizeof( fsxfs_btree_header_v1_t );
+	}
 	if( data == NULL )
 	{
 		libcerror_error_set(
@@ -170,7 +194,7 @@ int libfsxfs_btree_header_read_data(
 
 		return( -1 );
 	}
-	if( ( data_size < sizeof( fsxfs_btree_header_t ) )
+	if( ( data_size < header_data_size )
 	 || ( data_size > (size_t) SSIZE_MAX ) )
 	{
 		libcerror_error_set(
@@ -190,14 +214,14 @@ int libfsxfs_btree_header_read_data(
 		 function );
 		libcnotify_print_data(
 		 data,
-		 sizeof( fsxfs_btree_header_t ),
+		 header_data_size,
 		 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
 	if( memory_copy(
 	     btree_header->signature,
-	     ( (fsxfs_btree_header_t *) data )->signature,
+	     ( (fsxfs_btree_header_v1_t *) data )->signature,
 	     4 ) == NULL )
 	{
 		libcerror_error_set(
@@ -210,11 +234,11 @@ int libfsxfs_btree_header_read_data(
 		return( -1 );
 	}
 	byte_stream_copy_to_uint16_big_endian(
-	 ( (fsxfs_btree_header_t *) data )->level,
+	 ( (fsxfs_btree_header_v1_t *) data )->level,
 	 btree_header->level );
 
 	byte_stream_copy_to_uint16_big_endian(
-	 ( (fsxfs_btree_header_t *) data )->number_of_records,
+	 ( (fsxfs_btree_header_v1_t *) data )->number_of_records,
 	 btree_header->number_of_records );
 
 #if defined( HAVE_DEBUG_OUTPUT )
@@ -223,10 +247,10 @@ int libfsxfs_btree_header_read_data(
 		libcnotify_printf(
 		 "%s: signature\t\t\t\t: %c%c%c%c\n",
 		 function,
-		 ( (fsxfs_btree_header_t *) data )->signature[ 0 ],
-		 ( (fsxfs_btree_header_t *) data )->signature[ 1 ],
-		 ( (fsxfs_btree_header_t *) data )->signature[ 2 ],
-		 ( (fsxfs_btree_header_t *) data )->signature[ 3 ] );
+		 ( (fsxfs_btree_header_v1_t *) data )->signature[ 0 ],
+		 ( (fsxfs_btree_header_v1_t *) data )->signature[ 1 ],
+		 ( (fsxfs_btree_header_v1_t *) data )->signature[ 2 ],
+		 ( (fsxfs_btree_header_v1_t *) data )->signature[ 3 ] );
 
 		libcnotify_printf(
 		 "%s: level\t\t\t\t\t: %" PRIu16 "\n",
@@ -239,7 +263,7 @@ int libfsxfs_btree_header_read_data(
 		 btree_header->number_of_records );
 
 		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_btree_header_t *) data )->previous_btree_block_number,
+		 ( (fsxfs_btree_header_v1_t *) data )->previous_btree_block_number,
 		 value_32bit );
 		libcnotify_printf(
 		 "%s: previous B+ tree block number\t\t: %" PRIu32 "\n",
@@ -247,13 +271,75 @@ int libfsxfs_btree_header_read_data(
 		 value_32bit );
 
 		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_btree_header_t *) data )->next_btree_block_number,
+		 ( (fsxfs_btree_header_v1_t *) data )->next_btree_block_number,
 		 value_32bit );
 		libcnotify_printf(
 		 "%s: next B+ tree block number\t\t: %" PRIu32 "\n",
 		 function,
 		 value_32bit );
+	}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
+	if( io_handle->format_version == 5 )
+	{
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_btree_header_v5_t *) data )->block_number,
+			 value_64bit );
+			libcnotify_printf(
+			 "%s: block number\t\t\t\t: %" PRIu64 "\n",
+			 function,
+			 value_64bit );
+
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_btree_header_v5_t *) data )->log_sequence_number,
+			 value_64bit );
+			libcnotify_printf(
+			 "%s: log sequence number\t\t\t: 0x%08" PRIx64 "\n",
+			 function,
+			 value_64bit );
+
+			if( libfsxfs_debug_print_guid_value(
+			     function,
+			     "block type identifier\t\t\t",
+			     ( (fsxfs_btree_header_v5_t *) data )->block_type_identifier,
+			     16,
+			     LIBFGUID_ENDIAN_BIG,
+			     LIBFGUID_STRING_FORMAT_FLAG_USE_LOWER_CASE,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+				 "%s: unable to print GUID value.",
+				 function );
+
+				return( -1 );
+			}
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_btree_header_v5_t *) data )->owner_allocation_group,
+			 value_32bit );
+			libcnotify_printf(
+			 "%s: owner allocation group\t\t\t: %" PRIu32 "\n",
+			 function,
+			 value_32bit );
+
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_btree_header_v5_t *) data )->checksum,
+			 value_32bit );
+			libcnotify_printf(
+			 "%s: checksum\t\t\t\t: 0x%08" PRIx32 "\n",
+			 function,
+			 value_32bit );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+	}
+#if defined( HAVE_DEBUG_OUTPUT )
+	if( libcnotify_verbose != 0 )
+	{
 		libcnotify_printf(
 		 "\n" );
 	}

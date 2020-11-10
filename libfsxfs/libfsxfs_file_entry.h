@@ -66,6 +66,48 @@ int libfsxfs_file_entry_free(
      libfsxfs_file_entry_t **file_entry,
      libcerror_error_t **error );
 
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_creation_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_modification_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_access_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_inode_change_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_owner_identifier(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *owner_identifier,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_group_identifier(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *group_identifier,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_file_mode(
+     libfsxfs_file_entry_t *file_entry,
+     uint16_t *file_mode,
+     libcerror_error_t **error );
+
 #if defined( __cplusplus )
 }
 #endif

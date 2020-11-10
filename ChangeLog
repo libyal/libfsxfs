@@ -1,6 +1,6 @@
 TODO:
-* add file entry date time API functions
-* add file entry file mode function
+* add basic format version 4 and 5 support
+
 * add file entry size function
 
 * add support for directory entries
@@ -8,12 +8,11 @@ TODO:
 
 * change btree_block into btree_node
 
-* add basic format version 5 support
 * add support for 4k sector size (need test data)
 * add support for format version 1 (need test data)
 * add support for format version 2 (need test data)
 * add support for format version 3 (need test data)
-* add support for format version 4 (need test data)
+* test data with unwritten extent
 
 20200105
 * see `git log' for more recent change log

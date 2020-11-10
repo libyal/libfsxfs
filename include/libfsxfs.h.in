@@ -354,6 +354,80 @@ int libfsxfs_file_entry_free(
      libfsxfs_file_entry_t **file_entry,
      libfsxfs_error_t **error );
 
+/* Retrieves the creation date and time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * This value is retrieved from the inode
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_creation_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libfsxfs_error_t **error );
+
+/* Retrieves the modification date and time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_modification_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libfsxfs_error_t **error );
+
+/* Retrieves the access date and time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_access_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libfsxfs_error_t **error );
+
+/* Retrieves the inode change date and time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_inode_change_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libfsxfs_error_t **error );
+
+/* Retrieves the user identifier
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_owner_identifier(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *owner_identifier,
+     libfsxfs_error_t **error );
+
+/* Retrieves the group identifier
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_group_identifier(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *group_identifier,
+     libfsxfs_error_t **error );
+
+/* Retrieves the file mode
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_file_mode(
+     libfsxfs_file_entry_t *file_entry,
+     uint16_t *file_mode,
+     libfsxfs_error_t **error );
+
 #if defined( __cplusplus )
 }
 #endif

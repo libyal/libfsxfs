@@ -200,3 +200,520 @@ int libfsxfs_file_entry_free(
 	return( result );
 }
 
+/* Retrieves the creation date and time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * This value is retrieved from the inode
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+int libfsxfs_file_entry_get_creation_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_creation_time";
+	int result                                          = 1;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	result = libfsxfs_inode_get_creation_time(
+	          internal_file_entry->inode,
+	          posix_time,
+	          error );
+
+	if( result == -1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve creation time.",
+		 function );
+
+		result = -1;
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves the modification date and time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_file_entry_get_modification_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_modification_time";
+	int result                                          = 1;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( libfsxfs_inode_get_modification_time(
+	     internal_file_entry->inode,
+	     posix_time,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve modification time.",
+		 function );
+
+		result = -1;
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves the access date and time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_file_entry_get_access_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_access_time";
+	int result                                          = 1;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( libfsxfs_inode_get_access_time(
+	     internal_file_entry->inode,
+	     posix_time,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve access time.",
+		 function );
+
+		result = -1;
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves the inode change date and time
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_file_entry_get_inode_change_time(
+     libfsxfs_file_entry_t *file_entry,
+     int64_t *posix_time,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_inode_change_time";
+	int result                                          = 1;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( libfsxfs_inode_get_inode_change_time(
+	     internal_file_entry->inode,
+	     posix_time,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve inode change time.",
+		 function );
+
+		result = -1;
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves the owner identifier
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_file_entry_get_owner_identifier(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *owner_identifier,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_owner_identifier";
+	int result                                          = 1;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( libfsxfs_inode_get_owner_identifier(
+	     internal_file_entry->inode,
+	     owner_identifier,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve owner identifier.",
+		 function );
+
+		result = -1;
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves the group identifier
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_file_entry_get_group_identifier(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *group_identifier,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_group_identifier";
+	int result                                          = 1;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( libfsxfs_inode_get_group_identifier(
+	     internal_file_entry->inode,
+	     group_identifier,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve group identifier.",
+		 function );
+
+		result = -1;
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves the file mode
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_file_entry_get_file_mode(
+     libfsxfs_file_entry_t *file_entry,
+     uint16_t *file_mode,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_file_mode";
+	int result                                          = 1;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( libfsxfs_inode_get_file_mode(
+	     internal_file_entry->inode,
+	     file_mode,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve file mode.",
+		 function );
+
+		result = -1;
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_read(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+

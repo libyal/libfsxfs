@@ -154,6 +154,7 @@ int libfsxfs_inode_btree_get_inode_by_number(
 	static char *function                             = "libfsxfs_inode_btree_get_inode_by_number";
 	size_t data_offset                                = 0;
 	off64_t btree_block_offset                        = 0;
+	int compare_result                                = 0;
 	int result                                        = 0;
 
 	if( inode_btree == NULL )
@@ -197,6 +198,7 @@ int libfsxfs_inode_btree_get_inode_by_number(
 
 	if( libfsxfs_btree_block_read_file_io_handle(
 	     btree_block,
+	     io_handle,
 	     file_io_handle,
 	     btree_block_offset,
 	     error ) != 1 )
@@ -213,10 +215,21 @@ int libfsxfs_inode_btree_get_inode_by_number(
 
 		goto on_error;
 	}
-	if( memory_compare(
-	     btree_block->header->signature,
-	     "IAB3",
-	     4 ) != 0 )
+	if( io_handle->format_version == 5 )
+	{
+		compare_result = memory_compare(
+		                  btree_block->header->signature,
+		                  "IAB3",
+		                  4 );
+	}
+	else
+	{
+		compare_result = memory_compare(
+		                  btree_block->header->signature,
+		                  "IABT",
+		                  4 );
+	}
+	if( compare_result != 0 )
 	{
 		libcerror_error_set(
 		 error,

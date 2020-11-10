@@ -36,6 +36,18 @@ typedef struct libfsxfs_inode libfsxfs_inode_t;
 
 struct libfsxfs_inode
 {
+	/* Data
+	 */
+	uint8_t *data;
+
+	/* Data size
+	 */
+	size_t data_size;
+
+	/* Format version
+	 */
+	uint8_t format_version;
+
 	/* File mode
 	 */
 	uint16_t file_mode;
@@ -58,19 +70,28 @@ struct libfsxfs_inode
 
 	/* Modification time
 	 */
-	uint64_t modification_time;
+	int64_t modification_time;
 
 	/* Inode change time
 	 */
-	uint64_t inode_change_time;
+	int64_t inode_change_time;
+
+	/* Creation time
+	 */
+	int64_t creation_time;
 
 	/* Size
 	 */
 	uint64_t size;
+
+	/* Inline data
+	 */
+	const uint8_t *inline_data;
 };
 
 int libfsxfs_inode_initialize(
      libfsxfs_inode_t **inode,
+     size_t inode_size,
      libcerror_error_t **error );
 
 int libfsxfs_inode_free(
@@ -87,7 +108,41 @@ int libfsxfs_inode_read_file_io_handle(
      libfsxfs_inode_t *inode,
      libbfio_handle_t *file_io_handle,
      off64_t file_offset,
-     size_t inode_size,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_creation_time(
+     libfsxfs_inode_t *inode,
+     int64_t *posix_time,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_modification_time(
+     libfsxfs_inode_t *inode,
+     int64_t *posix_time,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_access_time(
+     libfsxfs_inode_t *inode,
+     int64_t *posix_time,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_inode_change_time(
+     libfsxfs_inode_t *inode,
+     int64_t *posix_time,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_owner_identifier(
+     libfsxfs_inode_t *inode,
+     uint32_t *owner_identifier,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_group_identifier(
+     libfsxfs_inode_t *inode,
+     uint32_t *group_identifier,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_file_mode(
+     libfsxfs_inode_t *inode,
+     uint16_t *file_mode,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )

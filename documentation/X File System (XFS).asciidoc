@@ -411,13 +411,12 @@ types of B+ trees, namely:
 A B+ tree block consists of:
 
 * B+ tree block header
-* [yellow-background]*Unknown (B+ tree block extended header)*
 * Array of branch or leaf block records
 
 === B+ tree block header
 
-The B+ tree block header (xfs_btree_sblock_t or xfs_btree_iblock_t) is 16 bytes
-of size and consist of:
+The B+ tree block header (xfs_btree_sblock_t or xfs_btree_iblock_t) is 16 or 56
+bytes of size and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -430,6 +429,24 @@ Contains 0 for a leaf block
 Contains -1 (0xffffffff) if not set
 | 12 | 4 | | Next B+ tree block number +
 Contains -1 (0xffffffff) if not set
+4+| _If version >= 5_
+| 16 | 8 | | Block number
+| 24 | 8 | | Log sequence number
+| 32 | 16 | | Block type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+| 48 | 4 | | Owner allocation group +
+Contains the allocation group the block is part of
+| 52 | 4 | | Checksum
+|===
+
+=== B+ tree block extended header
+
+* [yellow-background]*TODO: determine where this is defined, it seems to be
+represented in the examples.*
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
 |===
 
 ==== B+ tree block header signatures
@@ -446,22 +463,6 @@ Contains -1 (0xffffffff) if not set
 | "IAB3" | Version 5 (allocated) inode B+tree
 | "IABT" | (Allocated) inode B+tree
 | "R3FC" | Version 5 reference count B+ tree
-|===
-
-=== B+ tree block extended header
-
-* [yellow-background]*TODO: determine where this is defined, it seems to be
-represented in the examples.*
-
-[cols="1,1,1,5",options="header"]
-|===
-| Offset | Size | Value | Description
-| 16 | 8 | | [yellow-background]*Unknown (sector number)*
-| 24 | 8 | | Log sequence number
-| 32 | 16 | | Block type identifier +
-Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
-| 48 | 4 | | [yellow-background]*Unknown (owner)*
-| 52 | 4 | | Checksum
 |===
 
 === Free space B+ tree branch block record
@@ -518,6 +519,11 @@ file offset = allocation group file offset + ( inode number x inode size )
 ....
 
 == Inode
+
+The inode can be followed by:
+
+* inline data (fork type XFS_DINODE_FMT_LOCAL)
+* extent list (fork type XFS_DINODE_FMT_EXTENTS)
 
 === Inode version 1
 
@@ -609,6 +615,8 @@ Contains number of nano seconds
 | 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
 | 90 | 2 | | Inode flags
 | 92 | 4 | | Generation number
+4+| _Non-inode core field_
+| 96 | 4 | | [yellow-background]*Unknown (next unlinked inode)*
 |===
 
 === Inode version 3
@@ -656,7 +664,9 @@ Contains number of nano seconds
 | 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
 | 90 | 2 | | Inode flags
 | 92 | 4 | | Generation number
+4+| _Pre version 3 non-inode core field_
 | 96 | 4 | | [yellow-background]*Unknown (next unlinked inode)*
+4+| _Introduced in version 3_
 | 100 | 4 | | Checksum
 | 104 | 8 | | Change count +
 Contains the number of changes made to the inode
@@ -668,7 +678,8 @@ Contains the number of changes made to the inode
 Contains a POSIX timestamp in seconds
 | 148 | 4 | | Creation time fraction of second +
 Contains number of nano seconds
-| 152 | 8 | | Inode number
+| 152 | 8 | | Inode number +
+Contains an absolute inode number
 | 160 | 16 | | Inode type identifier +
 Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
 |===
@@ -715,7 +726,8 @@ _Bitmask: 0xf000 (S_IFMT)_
 | Value | Identifier | Description
 | 0 | XFS_DINODE_FMT_DEV | [yellow-background]*Unknown (Used for character and block devices)*
 | 1 | XFS_DINODE_FMT_LOCAL | Data is stored inline (in the inode)
-| 2 | XFS_DINODE_FMT_EXTENTS | Data is referrenced by extents
+| 2 | XFS_DINODE_FMT_EXTENTS | Data is referrenced by extents stored in an extent list +
+See sction: <<extent_list,Extent list>>
 | 3 | XFS_DINODE_FMT_BTREE | Data is referrence by a B+ tree node
 | 4 | XFS_DINODE_FMT_UUID | [yellow-background]*Unknown (currently not used)*
 | 5 | XFS_DINODE_FMT_RMAP | Data is referrence by a reverse mapping
@@ -744,6 +756,146 @@ XFS_DIFLAG_EXTSZINHERIT For directory inodes, new inodes inherit the
 di_extsize value.
 XFS_DIFLAG_NODEFRAG Specifies the inode is to be ignored when
 defragmenting the filesystem.
+....
+
+=== [[extent_list]]Extent list
+
+The extent list (xfs_bmbt_rec_t) is 128 bits of size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 21 bits | | Number of blocks
+| 2.4 | 52 bits | Absolute block number
+| 9.1 | 54 bits | Extent logical offset
+| 15.7 | 1 bit | Is unwritten extent
+|===
+
+....
+file offset = absolute block number x block size
+....
+
+== Directory entries
+
+Directories entries are stored in the data fork of a directory inode. The
+directory entries can be stored in multiple ways:
+
+* as a short-form directory table
+* as a block directory
+
+[yellow-background]*TODO describe extents and B+ tree forms*
+
+=== Short-form directory table
+
+The short-form directory table (xfs_dir2_sf_t) is stored in the inode (as inline
+data). The short-form directory table consist of:
+
+* Short-form directory table header
+* Short-form directory table entries
+
+=== Short-form directory table header
+
+The short-form directory table header (xfs_dir2_sf_hdr_t) is 6 or 10 bytes of
+size and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 1 | | Number of 32-bit entries
+| 1 | 1 | | Number of 64-bit entries
+| 2 | 4 or 8 | | Parent inode number +
+Contains an absolute inode number
+|===
+
+[NOTE]
+If the inode numbers are stored as 32-bit values then number of 32-bit entries
+is set and number of 64-bit entries must be 0. If the inode numbers are stored
+as 64-bit values then number of 64-bit entries is set and number of 32-bit
+entries must be 0.
+
+=== Short-form directory table header
+
+The short-form directory table entry (xfs_dir2_sf_entry_t) is variable of size
+and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 1 | | Name size +
+Does not include the end-of-string character
+| 1 | 2 | | [yellow-background]*Unknown (offset)*
+| 3 | ... | | Name
+4+| _Only present if XFS_SB_VERSION2_FTYPE is set_
+| ... | 1 | | [yellow-background]*Unknown (optional ftype)*
+4+| _Common_
+| ... | 4 or 8 | | Inode number +
+Contains an absolute inode number
+|===
+
+=== Block directory
+
+[yellow-background]*TODO describe*
+
+....
+#define XFS_DIR2_DATA_FD_COUNT 3
+typedef struct xfs_dir2_block {
+xfs_dir2_data_hdr_t
+hdr;
+xfs_dir2_data_union_t
+u[1];
+xfs_dir2_leaf_entry_t
+leaf[1];
+xfs_dir2_block_tail_t
+tail;
+} xfs_dir2_block_t;
+typedef struct xfs_dir2_data_hdr {
+__uint32_t
+magic;
+xfs_dir2_data_free_t
+bestfree[XFS_DIR2_DATA_FD_COUNT];
+} xfs_dir2_data_hdr_t;
+typedef struct xfs_dir2_data_free {
+xfs_dir2_data_off_t
+offset;
+xfs_dir2_data_off_t
+length;
+} xfs_dir2_data_free_t;
+typedef union {
+xfs_dir2_data_entry_t
+xfs_dir2_data_unused_t
+} xfs_dir2_data_union_t;
+entry;
+unused;
+typedef struct xfs_dir2_data_entry {
+xfs_ino_t
+inumber;
+__uint8_t
+namelen;
+__uint8_t
+name[1];
+xfs_dir2_data_off_t
+tag;
+} xfs_dir2_data_entry_t;
+typedef struct xfs_dir2_data_unused {
+__uint16_t
+freetag;
+xfs_dir2_data_off_t
+length;
+xfs_dir2_data_off_t
+tag;
+} xfs_dir2_data_unused_t;
+typedef struct xfs_dir2_leaf_entry {
+xfs_dahash_t
+hashval;
+xfs_dir2_dataptr_t
+address;
+} xfs_dir2_leaf_entry_t;
+typedef struct xfs_dir2_block_tail {
+__uint32_t
+count;
+__uint32_t
+stale;
+} xfs_dir2_block_tail_t;
 ....
 
 :numbered!:

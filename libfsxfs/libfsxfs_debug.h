@@ -37,6 +37,12 @@ extern "C" {
 void libfsxfs_debug_print_file_mode(
       uint16_t file_mode );
 
+void libfsxfs_debug_print_feature_flags(
+      uint16_t feature_flags );
+
+void libfsxfs_debug_print_secondary_feature_flags(
+      uint32_t secondary_feature_flags );
+
 const char *libfsxfs_debug_print_fork_type(
              uint8_t fork_type );
 

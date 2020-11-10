@@ -26,6 +26,7 @@
 #include <types.h>
 
 #include "libfsxfs_btree_header.h"
+#include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 
@@ -69,12 +70,14 @@ int libfsxfs_btree_block_free(
 
 int libfsxfs_btree_block_read_data(
      libfsxfs_btree_block_t *btree_block,
+     libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
      libcerror_error_t **error );
 
 int libfsxfs_btree_block_read_file_io_handle(
      libfsxfs_btree_block_t *btree_block,
+     libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      off64_t file_offset,
      libcerror_error_t **error );

@@ -25,6 +25,7 @@
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_io_handle.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
@@ -58,6 +59,7 @@ int libfsxfs_btree_header_free(
 
 int libfsxfs_btree_header_read_data(
      libfsxfs_btree_header_t *btree_header,
+     libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
      libcerror_error_t **error );
