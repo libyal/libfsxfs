@@ -67,14 +67,5 @@ enum LIBFSXFS_FILE_TYPES
 	LIBFSXFS_FILE_TYPE_SOCKET		= 0xc000,
 };
 
-/* The extent flag definitions
- */
-enum LIBFSXFS_EXTENT_FLAGS
-{
-	/* The extent is sparse
-	 */
-	LIBFSXFS_EXTENT_FLAG_IS_SPARSE		= 0x00000001UL
-};
-
 #endif /* !defined( _LIBFSXFS_DEFINITIONS_H ) */
 

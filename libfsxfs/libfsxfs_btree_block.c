@@ -182,11 +182,9 @@ int libfsxfs_btree_block_free(
 				result = -1;
 			}
 		}
-		if( ( *btree_block )->data != NULL )
-		{
-			memory_free(
-			 ( *btree_block )->data );
-		}
+		memory_free(
+		 ( *btree_block )->data );
+
 		memory_free(
 		 *btree_block );
 
@@ -436,7 +434,7 @@ int libfsxfs_btree_block_read_file_io_handle(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_IO,
 		 LIBCERROR_IO_ERROR_READ_FAILED,
-		 "%s: unable to read B+ tree block at offset: %" PRIi64 " (0x%08" PRIx64 ").",
+		 "%s: unable to read B+ tree block data at offset: %" PRIi64 " (0x%08" PRIx64 ").",
 		 function,
 		 file_offset,
 		 file_offset );

@@ -26,6 +26,7 @@
 #include <types.h>
 
 #include "libfsxfs_libbfio.h"
+#include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
@@ -80,6 +81,10 @@ struct libfsxfs_inode
 	 */
 	int64_t creation_time;
 
+	/* (Data) fork type
+	 */
+	uint8_t fork_type;
+
 	/* Size
 	 */
 	uint64_t size;
@@ -87,6 +92,10 @@ struct libfsxfs_inode
 	/* Inline data
 	 */
 	const uint8_t *inline_data;
+
+	/* Extents
+	 */
+	libcdata_array_t *extents;
 };
 
 int libfsxfs_inode_initialize(
@@ -143,6 +152,11 @@ int libfsxfs_inode_get_group_identifier(
 int libfsxfs_inode_get_file_mode(
      libfsxfs_inode_t *inode,
      uint16_t *file_mode,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_data_size(
+     libfsxfs_inode_t *inode,
+     uint64_t *data_size,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )

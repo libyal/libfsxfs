@@ -25,6 +25,8 @@
 #include <types.h>
 
 #include "libfsxfs_debug.h"
+#include "libfsxfs_definitions.h"
+#include "libfsxfs_extent.h"
 #include "libfsxfs_inode.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
@@ -149,6 +151,7 @@ int libfsxfs_inode_free(
      libcerror_error_t **error )
 {
 	static char *function = "libfsxfs_inode_free";
+	int result            = 1;
 
 	if( inode == NULL )
 	{
@@ -168,12 +171,29 @@ int libfsxfs_inode_free(
 			memory_free(
 			 ( *inode )->data );
 		}
+		if( ( *inode )->extents != NULL )
+		{
+			if( libcdata_array_free(
+			     &( ( *inode )->extents ),
+			     (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_extent_free,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free extents array.",
+				 function );
+
+				result = -1;
+			}
+		}
 		memory_free(
 		 *inode );
 
 		*inode = NULL;
 	}
-	return( 1 );
+	return( result );
 }
 
 /* Reads the inode data
@@ -185,14 +205,19 @@ int libfsxfs_inode_read_data(
      size_t data_size,
      libcerror_error_t **error )
 {
-	static char *function  = "libfsxfs_inode_read_data";
-	size_t inode_data_size = 0;
-	uint32_t value_32bit   = 0;
-	uint8_t format_version = 0;
+	libfsxfs_extent_t *extent       = NULL;
+	static char *function           = "libfsxfs_inode_read_data";
+	size_t data_offset              = 0;
+	size_t inode_data_size          = 0;
+	uint32_t extent_index           = 0;
+	uint32_t number_of_data_extents = 0;
+	uint32_t value_32bit            = 0;
+	uint8_t format_version          = 0;
+	int entry_index                 = 0;
 
 #if defined( HAVE_DEBUG_OUTPUT )
-	uint64_t value_64bit   = 0;
-	uint16_t value_16bit   = 0;
+	uint64_t value_64bit            = 0;
+	uint16_t value_16bit            = 0;
 #endif
 
 	if( inode == NULL )
@@ -265,8 +290,8 @@ int libfsxfs_inode_read_data(
 
 	if( memory_compare(
 	    ( (fsxfs_inode_v1_t *) data )->signature,
-	     "IN",
-	     2 ) != 0 )
+	    "IN",
+	    2 ) != 0 )
 	{
 		libcerror_error_set(
 		 error,
@@ -275,11 +300,13 @@ int libfsxfs_inode_read_data(
 		 "%s: invalid signature.",
 		 function );
 
-		return( -1 );
+		goto on_error;
 	}
 	byte_stream_copy_to_uint16_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->file_mode,
 	 inode->file_mode );
+
+	inode->fork_type = ( (fsxfs_inode_v1_t *) data )->fork_type;
 
 	inode->format_version = format_version;
 
@@ -348,6 +375,10 @@ int libfsxfs_inode_read_data(
 	byte_stream_copy_to_uint64_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->data_size,
 	 inode->size );
+
+	byte_stream_copy_to_uint32_big_endian(
+	 ( (fsxfs_inode_v1_t *) data )->number_of_data_extents,
+	 number_of_data_extents );
 
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
@@ -511,13 +542,10 @@ int libfsxfs_inode_read_data(
 		 function,
 		 value_32bit );
 
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->number_of_data_extents,
-		 value_32bit );
 		libcnotify_printf(
 		 "%s: number of data extents\t\t\t: %" PRIu32 "\n",
 		 function,
-		 value_32bit );
+		 number_of_data_extents );
 
 		byte_stream_copy_to_uint16_big_endian(
 		 ( (fsxfs_inode_v1_t *) data )->number_of_attributes_extents,
@@ -568,6 +596,14 @@ int libfsxfs_inode_read_data(
 		 "%s: generation number\t\t\t\t: %" PRIu32 "\n",
 		 function,
 		 value_32bit );
+
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v3_t *) data )->unknown7,
+		 value_32bit );
+		libcnotify_printf(
+		 "%s: unknown7\t\t\t\t\t: 0x%08" PRIx32 "\n",
+		 function,
+		 value_32bit );
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
@@ -583,7 +619,7 @@ int libfsxfs_inode_read_data(
 		 function,
 		 format_version );
 
-		return( -1 );
+		goto on_error;
 	}
 	if( format_version == 3 )
 	{
@@ -608,14 +644,6 @@ int libfsxfs_inode_read_data(
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
 		{
-			byte_stream_copy_to_uint32_big_endian(
-			 ( (fsxfs_inode_v3_t *) data )->unknown7,
-			 value_32bit );
-			libcnotify_printf(
-			 "%s: unknown7\t\t\t\t\t: 0x%08" PRIx32 "\n",
-			 function,
-			 value_32bit );
-
 			byte_stream_copy_to_uint32_big_endian(
 			 ( (fsxfs_inode_v3_t *) data )->checksum,
 			 value_32bit );
@@ -704,7 +732,7 @@ int libfsxfs_inode_read_data(
 				 "%s: unable to print GUID value.",
 				 function );
 
-				return( -1 );
+				goto on_error;
 			}
 		}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
@@ -717,7 +745,7 @@ int libfsxfs_inode_read_data(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-	if( ( (fsxfs_inode_v1_t *) data )->fork_type == 1 )
+	if( inode->fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
 	{
 		if( inode->size > ( data_size - inode_data_size ) )
 		{
@@ -725,13 +753,11 @@ int libfsxfs_inode_read_data(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-			 "%s: invalid data size value out of bounds.",
+			 "%s: invalid inline data size value out of bounds.",
 			 function );
 
-			return( -1 );
+			goto on_error;
 		}
-		inode->inline_data = &( data[ inode_data_size ] );
-
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
 		{
@@ -739,13 +765,128 @@ int libfsxfs_inode_read_data(
 			 "%s: inline data:\n",
 			 function );
 			libcnotify_print_data(
-			 inode->inline_data,
+			 &( data[ inode_data_size ] ),
 			 (size_t) inode->size,
 			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
 		}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		inode->inline_data = &( data[ inode_data_size ] );
+	}
+	else if( inode->fork_type == LIBFSXFS_FORK_TYPE_EXTENTS )
+	{
+		if( number_of_data_extents > ( ( data_size - inode_data_size ) / 16 ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: invalid data extents data size value out of bounds.",
+			 function );
+
+			goto on_error;
+		}
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: data extents data:\n",
+			 function );
+			libcnotify_print_data(
+			 &( data[ inode_data_size ] ),
+			 (size_t) number_of_data_extents * 16,
+			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		if( libcdata_array_initialize(
+		     &( inode->extents ),
+		     0,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create extents array.",
+			 function );
+
+			goto on_error;
+		}
+		data_offset = inode_data_size;
+
+		for( extent_index = 0;
+		     extent_index < number_of_data_extents;
+		     extent_index++ )
+		{
+			if( libfsxfs_extent_initialize(
+			     &extent,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+				 "%s: unable to create extent: %" PRIu32 ".",
+				 function,
+				 extent_index );
+
+				goto on_error;
+			}
+			if( libfsxfs_extent_read_data(
+			     extent,
+			     &( data[ data_offset ] ),
+			     16,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_IO,
+				 LIBCERROR_IO_ERROR_READ_FAILED,
+				 "%s: unable to read extent: %" PRIu32 ".",
+				 function,
+				 extent_index );
+
+				goto on_error;
+			}
+			data_offset += 16;
+
+			if( libcdata_array_append_entry(
+			     inode->extents,
+			     &entry_index,
+			     (intptr_t *) extent,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_APPEND_FAILED,
+				 "%s: unable to append extent: %" PRIu32 " to array.",
+				 function,
+				 extent_index );
+
+				goto on_error;
+			}
+			extent = NULL;
+		}
 	}
 	return( 1 );
+
+on_error:
+	if( extent != NULL )
+	{
+		libfsxfs_extent_free(
+		 &extent,
+		 NULL );
+	}
+	if( inode->extents != NULL )
+	{
+		libcdata_array_free(
+		 &( inode->extents ),
+		 (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_extent_free,
+		 NULL );
+	}
+	return( -1 );
 }
 
 /* Reads the inode from a Basic File IO (bfio) handle
@@ -1100,6 +1241,43 @@ int libfsxfs_inode_get_file_mode(
 		return( -1 );
 	}
 	*file_mode = inode->file_mode;
+
+	return( 1 );
+}
+
+/* Retrieves the data size
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_data_size(
+     libfsxfs_inode_t *inode,
+     uint64_t *data_size,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_data_size";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( data_size == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid data size.",
+		 function );
+
+		return( -1 );
+	}
+	*data_size = inode->size;
 
 	return( 1 );
 }

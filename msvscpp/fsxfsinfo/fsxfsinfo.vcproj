@@ -242,6 +242,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\fsxfstools\fsxfstools_libfdatetime.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\fsxfstools\fsxfstools_libfsxfs.h"
 				>
 			</File>

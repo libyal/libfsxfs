@@ -127,9 +127,15 @@ stamp-h[1-9]
 /fsxfstools/*.exe
 /fsxfstools/fsxfsinfo
 /tests/*.exe
+/tests/fsxfs_test_block_directory_footer
+/tests/fsxfs_test_block_directory_header
 /tests/fsxfs_test_btree_block
 /tests/fsxfs_test_btree_header
+/tests/fsxfs_test_buffer_data_handle
+/tests/fsxfs_test_directory_entry
+/tests/fsxfs_test_directory_table_header
 /tests/fsxfs_test_error
+/tests/fsxfs_test_extent
 /tests/fsxfs_test_file_entry
 /tests/fsxfs_test_inode
 /tests/fsxfs_test_inode_btree

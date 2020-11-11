@@ -311,8 +311,18 @@ int libfsxfs_volume_get_utf16_label(
      size_t utf16_string_size,
      libfsxfs_error_t **error );
 
+/* Retrieves the file entry of a specific inode number
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_file_entry_by_inode(
+     libfsxfs_volume_t *volume,
+     uint64_t inode_number,
+     libfsxfs_file_entry_t **file_entry,
+     libfsxfs_error_t **error );
+
 /* Retrieves the root directory file entry
- * Returns 1 if successful, 0 if not available or -1 on error
+ * Returns 1 if successful or -1 on error
  */
 LIBFSXFS_EXTERN \
 int libfsxfs_volume_get_root_directory(
@@ -352,6 +362,15 @@ int libfsxfs_volume_get_file_entry_by_utf16_path(
 LIBFSXFS_EXTERN \
 int libfsxfs_file_entry_free(
      libfsxfs_file_entry_t **file_entry,
+     libfsxfs_error_t **error );
+
+/* Retrieves the inode number
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_inode_number(
+     libfsxfs_file_entry_t *file_entry,
+     uint64_t *inode_number,
      libfsxfs_error_t **error );
 
 /* Retrieves the creation date and time
@@ -398,6 +417,16 @@ int libfsxfs_file_entry_get_inode_change_time(
      int64_t *posix_time,
      libfsxfs_error_t **error );
 
+/* Retrieves the file mode
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_file_mode(
+     libfsxfs_file_entry_t *file_entry,
+     uint16_t *file_mode,
+     libfsxfs_error_t **error );
+
 /* Retrieves the user identifier
  * This value is retrieved from the inode
  * Returns 1 if successful or -1 on error
@@ -418,14 +447,182 @@ int libfsxfs_file_entry_get_group_identifier(
      uint32_t *group_identifier,
      libfsxfs_error_t **error );
 
-/* Retrieves the file mode
- * This value is retrieved from the inode
+/* Retrieves the size of the UTF-8 encoded name
+ * The returned size includes the end of string character
+ * This value is retrieved from the directory entry
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_utf8_name_size(
+     libfsxfs_file_entry_t *file_entry,
+     size_t *utf8_string_size,
+     libfsxfs_error_t **error );
+
+/* Retrieves the UTF-8 encoded name
+ * The size should include the end of string character
+ * This value is retrieved from the directory entry
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_utf8_name(
+     libfsxfs_file_entry_t *file_entry,
+     uint8_t *utf8_string,
+     size_t utf8_string_size,
+     libfsxfs_error_t **error );
+
+/* Retrieves the size of the UTF-16 encoded name
+ * The returned size includes the end of string character
+ * This value is retrieved from the directory entry
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_utf16_name_size(
+     libfsxfs_file_entry_t *file_entry,
+     size_t *utf16_string_size,
+     libfsxfs_error_t **error );
+
+/* Retrieves the UTF-16 encoded name
+ * The size should include the end of string character
+ * This value is retrieved from the directory entry
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_utf16_name(
+     libfsxfs_file_entry_t *file_entry,
+     uint16_t *utf16_string,
+     size_t utf16_string_size,
+     libfsxfs_error_t **error );
+
+/* Retrieves the size of the UTF-8 encoded symbolic link target
+ * The size should include the end of string character
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_utf8_symbolic_link_target_size(
+     libfsxfs_file_entry_t *file_entry,
+     size_t *utf8_string_size,
+     libfsxfs_error_t **error );
+
+/* Retrieves the UTF-8 encoded symbolic link target
+ * The size should include the end of string character
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_utf8_symbolic_link_target(
+     libfsxfs_file_entry_t *file_entry,
+     uint8_t *utf8_string,
+     size_t utf8_string_size,
+     libfsxfs_error_t **error );
+
+/* Retrieves the size of the UTF-16 encoded symbolic link target
+ * The size should include the end of string character
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_utf16_symbolic_link_target_size(
+     libfsxfs_file_entry_t *file_entry,
+     size_t *utf16_string_size,
+     libfsxfs_error_t **error );
+
+/* Retrieves the UTF-16 encoded symbolic link target
+ * The size should include the end of string character
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_utf16_symbolic_link_target(
+     libfsxfs_file_entry_t *file_entry,
+     uint16_t *utf16_string,
+     size_t utf16_string_size,
+     libfsxfs_error_t **error );
+
+/* Retrieves the number of sub file entries
  * Returns 1 if successful or -1 on error
  */
 LIBFSXFS_EXTERN \
-int libfsxfs_file_entry_get_file_mode(
+int libfsxfs_file_entry_get_number_of_sub_file_entries(
      libfsxfs_file_entry_t *file_entry,
-     uint16_t *file_mode,
+     int *number_of_sub_entries,
+     libfsxfs_error_t **error );
+
+/* Retrieves the sub file entry for the specific index
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_sub_file_entry_by_index(
+     libfsxfs_file_entry_t *file_entry,
+     int sub_file_entry_index,
+     libfsxfs_file_entry_t **sub_file_entry,
+     libfsxfs_error_t **error );
+
+/* Retrieves the sub file entry for an UTF-8 encoded name
+ * Returns 1 if successful, 0 if the file entry does not contain such value or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_sub_file_entry_by_utf8_name(
+     libfsxfs_file_entry_t *file_entry,
+     const uint8_t *utf8_string,
+     size_t utf8_string_length,
+     libfsxfs_file_entry_t **sub_file_entry,
+     libfsxfs_error_t **error );
+
+/* Retrieves the sub file entry for an UTF-16 encoded name
+ * Returns 1 if successful, 0 if the file entry does not contain such value or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_sub_file_entry_by_utf16_name(
+     libfsxfs_file_entry_t *file_entry,
+     const uint16_t *utf16_string,
+     size_t utf16_string_length,
+     libfsxfs_file_entry_t **sub_file_entry,
+     libfsxfs_error_t **error );
+
+/* Reads data at the current offset
+ * Returns the number of bytes read or -1 on error
+ */
+LIBFSXFS_EXTERN \
+ssize_t libfsxfs_file_entry_read_buffer(
+         libfsxfs_file_entry_t *file_entry,
+         void *buffer,
+         size_t buffer_size,
+         libfsxfs_error_t **error );
+
+/* Reads data at a specific offset
+ * Returns the number of bytes read or -1 on error
+ */
+LIBFSXFS_EXTERN \
+ssize_t libfsxfs_file_entry_read_buffer_at_offset(
+         libfsxfs_file_entry_t *file_entry,
+         void *buffer,
+         size_t buffer_size,
+         off64_t offset,
+         libfsxfs_error_t **error );
+
+/* Seeks a certain offset
+ * Returns the offset if seek is successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+off64_t libfsxfs_file_entry_seek_offset(
+         libfsxfs_file_entry_t *file_entry,
+         off64_t offset,
+         int whence,
+         libfsxfs_error_t **error );
+
+/* Retrieves the current offset
+ * Returns the offset if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_offset(
+     libfsxfs_file_entry_t *file_entry,
+     off64_t *offset,
+     libfsxfs_error_t **error );
+
+/* Retrieves the size of the data
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_size(
+     libfsxfs_file_entry_t *file_entry,
+     size64_t *size,
      libfsxfs_error_t **error );
 
 #if defined( __cplusplus )

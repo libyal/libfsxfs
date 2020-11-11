@@ -162,6 +162,12 @@ struct fsxfs_inode_v1
 	 * Consists of 4 bytes
 	 */
 	uint8_t generation_number[ 4 ];
+
+/* TODO verify if this value exists */
+	/* Unknown
+	 * Consists of 4 bytes
+	 */
+	uint8_t unknown7[ 4 ];
 };
 
 typedef struct fsxfs_inode_v2 fsxfs_inode_v2_t;
@@ -307,6 +313,11 @@ struct fsxfs_inode_v2
 	 * Consists of 4 bytes
 	 */
 	uint8_t generation_number[ 4 ];
+
+	/* Unknown
+	 * Consists of 4 bytes
+	 */
+	uint8_t unknown7[ 4 ];
 };
 
 typedef struct fsxfs_inode_v3 fsxfs_inode_v3_t;

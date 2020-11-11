@@ -260,19 +260,23 @@ Current no compatible feature flags are defined
 
 === [[read_only_compatible_feature_flags]]Read-only compatible feature flags
 
-[yellow-background]*TODO describe*
-
-XFS_SB_FEAT_RO_COMPAT_FINOBT
-XFS_SB_FEAT_RO_COMPAT_RMAPBT
-XFS_SB_FEAT_RO_COMPAT_REFLINK
+[cols="1,1,5",options="header"]
+|===
+| Value | Identifier | Description
+| 0x00000001 | XFS_SB_FEAT_RO_COMPAT_FINOBT |
+| 0x00000002 | XFS_SB_FEAT_RO_COMPAT_RMAPBT |
+| 0x00000004 | XFS_SB_FEAT_RO_COMPAT_REFLINK |
+|===
 
 === [[incompatible_feature_flags]]Incompatible feature flags
 
-[yellow-background]*TODO describe*
-
-XFS_SB_FEAT_INCOMPAT_FTYPE
-XFS_SB_FEAT_INCOMPAT_SPINODES
-XFS_SB_FEAT_INCOMPAT_META_UUID
+[cols="1,1,5",options="header"]
+|===
+| Value | Identifier | Description
+| 0x00000001 | XFS_SB_FEAT_INCOMPAT_FTYPE |
+| 0x00000002 | XFS_SB_FEAT_INCOMPAT_SPINODES |
+| 0x00000004 | XFS_SB_FEAT_INCOMPAT_META_UUID |
+|===
 
 === [[journal_incompatible_feature_flags]]Journal incompatible feature flags
 
@@ -360,7 +364,7 @@ Contains the allocation group number of the corresponding sector
 | 8 | 16 | | Block type identifier +
 Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
 | 24 | 8 | | Log sequence number
-| 32 | 4 | | Checksum of the sector
+| 32 | 4 | | Checksum
 |===
 
 [yellow-background]*TODO describe sb_uuid or sb_meta_uuid*
@@ -390,7 +394,7 @@ Contains -1 (0xffffffff) if not set
 4+| _If version >= 5_
 | 296 | 16 | | Block type identifier +
 Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
-| 312 | 4 | | Checksum of the sector
+| 312 | 4 | | Checksum
 | 316 | 4 | | [yellow-background]*Unknown (padding)*
 | 320 | 8 | | Log sequence number
 | 328 | 4 | | Free inode B+ tree root block number
@@ -662,7 +666,8 @@ Contains number of nano seconds
 | 83 | 1 | | [yellow-background]*Unknown (format of the attribute fork)*
 | 84 | 4 | | [yellow-background]*Unknown (DMAPI event mask)*
 | 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
-| 90 | 2 | | Inode flags
+| 90 | 2 | | Inode flags +
+See section: <<inode_flags,Inode flags>>
 | 92 | 4 | | Generation number
 4+| _Pre version 3 non-inode core field_
 | 96 | 4 | | [yellow-background]*Unknown (next unlinked inode)*
@@ -733,29 +738,31 @@ See sction: <<extent_list,Extent list>>
 | 5 | XFS_DINODE_FMT_RMAP | Data is referrence by a reverse mapping
 |===
 
-=== Inode flags
+=== [[inode_flags]]Inode flags
+
+[cols="1,1,5",options="header"]
+|===
+| Value | Identifier | Description
+| 0x0001 | XFS_DIFLAG_REALTIME | The data is located on the real-time device
+| 0x0002 | XFS_DIFLAG_PREALLOC | The extents have been preallocated
+| 0x0004 | XFS_DIFLAG_NEWRTBM | Uses the new real-time bitmap format
+| 0x0008 | XFS_DIFLAG_IMMUTABLE | Immutable (cannot be modified)
+| 0x0010 | XFS_DIFLAG_APPEND | Append only
+| 0x0020 | XFS_DIFLAG_SYNC | Use synchronous write
+| 0x0040 | XFS_DIFLAG_NOATIME | Do not update access time (atime)
+| 0x0080 | XFS_DIFLAG_NODUMP | Do not "dump" +
+Indicates that xfsdump should ignore the file
+| 0x0100 | XFS_DIFLAG_RTINHERIT | Sub directories inherit XFS_DIFLAG_REALTIME
+| 0x0200 | XFS_DIFLAG_PROJINHERIT | Sub directories inherit the project identifier
+| 0x0400 | XFS_DIFLAG_NOSYMLINKS | No symbolic links can be created for sub directories
+| 0x0800 | XFS_DIFLAG_EXTSIZE | Has extent size
+| 0x1000 | XFS_DIFLAG_EXTSZINHERIT | Sub directories inherit extent size
+| 0x2000 | XFS_DIFLAG_NODEFRAG | Do not defragment
+| 0x4000 | XFS_DIFLAG_FILESTREAM | [yellow-background]*Unknown (Use filestream allocator)*
+|===
 
 ....
-XFS_DIFLAG_REALTIME The inode's data is located on the real-time device.
-XFS_DIFLAG_PREALLOC The inode's extents have been preallocated.
-XFS_DIFLAG_NEWRTBM Specifies the sb_rbmino uses the new real-time
-bitmap format
-XFS_DIFLAG_IMMUTABLE Specifies the inode cannot be modified.
-XFS_DIFLAG_APPEND The inode is in append only mode.
-XFS_DIFLAG_SYNC The inode is written synchronously.
-XFS_DIFLAG_NOATIME The inode's di_atime is not updated.
-XFS_DIFLAG_NODUMP Specifies the inode is to be ignored by xfsdump.
-XFS_DIFLAG_RTINHERIT For directory inodes, new inodes inherit the
-XFS_DIFLAG_REALTIME bit.
-XFS_DIFLAG_PROJINHERIT For directory inodes, new inodes inherit the
-di_projid value.
-XFS_DIFLAG_NOSYMLINKS For directory inodes, symlinks cannot be created.
-XFS_DIFLAG_EXTSIZE Specifies the extent size for real-time files or a and
-extent size hint for regular files.
-XFS_DIFLAG_EXTSZINHERIT For directory inodes, new inodes inherit the
-di_extsize value.
-XFS_DIFLAG_NODEFRAG Specifies the inode is to be ignored when
-defragmenting the filesystem.
+XFS_DIFLAG_NEWRTBM Specifies the sb_rbmino uses the new real-time bitmap format
 ....
 
 === [[extent_list]]Extent list
@@ -766,8 +773,8 @@ The extent list (xfs_bmbt_rec_t) is 128 bits of size and consist of:
 |===
 | Offset | Size | Value | Description
 | 0 | 21 bits | | Number of blocks
-| 2.4 | 52 bits | Absolute block number
-| 9.1 | 54 bits | Extent logical offset
+| 2.4 | 52 bits | Absolute (physical) block number
+| 9.1 | 54 bits | Extent logical block offset
 | 15.7 | 1 bit | Is unwritten extent
 |===
 
@@ -783,7 +790,7 @@ directory entries can be stored in multiple ways:
 * as a short-form directory table
 * as a block directory
 
-[yellow-background]*TODO describe extents and B+ tree forms*
+[yellow-background]*TODO describe B+ tree forms*
 
 === Short-form directory table
 
@@ -793,10 +800,10 @@ data). The short-form directory table consist of:
 * Short-form directory table header
 * Short-form directory table entries
 
-=== Short-form directory table header
+==== Short-form directory table header version 2
 
-The short-form directory table header (xfs_dir2_sf_hdr_t) is 6 or 10 bytes of
-size and consists of:
+The short-form directory table header version 2 (xfs_dir2_sf_hdr_t) is 6 or 10
+bytes of size and consists of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -813,20 +820,20 @@ is set and number of 64-bit entries must be 0. If the inode numbers are stored
 as 64-bit values then number of 64-bit entries is set and number of 32-bit
 entries must be 0.
 
-=== Short-form directory table header
+==== Short-form directory table entry version 2
 
-The short-form directory table entry (xfs_dir2_sf_entry_t) is variable of size
-and consists of:
+The short-form directory table entry version 2 (xfs_dir2_sf_entry_t) is variable
+of size and consists of:
 
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
 | 0 | 1 | | Name size +
 Does not include the end-of-string character
-| 1 | 2 | | [yellow-background]*Unknown (offset)*
+| 1 | 2 | | [yellow-background]*Unknown (offset, tag)*
 | 3 | ... | | Name
 4+| _Only present if XFS_SB_VERSION2_FTYPE is set_
-| ... | 1 | | [yellow-background]*Unknown (optional ftype)*
+| ... | 1 | | [yellow-background]*Unknown (file type)*
 4+| _Common_
 | ... | 4 or 8 | | Inode number +
 Contains an absolute inode number
@@ -834,69 +841,131 @@ Contains an absolute inode number
 
 === Block directory
 
+A block directory (xfs_dir2_block_t) consist of:
+
+* a block directory header
+* array of used and unused directory entries
+* hash values of the entries
+* a block directory footer
+
+==== Block directory header
+
+===== Block directory header version 2
+
+The block directory header version 2 (xfs_dir2_data_hdr_t) is 16 bytes of size
+and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | "XD2B" | Signature
+| 4 | 4 x 3 | | Array of free regions in the block +
+See section: <<block_directory_free_region_v2,Block directory free region>>
+|===
+
+===== Block directory header version 3
+
+The block directory header version 3 (xfs_dir3_data_hdr_t) is 48 bytes of size
+and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+4+| _Block header_
+| 0 | 4 | "XDB3" | Signature
+| 4 | 4 | | Checksum
+| 8 | 8 | | Block number
+| 16 | 8 | | Log sequence number
+| 24 | 16 | | Block type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+| 40 | 8 | | Owner inode number +
+Contains the absolute inode number the block is part of
+4+|
+| 48 | 4 x 3 | | Array of free regions in the block +
+See section: <<block_directory_free_region_v2,Block directory free region version 2>>
+| 60 | 4 | | [yellow-background]*Unknown (padding)*
+|===
+
+===== [[block_directory_free_region_v2]]Block directory free region version 2
+
+The block directory free region version 2 (xfs_dir2_data_free_t) is 4 bytes of
+size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 2 | | Offset +
+Contains the offset of the free region relative to the start of the directory block
+| 2 | 2 | | Size
+|===
+
+==== Block directory entries
+
+===== Block directory entry version 2
+
+The block directory entry version 2 (xfs_dir2_data_entry_t) is variable of size
+and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 8 | | Inode number +
+Contains an absolute inode number
+| 8 | 1 | | Name size +
+Does not include the end-of-string character
+| 9 | ... | | Name
+4+| _Only present if XFS_SB_VERSION2_FTYPE is set_
+| ... | 1 | | [yellow-background]*Unknown (ftype)*
+4+| _Common_
+| ... | ... | | [yellow-background]*Unknown (8-byte alignment padding?)*
+| ... | 2 | | [yellow-background]*Unknown (offset, tag)*
+|===
+
+===== Unused block directory entry version 2
+
+The unused block directory entry version 2 (xfs_dir2_data_unused_t) is variable of size
+and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 2 | 0xffff | Signature (free tag)
+| 2 | 4 | | Entry size +
+Contains the size of the unused block including the size of the signature and entry size
+| 4 | 2 | | [yellow-background]*Unknown (padding)*
+| ... | 2 | | [yellow-background]*Unknown (offset, tag)*
+|===
+
 [yellow-background]*TODO describe*
 
-....
-#define XFS_DIR2_DATA_FD_COUNT 3
-typedef struct xfs_dir2_block {
-xfs_dir2_data_hdr_t
-hdr;
-xfs_dir2_data_union_t
-u[1];
-xfs_dir2_leaf_entry_t
-leaf[1];
-xfs_dir2_block_tail_t
-tail;
-} xfs_dir2_block_t;
-typedef struct xfs_dir2_data_hdr {
-__uint32_t
-magic;
-xfs_dir2_data_free_t
-bestfree[XFS_DIR2_DATA_FD_COUNT];
-} xfs_dir2_data_hdr_t;
-typedef struct xfs_dir2_data_free {
-xfs_dir2_data_off_t
-offset;
-xfs_dir2_data_off_t
-length;
-} xfs_dir2_data_free_t;
-typedef union {
-xfs_dir2_data_entry_t
-xfs_dir2_data_unused_t
-} xfs_dir2_data_union_t;
-entry;
-unused;
-typedef struct xfs_dir2_data_entry {
-xfs_ino_t
-inumber;
-__uint8_t
-namelen;
-__uint8_t
-name[1];
-xfs_dir2_data_off_t
-tag;
-} xfs_dir2_data_entry_t;
-typedef struct xfs_dir2_data_unused {
-__uint16_t
-freetag;
-xfs_dir2_data_off_t
-length;
-xfs_dir2_data_off_t
-tag;
-} xfs_dir2_data_unused_t;
-typedef struct xfs_dir2_leaf_entry {
-xfs_dahash_t
-hashval;
-xfs_dir2_dataptr_t
-address;
-} xfs_dir2_leaf_entry_t;
-typedef struct xfs_dir2_block_tail {
-__uint32_t
-count;
-__uint32_t
-stale;
-} xfs_dir2_block_tail_t;
-....
+==== Block directory hash value
+
+===== Block directory hash value version 2
+
+The block directory hash value version 2 (xfs_dir2_leaf_entry_t) is 8 bytes of
+size and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | Hash value of the name of the directory entry
+| 4 | 4 | | Entry offset +
+The offset is relative to the start of the block
+|===
+
+==== Block directory footer
+
+===== Block directory footer version 2
+
+The block directory footer version 2 (xfs_dir2_block_tail_t) is 8 bytes of size
+and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | Number of directory entries
+| 4 | 4 | | Number of unused entries
+|===
 
 :numbered!:
 [appendix]

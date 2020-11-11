@@ -35,6 +35,7 @@ fsxfsinfo_SOURCES = \
 	fsxfstools_libcnotify.h \
 	fsxfstools_libfcache.h \
 	fsxfstools_libfdata.h \
+	fsxfstools_libfdatetime.h \
 	fsxfstools_libfsxfs.h \
 	fsxfstools_libhmac.h \
 	fsxfstools_libuna.h \

@@ -1,4 +1,4 @@
-.Dd November  7, 2020
+.Dd November 11, 2020
 .Dt libfsxfs 3
 .Os libfsxfs
 .Sh NAME
@@ -70,6 +70,14 @@ Volume functions
 .Fn libfsxfs_volume_get_utf16_label_size "libfsxfs_volume_t *volume" "size_t *utf16_string_size" "libfsxfs_error_t **error"
 .Ft int
 .Fn libfsxfs_volume_get_utf16_label "libfsxfs_volume_t *volume" "uint16_t *utf16_string" "size_t utf16_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_volume_get_file_entry_by_inode "libfsxfs_volume_t *volume" "uint64_t inode_number" "libfsxfs_file_entry_t **file_entry" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_volume_get_root_directory "libfsxfs_volume_t *volume" "libfsxfs_file_entry_t **file_entry" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_volume_get_file_entry_by_utf8_path "libfsxfs_volume_t *volume" "const uint8_t *utf8_string" "size_t utf8_string_length" "libfsxfs_file_entry_t **file_entry" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_volume_get_file_entry_by_utf16_path "libfsxfs_volume_t *volume" "const uint16_t *utf16_string" "size_t utf16_string_length" "libfsxfs_file_entry_t **file_entry" "libfsxfs_error_t **error"
 .Pp
 Available when compiled with wide character string support:
 .Ft int
@@ -78,6 +86,60 @@ Available when compiled with wide character string support:
 Available when compiled with libbfio support:
 .Ft int
 .Fn libfsxfs_volume_open_file_io_handle "libfsxfs_volume_t *volume" "libbfio_handle_t *file_io_handle" "int access_flags" "libfsxfs_error_t **error"
+.Pp
+File entry functions
+.Ft int
+.Fn libfsxfs_file_entry_free "libfsxfs_file_entry_t **file_entry" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_inode_number "libfsxfs_file_entry_t *file_entry" "uint64_t *inode_number" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_creation_time "libfsxfs_file_entry_t *file_entry" "int64_t *posix_time" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_modification_time "libfsxfs_file_entry_t *file_entry" "int64_t *posix_time" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_access_time "libfsxfs_file_entry_t *file_entry" "int64_t *posix_time" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_inode_change_time "libfsxfs_file_entry_t *file_entry" "int64_t *posix_time" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_file_mode "libfsxfs_file_entry_t *file_entry" "uint16_t *file_mode" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_owner_identifier "libfsxfs_file_entry_t *file_entry" "uint32_t *owner_identifier" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_group_identifier "libfsxfs_file_entry_t *file_entry" "uint32_t *group_identifier" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_utf8_name_size "libfsxfs_file_entry_t *file_entry" "size_t *utf8_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_utf8_name "libfsxfs_file_entry_t *file_entry" "uint8_t *utf8_string" "size_t utf8_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_utf16_name_size "libfsxfs_file_entry_t *file_entry" "size_t *utf16_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_utf16_name "libfsxfs_file_entry_t *file_entry" "uint16_t *utf16_string" "size_t utf16_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_utf8_symbolic_link_target_size "libfsxfs_file_entry_t *file_entry" "size_t *utf8_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_utf8_symbolic_link_target "libfsxfs_file_entry_t *file_entry" "uint8_t *utf8_string" "size_t utf8_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_utf16_symbolic_link_target_size "libfsxfs_file_entry_t *file_entry" "size_t *utf16_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_utf16_symbolic_link_target "libfsxfs_file_entry_t *file_entry" "uint16_t *utf16_string" "size_t utf16_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_number_of_sub_file_entries "libfsxfs_file_entry_t *file_entry" "int *number_of_sub_entries" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_sub_file_entry_by_index "libfsxfs_file_entry_t *file_entry" "int sub_file_entry_index" "libfsxfs_file_entry_t **sub_file_entry" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_sub_file_entry_by_utf8_name "libfsxfs_file_entry_t *file_entry" "const uint8_t *utf8_string" "size_t utf8_string_length" "libfsxfs_file_entry_t **sub_file_entry" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_sub_file_entry_by_utf16_name "libfsxfs_file_entry_t *file_entry" "const uint16_t *utf16_string" "size_t utf16_string_length" "libfsxfs_file_entry_t **sub_file_entry" "libfsxfs_error_t **error"
+.Ft ssize_t
+.Fn libfsxfs_file_entry_read_buffer "libfsxfs_file_entry_t *file_entry" "void *buffer" "size_t buffer_size" "libfsxfs_error_t **error"
+.Ft ssize_t
+.Fn libfsxfs_file_entry_read_buffer_at_offset "libfsxfs_file_entry_t *file_entry" "void *buffer" "size_t buffer_size" "off64_t offset" "libfsxfs_error_t **error"
+.Ft off64_t
+.Fn libfsxfs_file_entry_seek_offset "libfsxfs_file_entry_t *file_entry" "off64_t offset" "int whence" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_offset "libfsxfs_file_entry_t *file_entry" "off64_t *offset" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_size "libfsxfs_file_entry_t *file_entry" "size64_t *size" "libfsxfs_error_t **error"
 .Sh DESCRIPTION
 The
 .Fn libfsxfs_get_version

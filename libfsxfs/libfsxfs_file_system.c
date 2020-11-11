@@ -354,7 +354,7 @@ int libfsxfs_file_system_get_inode_by_number(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
-		 "%s: invalid IO inode number value out of bounds.",
+		 "%s: invalid inode number value out of bounds.",
 		 function );
 
 		return( -1 );

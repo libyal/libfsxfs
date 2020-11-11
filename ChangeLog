@@ -1,10 +1,12 @@
 TODO:
-* add basic format version 4 and 5 support
+* complete basic format version 4 and 5 support
+** complete directory entry ftype support (set flags in io handle)
+** data stream support
+** symbolic link target support
+** complete libfsxfs_file_entry_get_sub_file_entry_by_utf8_name
+** complete libfsxfs_file_entry_get_sub_file_entry_by_utf16_name
 
-* add file entry size function
-
-* add support for directory entries
-* add file entry sub entries functions
+* store (directory table) parent inode number in directory entry?
 
 * change btree_block into btree_node
 
@@ -12,7 +14,8 @@ TODO:
 * add support for format version 1 (need test data)
 * add support for format version 2 (need test data)
 * add support for format version 3 (need test data)
-* test data with unwritten extent
+
+* create test data with unwritten extent
 
 20200105
 * see `git log' for more recent change log
