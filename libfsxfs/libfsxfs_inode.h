@@ -25,6 +25,7 @@
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_extent.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
@@ -95,7 +96,7 @@ struct libfsxfs_inode
 
 	/* Extents
 	 */
-	libcdata_array_t *extents;
+	libcdata_array_t *data_extents_array;
 };
 
 int libfsxfs_inode_initialize(
@@ -157,6 +158,17 @@ int libfsxfs_inode_get_file_mode(
 int libfsxfs_inode_get_data_size(
      libfsxfs_inode_t *inode,
      uint64_t *data_size,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_number_of_extents(
+     libfsxfs_inode_t *inode,
+     int *number_of_extents,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_extent_by_index(
+     libfsxfs_inode_t *inode,
+     int extent_index,
+     libfsxfs_extent_t **extent,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )

@@ -25,6 +25,7 @@
 #include <types.h>
 
 #include "libfsxfs_debug.h"
+#include "libfsxfs_definitions.h"
 #include "libfsxfs_directory_entry.h"
 #include "libfsxfs_block_directory.h"
 #include "libfsxfs_block_directory_footer.h"
@@ -269,6 +270,17 @@ int libfsxfs_block_directory_read_data(
 
 		return( -1 );
 	}
+	if( io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid IO handle.",
+		 function );
+
+		return( -1 );
+	}
 	if( data == NULL )
 	{
 		libcerror_error_set(
@@ -411,8 +423,12 @@ int libfsxfs_block_directory_read_data(
 			}
 			name_size = data[ data_offset + 8 ];
 
-			entry_data_size = 9 + name_size + 3;
+			entry_data_size = 9 + name_size + 2;
 
+			if( ( io_handle->secondary_feature_flags & LIBFSXFS_SECONDARY_FEATURE_FLAG_FILE_TYPE ) != 0 )
+			{
+				entry_data_size++;
+			}
 			alignment_padding_size = entry_data_size % 8;
 
 			if( alignment_padding_size != 0 )
@@ -486,23 +502,7 @@ int libfsxfs_block_directory_read_data(
 				 "%s: name size\t\t\t\t: %" PRIu8 "\n",
 				 function,
 				 name_size );
-			}
-#endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-			if( name_size > ( data_size - data_offset ) )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-				 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-				 "%s: invalid data size value out of bounds.",
-				 function );
-
-				goto on_error;
-			}
-#if defined( HAVE_DEBUG_OUTPUT )
-			if( libcnotify_verbose != 0 )
-			{
 				if( libfsxfs_debug_print_utf8_string_value(
 				     function,
 				     "name\t\t\t\t",
@@ -568,10 +568,20 @@ int libfsxfs_block_directory_read_data(
 			}
 			data_offset += name_size;
 
-/* TODO handle and print ftype */
+			if( ( io_handle->secondary_feature_flags & LIBFSXFS_SECONDARY_FEATURE_FLAG_FILE_TYPE ) != 0 )
+			{
+#if defined( HAVE_DEBUG_OUTPUT )
+				if( libcnotify_verbose != 0 )
+				{
+					libcnotify_printf(
+					 "%s: file type\t\t\t\t: %" PRIu8 "\n",
+					 function,
+					 data[ data_offset ] );
+				}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-			data_offset++;
-
+				data_offset++;
+			}
 			if( alignment_padding_size > 0 )
 			{
 #if defined( HAVE_DEBUG_OUTPUT )
@@ -632,6 +642,7 @@ int libfsxfs_block_directory_read_data(
 
 		if( free_tag == 0xffff )
 		{
+/* TODO check number of entries */
 			break;
 		}
 	}

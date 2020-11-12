@@ -25,6 +25,7 @@
 #include <types.h>
 
 #include "libfsxfs_debug.h"
+#include "libfsxfs_definitions.h"
 #include "libfsxfs_directory_entry.h"
 #include "libfsxfs_directory_table.h"
 #include "libfsxfs_directory_table_header.h"
@@ -168,6 +169,7 @@ int libfsxfs_directory_table_read_data(
 	libfsxfs_directory_entry_t *directory_entry = NULL;
 	static char *function                       = "libfsxfs_directory_table_read_data";
 	size_t data_offset                          = 0;
+	size_t entry_data_size                      = 0;
 	uint32_t directory_entry_index              = 0;
 	uint8_t name_size                           = 0;
 	int entry_index                             = 0;
@@ -194,6 +196,17 @@ int libfsxfs_directory_table_read_data(
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
 		 "%s: invalid directory table - header already set.",
+		 function );
+
+		return( -1 );
+	}
+	if( io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid IO handle.",
 		 function );
 
 		return( -1 );
@@ -261,7 +274,7 @@ int libfsxfs_directory_table_read_data(
 	     directory_entry_index < directory_table->header->number_of_entries;
 	     directory_entry_index++ )
 	{
-		if( ( data_size - data_offset ) < 3 )
+		if( ( data_size - data_offset ) < 1 )
 		{
 			libcerror_error_set(
 			 error,
@@ -274,6 +287,26 @@ int libfsxfs_directory_table_read_data(
 		}
 		name_size = data[ data_offset ];
 
+		entry_data_size = 3 + name_size;
+
+		if( ( io_handle->format_version == 5 )
+		 || ( ( io_handle->secondary_feature_flags & LIBFSXFS_SECONDARY_FEATURE_FLAG_FILE_TYPE ) != 0 ) )
+		{
+			entry_data_size++;
+		}
+		entry_data_size += directory_table->header->inode_number_data_size;
+
+		if( entry_data_size > ( data_size - data_offset ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: invalid data size value out of bounds.",
+			 function );
+
+			goto on_error;
+		}
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
 		{
@@ -281,10 +314,9 @@ int libfsxfs_directory_table_read_data(
 			 "%s: directory entry: %d data:\n",
 			 function,
 			 directory_entry_index );
-/* TODO calculate entry data size */
 			libcnotify_print_data(
 			 &( data[ data_offset ] ),
-			 3 + name_size + 5,
+			 entry_data_size,
 			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
 		}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
@@ -311,17 +343,6 @@ int libfsxfs_directory_table_read_data(
 
 		data_offset += 2;
 
-		if( name_size > ( data_size - data_offset ) )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-			 "%s: invalid data size value out of bounds.",
-			 function );
-
-			goto on_error;
-		}
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
 		{
@@ -375,10 +396,21 @@ int libfsxfs_directory_table_read_data(
 
 		data_offset += name_size;
 
-/* TODO handle ftype */
+		if( ( io_handle->format_version == 5 )
+		 || ( ( io_handle->secondary_feature_flags & LIBFSXFS_SECONDARY_FEATURE_FLAG_FILE_TYPE ) != 0 ) )
+		{
+#if defined( HAVE_DEBUG_OUTPUT )
+			if( libcnotify_verbose != 0 )
+			{
+				libcnotify_printf(
+				 "%s: file type\t\t\t\t: %" PRIu8 "\n",
+				 function,
+				 data[ data_offset ] );
+			}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-		data_offset++;
-
+			data_offset++;
+		}
 		if( directory_table->header->inode_number_data_size == 4 )
 		{
 			byte_stream_copy_to_uint32_big_endian(

@@ -34,6 +34,7 @@ libfsxfs_la_SOURCES = \
 	libfsxfs_btree_block.c libfsxfs_btree_block.h \
 	libfsxfs_btree_header.c libfsxfs_btree_header.h \
 	libfsxfs_buffer_data_handle.c libfsxfs_buffer_data_handle.h \
+	libfsxfs_data_stream.c libfsxfs_data_stream.h \
 	libfsxfs_debug.c libfsxfs_debug.h \
 	libfsxfs_definitions.h \
 	libfsxfs_directory.c libfsxfs_directory.h \

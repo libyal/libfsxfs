@@ -25,6 +25,7 @@
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_directory_entry.h"
 #include "libfsxfs_inode.h"
 #include "libfsxfs_inode_btree.h"
 #include "libfsxfs_libbfio.h"
@@ -43,6 +44,10 @@ struct libfsxfs_file_system
 	 */
 	libfsxfs_inode_btree_t *inode_btree;
 
+	/* The root directory inode number
+	 */
+	uint64_t root_directory_inode_number;
+
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
 	/* The read/write lock
 	 */
@@ -52,6 +57,7 @@ struct libfsxfs_file_system
 
 int libfsxfs_file_system_initialize(
      libfsxfs_file_system_t **file_system,
+     uint64_t root_directory_inode_number,
      libcerror_error_t **error );
 
 int libfsxfs_file_system_free(
@@ -71,6 +77,26 @@ int libfsxfs_file_system_get_inode_by_number(
      libbfio_handle_t *file_io_handle,
      uint64_t inode_number,
      libfsxfs_inode_t **inode,
+     libcerror_error_t **error );
+
+int libfsxfs_file_system_get_directory_entry_by_utf8_path(
+     libfsxfs_file_system_t *file_system,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     const uint8_t *utf8_string,
+     size_t utf8_string_length,
+     libfsxfs_inode_t **inode,
+     libfsxfs_directory_entry_t **directory_entry,
+     libcerror_error_t **error );
+
+int libfsxfs_file_system_get_directory_entry_by_utf16_path(
+     libfsxfs_file_system_t *file_system,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     const uint16_t *utf16_string,
+     size_t utf16_string_length,
+     libfsxfs_inode_t **inode,
+     libfsxfs_directory_entry_t **directory_entry,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )

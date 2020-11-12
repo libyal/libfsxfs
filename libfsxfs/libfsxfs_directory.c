@@ -28,6 +28,7 @@
 #include "libfsxfs_directory.h"
 #include "libfsxfs_directory_entry.h"
 #include "libfsxfs_directory_table.h"
+#include "libfsxfs_extent.h"
 #include "libfsxfs_inode.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
@@ -184,8 +185,9 @@ int libfsxfs_directory_read_file_io_handle(
 {
 	libfsxfs_block_directory_t *block_directory = NULL;
 	libfsxfs_directory_table_t *directory_table = NULL;
+	libfsxfs_extent_t *extent                   = NULL;
 	static char *function                       = "libfsxfs_directory_read_file_io_handle";
-	off64_t file_offset                         = 0;
+	int number_of_extents                       = 0;
 
 	if( directory == NULL )
 	{
@@ -282,6 +284,70 @@ int libfsxfs_directory_read_file_io_handle(
 		}
 		else if( inode->fork_type == LIBFSXFS_FORK_TYPE_EXTENTS )
 		{
+			if( libfsxfs_inode_get_number_of_extents(
+			     inode,
+			     &number_of_extents,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+				 "%s: unable to retrieve number of extents.",
+				 function );
+
+				goto on_error;
+			}
+			if( number_of_extents != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+				 "%s: unsupported number of extents: %d.",
+				 function,
+				 number_of_extents );
+
+				goto on_error;
+			}
+			if( libfsxfs_inode_get_extent_by_index(
+			     inode,
+			     0,
+			     &extent,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+				 "%s: unable to retrieve extent: 0.",
+				 function );
+
+				goto on_error;
+			}
+			if( extent == NULL )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+				 "%s: missing extent: 0.",
+				 function );
+
+				goto on_error;
+			}
+			if( extent->number_of_blocks != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+				 "%s: invalid extent: 0 - unsupported number of blocks: %d.",
+				 function,
+				 extent->number_of_blocks );
+
+				goto on_error;
+			}
 			if( libfsxfs_block_directory_initialize(
 			     &block_directory,
 			     io_handle->block_size,
@@ -296,14 +362,11 @@ int libfsxfs_directory_read_file_io_handle(
 
 				goto on_error;
 			}
-/* TODO deterimine file offset from extents */
-			file_offset = 861 * 4096;
-
 			if( libfsxfs_block_directory_read_file_io_handle(
 			     block_directory,
 			     io_handle,
 			     file_io_handle,
-			     file_offset,
+			     (off64_t) extent->physical_block_number * io_handle->block_size,
 			     directory->entries_array,
 			     error ) != 1 )
 			{

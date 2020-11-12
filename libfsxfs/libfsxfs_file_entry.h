@@ -77,9 +77,9 @@ struct libfsxfs_internal_file_entry
 	 */
 	size64_t data_size;
 
-	/* The data block stream
+	/* The data stream
 	 */
-	libfdata_stream_t *data_block_stream;
+	libfdata_stream_t *data_stream;
 
 	/* The symbolic link data
 	 */

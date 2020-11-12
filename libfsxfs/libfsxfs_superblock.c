@@ -631,8 +631,10 @@ int libfsxfs_superblock_read_data(
 	                        | 0x0020
 	                        | 0x0080
 	                        | 0x0400
+	                        | 0x0800
 	                        | 0x1000
 	                        | 0x2000
+	                        | 0x4000
 	                        | 0x8000;
 
 	if( ( (uint32_t) superblock->feature_flags & ~( supported_feature_flags ) ) != 0 )
@@ -647,7 +649,12 @@ int libfsxfs_superblock_read_data(
 
 		return( -1 );
 	}
-	if( superblock->sector_size != 512 )
+	if( ( superblock->sector_size != 512 )
+	 && ( superblock->sector_size != 1024 )
+	 && ( superblock->sector_size != 2048 )
+	 && ( superblock->sector_size != 4096 )
+	 && ( superblock->sector_size != 8192 )
+	 && ( superblock->sector_size != 16384 ) )
 	{
 		libcerror_error_set(
 		 error,

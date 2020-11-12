@@ -23,6 +23,7 @@
 #include <memory.h>
 #include <types.h>
 
+#include "libfsxfs_data_stream.h"
 #include "libfsxfs_definitions.h"
 #include "libfsxfs_directory.h"
 #include "libfsxfs_directory_entry.h"
@@ -118,22 +119,40 @@ int libfsxfs_file_entry_initialize(
 
 		return( -1 );
 	}
-	if( libfsxfs_inode_get_data_size(
-	     inode,
-	     &( internal_file_entry->data_size ),
-	     error ) != 1 )
+	if( ( ( inode->file_mode & 0xf000 ) == LIBFSXFS_FILE_TYPE_REGULAR_FILE )
+	 || ( ( inode->file_mode & 0xf000 ) == LIBFSXFS_FILE_TYPE_SYMBOLIC_LINK ) )
 	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-		 "%s: unable to retrieve data size from inode.",
-		 function );
+		if( libfsxfs_inode_get_data_size(
+		     inode,
+		     &( internal_file_entry->data_size ),
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve data size from inode.",
+			 function );
 
-		goto on_error;
+			goto on_error;
+		}
+		if( libfsxfs_data_stream_initialize(
+		     &( internal_file_entry->data_stream ),
+		     io_handle,
+		     inode,
+		     internal_file_entry->data_size,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create data stream.",
+			 function );
+
+			goto on_error;
+		}
 	}
-/* TODO set data stream */
-
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
 	if( libcthreads_read_write_lock_initialize(
 	     &( internal_file_entry->read_write_lock ),
@@ -365,8 +384,6 @@ int libfsxfs_internal_file_entry_get_symbolic_link_data(
 {
 	static char *function = "libfsxfs_internal_file_entry_get_symbolic_link_data";
 	ssize_t read_count    = 0;
-	uint64_t data_size    = 0;
-	uint16_t file_mode    = 0;
 
 	if( internal_file_entry == NULL )
 	{
@@ -401,24 +418,10 @@ int libfsxfs_internal_file_entry_get_symbolic_link_data(
 
 		return( -1 );
 	}
-	if( libfsxfs_inode_get_file_mode(
-	     internal_file_entry->inode,
-	     &file_mode,
-	     error ) != 1 )
+	if( ( internal_file_entry->inode->file_mode & 0xf000 ) == LIBFSXFS_FILE_TYPE_SYMBOLIC_LINK )
 	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-		 "%s: unable to retrieve file mode from inode.",
-		 function );
-
-		goto on_error;
-	}
-	if( ( file_mode & 0xf000 ) == LIBFSXFS_FILE_TYPE_SYMBOLIC_LINK )
-	{
-		if( ( internal_file_entry->inode->data_size == 0 )
-		 || ( internal_file_entry->inode->data_size > (uint64_t) MEMORY_MAXIMUM_ALLOCATION_SIZE ) )
+		if( ( internal_file_entry->data_size == 0 )
+		 || ( internal_file_entry->data_size > (uint64_t) MEMORY_MAXIMUM_ALLOCATION_SIZE ) )
 		{
 			libcerror_error_set(
 			 error,
@@ -430,7 +433,7 @@ int libfsxfs_internal_file_entry_get_symbolic_link_data(
 			goto on_error;
 		}
 		internal_file_entry->symbolic_link_data = (uint8_t *) memory_allocate(
-		                                                       sizeof( uint8_t ) * (size_t) internal_file_entry->inode->data_size );
+		                                                       sizeof( uint8_t ) * (size_t) internal_file_entry->data_size );
 
 		if( internal_file_entry->symbolic_link_data == NULL )
 		{
@@ -443,24 +446,24 @@ int libfsxfs_internal_file_entry_get_symbolic_link_data(
 
 			goto on_error;
 		}
-		internal_file_entry->symbolic_link_data_size = (size_t) internal_file_entry->inode->data_size;
+		internal_file_entry->symbolic_link_data_size = (size_t) internal_file_entry->data_size;
 
 		read_count = libfdata_stream_read_buffer_at_offset(
-		              internal_file_entry->data_block_stream,
+		              internal_file_entry->data_stream,
 		              (intptr_t *) internal_file_entry->file_io_handle,
 		              internal_file_entry->symbolic_link_data,
-		              (size_t) internal_file_entry->inode->data_size,
+		              (size_t) internal_file_entry->data_size,
 		              0,
 		              0,
 		              error );
 
-		if( read_count != (ssize_t) internal_file_entry->inode->data_size )
+		if( read_count != (ssize_t) internal_file_entry->data_size )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_IO,
 			 LIBCERROR_IO_ERROR_READ_FAILED,
-			 "%s: unable to read from data block stream.",
+			 "%s: unable to read from data stream.",
 			 function );
 
 			goto on_error;
@@ -2116,7 +2119,7 @@ ssize_t libfsxfs_file_entry_read_buffer(
 	}
 #endif
 	read_count = libfdata_stream_read_buffer(
-	              internal_file_entry->data_block_stream,
+	              internal_file_entry->data_stream,
 	              (intptr_t *) internal_file_entry->file_io_handle,
 	              buffer,
 	              buffer_size,
@@ -2129,7 +2132,7 @@ ssize_t libfsxfs_file_entry_read_buffer(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_IO,
 		 LIBCERROR_IO_ERROR_READ_FAILED,
-		 "%s: unable to read from data block stream.",
+		 "%s: unable to read from data stream.",
 		 function );
 
 		read_count = -1;
@@ -2217,7 +2220,7 @@ ssize_t libfsxfs_file_entry_read_buffer_at_offset(
 	}
 #endif
 	read_count = libfdata_stream_read_buffer_at_offset(
-	              internal_file_entry->data_block_stream,
+	              internal_file_entry->data_stream,
 	              (intptr_t *) internal_file_entry->file_io_handle,
 	              buffer,
 	              buffer_size,
@@ -2231,7 +2234,7 @@ ssize_t libfsxfs_file_entry_read_buffer_at_offset(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_IO,
 		 LIBCERROR_IO_ERROR_READ_FAILED,
-		 "%s: unable to read from data block stream.",
+		 "%s: unable to read from data stream.",
 		 function );
 
 		read_count = -1;
@@ -2317,7 +2320,7 @@ off64_t libfsxfs_file_entry_seek_offset(
 	}
 #endif
 	offset = libfdata_stream_seek_offset(
-	          internal_file_entry->data_block_stream,
+	          internal_file_entry->data_stream,
 	          offset,
 	          whence,
 	          error );
@@ -2328,7 +2331,7 @@ off64_t libfsxfs_file_entry_seek_offset(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_IO,
 		 LIBCERROR_IO_ERROR_SEEK_FAILED,
-		 "%s: unable to seek offset in data block stream.",
+		 "%s: unable to seek offset in data stream.",
 		 function );
 
 		offset = -1;
@@ -2414,7 +2417,7 @@ int libfsxfs_file_entry_get_offset(
 	}
 #endif
 	if( libfdata_stream_get_offset(
-	     internal_file_entry->data_block_stream,
+	     internal_file_entry->data_stream,
 	     offset,
 	     error ) != 1 )
 	{
@@ -2422,7 +2425,7 @@ int libfsxfs_file_entry_get_offset(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-		 "%s: unable to retrieve offset from data block stream.",
+		 "%s: unable to retrieve offset from data stream.",
 		 function );
 
 		result = -1;

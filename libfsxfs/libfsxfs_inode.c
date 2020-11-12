@@ -171,10 +171,10 @@ int libfsxfs_inode_free(
 			memory_free(
 			 ( *inode )->data );
 		}
-		if( ( *inode )->extents != NULL )
+		if( ( *inode )->data_extents_array != NULL )
 		{
 			if( libcdata_array_free(
-			     &( ( *inode )->extents ),
+			     &( ( *inode )->data_extents_array ),
 			     (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_extent_free,
 			     error ) != 1 )
 			{
@@ -182,7 +182,7 @@ int libfsxfs_inode_free(
 				 error,
 				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
-				 "%s: unable to free extents array.",
+				 "%s: unable to free data extents array.",
 				 function );
 
 				result = -1;
@@ -205,19 +205,25 @@ int libfsxfs_inode_read_data(
      size_t data_size,
      libcerror_error_t **error )
 {
-	libfsxfs_extent_t *extent       = NULL;
-	static char *function           = "libfsxfs_inode_read_data";
-	size_t data_offset              = 0;
-	size_t inode_data_size          = 0;
-	uint32_t extent_index           = 0;
-	uint32_t number_of_data_extents = 0;
-	uint32_t value_32bit            = 0;
-	uint8_t format_version          = 0;
-	int entry_index                 = 0;
+	libfsxfs_extent_t *extent             = NULL;
+	static char *function                 = "libfsxfs_inode_read_data";
+	size_t btree_node_data_size           = 0;
+	size_t data_offset                    = 0;
+	size_t inode_data_size                = 0;
+	size_t key_value_pair_index           = 0;
+	size_t number_of_key_value_pairs      = 0;
+	size_t number_of_used_key_value_pairs = 0;
+	uint32_t extent_index                 = 0;
+	uint32_t number_of_attributes_extents = 0;
+	uint32_t number_of_data_extents       = 0;
+	uint32_t value_32bit                  = 0;
+	uint16_t attributes_fork_offset       = 0;
+	uint8_t format_version                = 0;
+	int entry_index                       = 0;
 
 #if defined( HAVE_DEBUG_OUTPUT )
-	uint64_t value_64bit            = 0;
-	uint16_t value_16bit            = 0;
+	uint64_t value_64bit                  = 0;
+	uint16_t value_16bit                  = 0;
 #endif
 
 	if( inode == NULL )
@@ -379,6 +385,12 @@ int libfsxfs_inode_read_data(
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->number_of_data_extents,
 	 number_of_data_extents );
+
+	byte_stream_copy_to_uint32_big_endian(
+	 ( (fsxfs_inode_v1_t *) data )->number_of_attributes_extents,
+	 number_of_attributes_extents );
+
+	attributes_fork_offset = (uint16_t) ( (fsxfs_inode_v1_t *) data )->attributes_fork_offset * 8;
 
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
@@ -547,23 +559,23 @@ int libfsxfs_inode_read_data(
 		 function,
 		 number_of_data_extents );
 
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->number_of_attributes_extents,
-		 value_16bit );
 		libcnotify_printf(
 		 "%s: number of attributes extents\t\t\t: %" PRIu16 "\n",
 		 function,
-		 value_16bit );
+		 number_of_attributes_extents );
 
 		libcnotify_printf(
-		 "%s: unknown3\t\t\t\t\t: %" PRIu8 "\n",
+		 "%s: attributes fork offset\t\t\t: %" PRIu8 " (%" PRIu16 ")\n",
 		 function,
-		 ( (fsxfs_inode_v1_t *) data )->unknown3 );
+		 ( (fsxfs_inode_v1_t *) data )->attributes_fork_offset,
+		 attributes_fork_offset );
 
 		libcnotify_printf(
-		 "%s: unknown4\t\t\t\t\t: %" PRIu8 "\n",
+		 "%s: attributes fork type\t\t\t\t: %" PRIu8 " (%s)\n",
 		 function,
-		 ( (fsxfs_inode_v1_t *) data )->unknown4 );
+		 ( (fsxfs_inode_v1_t *) data )->attributes_fork_type,
+		 libfsxfs_debug_print_fork_type(
+		  ( (fsxfs_inode_v1_t *) data )->attributes_fork_type ) );
 
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_inode_v1_t *) data )->unknown5,
@@ -800,7 +812,7 @@ int libfsxfs_inode_read_data(
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
 		if( libcdata_array_initialize(
-		     &( inode->extents ),
+		     &( inode->data_extents_array ),
 		     0,
 		     error ) != 1 )
 		{
@@ -808,7 +820,7 @@ int libfsxfs_inode_read_data(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-			 "%s: unable to create extents array.",
+			 "%s: unable to create data extents array.",
 			 function );
 
 			goto on_error;
@@ -852,7 +864,7 @@ int libfsxfs_inode_read_data(
 			data_offset += 16;
 
 			if( libcdata_array_append_entry(
-			     inode->extents,
+			     inode->data_extents_array,
 			     &entry_index,
 			     (intptr_t *) extent,
 			     error ) != 1 )
@@ -861,13 +873,113 @@ int libfsxfs_inode_read_data(
 				 error,
 				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 				 LIBCERROR_RUNTIME_ERROR_APPEND_FAILED,
-				 "%s: unable to append extent: %" PRIu32 " to array.",
+				 "%s: unable to append extent: %" PRIu32 " to data extents array.",
 				 function,
 				 extent_index );
 
 				goto on_error;
 			}
 			extent = NULL;
+		}
+	}
+	else if( inode->fork_type == LIBFSXFS_FORK_TYPE_BTREE )
+	{
+		btree_node_data_size = data_size - inode_data_size;
+
+		if( ( attributes_fork_offset != 0 )
+		 && ( attributes_fork_offset < btree_node_data_size ) )
+		{
+			btree_node_data_size = (size_t) attributes_fork_offset;
+		}
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: data extents B+ tree root node data:\n",
+			 function );
+			libcnotify_print_data(
+			 &( data[ inode_data_size ] ),
+			 btree_node_data_size,
+			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		data_offset = inode_data_size;
+
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			byte_stream_copy_to_uint16_big_endian(
+			 &( data[ data_offset ] ),
+			 value_16bit );
+			libcnotify_printf(
+			 "%s: node level\t\t\t\t\t: %" PRIu16 "\n",
+			 function,
+			 value_16bit );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		data_offset += 2;
+
+		byte_stream_copy_to_uint16_big_endian(
+		 &( data[ data_offset ] ),
+		 number_of_used_key_value_pairs );
+
+		data_offset += 2;
+
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: number of used key-value pairs\t\t: %" PRIu16 "\n",
+			 function,
+			 number_of_used_key_value_pairs );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		number_of_key_value_pairs = ( btree_node_data_size - 4 ) / 16;
+
+		for( key_value_pair_index = 0;
+		     key_value_pair_index < number_of_used_key_value_pairs;
+		     key_value_pair_index++ )
+		{
+#if defined( HAVE_DEBUG_OUTPUT )
+			if( libcnotify_verbose != 0 )
+			{
+				byte_stream_copy_to_uint64_big_endian(
+				 &( data[ data_offset ] ),
+				 value_64bit );
+				libcnotify_printf(
+				 "%s: key: %d\t\t\t\t\t: %" PRIu64 "\n",
+				 function,
+				 key_value_pair_index,
+				 value_64bit );
+			}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+			data_offset += 8;
+		}
+		data_offset += ( number_of_key_value_pairs - number_of_used_key_value_pairs ) * 8;
+
+		for( key_value_pair_index = 0;
+		     key_value_pair_index < number_of_used_key_value_pairs;
+		     key_value_pair_index++ )
+		{
+#if defined( HAVE_DEBUG_OUTPUT )
+			if( libcnotify_verbose != 0 )
+			{
+				byte_stream_copy_to_uint64_big_endian(
+				 &( data[ data_offset ] ),
+				 value_64bit );
+				libcnotify_printf(
+				 "%s: value: %d\t\t\t\t\t: %" PRIu64 "\n",
+				 function,
+				 key_value_pair_index,
+				 value_64bit );
+			}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+			data_offset += 8;
 		}
 	}
 	return( 1 );
@@ -879,10 +991,10 @@ on_error:
 		 &extent,
 		 NULL );
 	}
-	if( inode->extents != NULL )
+	if( inode->data_extents_array != NULL )
 	{
 		libcdata_array_free(
-		 &( inode->extents ),
+		 &( inode->data_extents_array ),
 		 (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_extent_free,
 		 NULL );
 	}
@@ -1279,6 +1391,85 @@ int libfsxfs_inode_get_data_size(
 	}
 	*data_size = inode->size;
 
+	return( 1 );
+}
+
+/* Retrieves the number of extents
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_number_of_extents(
+     libfsxfs_inode_t *inode,
+     int *number_of_extents,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_number_of_extents";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( libcdata_array_get_number_of_entries(
+	     inode->data_extents_array,
+	     number_of_extents,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve number of entries.",
+		 function );
+
+		return( -1 );
+	}
+	return( 1 );
+}
+
+/* Retrieves a specific extent
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_extent_by_index(
+     libfsxfs_inode_t *inode,
+     int extent_index,
+     libfsxfs_extent_t **extent,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_extent_by_index";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( libcdata_array_get_entry_by_index(
+	     inode->data_extents_array,
+	     extent_index,
+	     (intptr_t **) extent,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve extent: %d.",
+		 function,
+		 extent_index );
+
+		return( -1 );
+	}
 	return( 1 );
 }
 

@@ -1,21 +1,26 @@
 TODO:
 * complete basic format version 4 and 5 support
-** complete directory entry ftype support (set flags in io handle)
-** data stream support
-** symbolic link target support
+** add support for XFS_DINODE_FMT_BTREE directory
+** add support for extents B+ tree
+** add support for directory B+ tree
+** add support for XFS_DINODE_FMT_BTREE data stream
 ** complete libfsxfs_file_entry_get_sub_file_entry_by_utf8_name
 ** complete libfsxfs_file_entry_get_sub_file_entry_by_utf16_name
+** add check for out of order extents
 
 * store (directory table) parent inode number in directory entry?
 
 * change btree_block into btree_node
 
-* add support for 4k sector size (need test data)
+* add support for XFS_SB_VERSION_BORGBIT
+* add support for extended attributes
+
 * add support for format version 1 (need test data)
 * add support for format version 2 (need test data)
 * add support for format version 3 (need test data)
 
 * create test data with unwritten extent
+* determine if out of order extents are allowed, create test data
 
 20200105
 * see `git log' for more recent change log

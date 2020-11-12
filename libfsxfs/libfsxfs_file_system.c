@@ -23,6 +23,9 @@
 #include <memory.h>
 #include <types.h>
 
+#include "libfsxfs_definitions.h"
+#include "libfsxfs_directory.h"
+#include "libfsxfs_directory_entry.h"
 #include "libfsxfs_file_system.h"
 #include "libfsxfs_inode.h"
 #include "libfsxfs_inode_btree.h"
@@ -30,6 +33,7 @@
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcthreads.h"
+#include "libfsxfs_libuna.h"
 
 /* Creates a file system
  * Make sure the value file_system is referencing, is set to NULL
@@ -37,6 +41,7 @@
  */
 int libfsxfs_file_system_initialize(
      libfsxfs_file_system_t **file_system,
+     uint64_t root_directory_inode_number,
      libcerror_error_t **error )
 {
 	static char *function = "libfsxfs_file_system_initialize";
@@ -111,6 +116,8 @@ int libfsxfs_file_system_initialize(
 		goto on_error;
 	}
 #endif
+	( *file_system )->root_directory_inode_number = root_directory_inode_number;
+
 	return( 1 );
 
 on_error:
@@ -418,6 +425,644 @@ int libfsxfs_file_system_get_inode_by_number(
 	return( result );
 
 on_error:
+	if( safe_inode != NULL )
+	{
+		libfsxfs_inode_free(
+		 &safe_inode,
+		 NULL );
+	}
+	return( -1 );
+}
+
+/* Retrieves a directory entry for a specific UTF-8 formatted path
+ * Returns 1 if successful, 0 if not found or -1 on error
+ */
+int libfsxfs_file_system_get_directory_entry_by_utf8_path(
+     libfsxfs_file_system_t *file_system,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     const uint8_t *utf8_string,
+     size_t utf8_string_length,
+     libfsxfs_inode_t **inode,
+     libfsxfs_directory_entry_t **directory_entry,
+     libcerror_error_t **error )
+{
+	libfsxfs_directory_t *directory                  = NULL;
+	libfsxfs_directory_entry_t *safe_directory_entry = NULL;
+	libfsxfs_inode_t *safe_inode                     = NULL;
+	const uint8_t *utf8_string_segment               = NULL;
+	static char *function                            = "libfsxfs_file_system_get_directory_entry_by_utf8_path";
+	libuna_unicode_character_t unicode_character     = 0;
+	size_t utf8_string_index                         = 0;
+	size_t utf8_string_segment_length                = 0;
+	uint64_t inode_number                            = 0;
+	int result                                       = 0;
+
+	if( file_system == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file system.",
+		 function );
+
+		return( -1 );
+	}
+	if( utf8_string == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid UTF-8 string.",
+		 function );
+
+		return( -1 );
+	}
+	if( utf8_string_length > (size_t) SSIZE_MAX )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_EXCEEDS_MAXIMUM,
+		 "%s: invalid UTF-8 string length value exceeds maximum.",
+		 function );
+
+		return( -1 );
+	}
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( directory_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid directory entry.",
+		 function );
+
+		return( -1 );
+	}
+	if( utf8_string_length > 0 )
+	{
+		/* Ignore a leading separator
+		 */
+		if( utf8_string[ utf8_string_index ] == (uint8_t) LIBFSXFS_SEPARATOR )
+		{
+			utf8_string_index++;
+		}
+	}
+	inode_number = file_system->root_directory_inode_number;
+
+	if( libfsxfs_file_system_get_inode_by_number(
+	     file_system,
+	     io_handle,
+	     file_io_handle,
+	     inode_number,
+	     &safe_inode,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve inode: %" PRIu64 ".",
+		 function,
+		 inode_number );
+
+		goto on_error;
+	}
+	if( ( utf8_string_length == 0 )
+	 || ( utf8_string_length == 1 ) )
+	{
+		result = 1;
+	}
+	else while( utf8_string_index < utf8_string_length )
+	{
+		if( directory != NULL )
+		{
+			if( libfsxfs_directory_free(
+			     &directory,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free directory.",
+				 function );
+
+				goto on_error;
+			}
+		}
+		if( libfsxfs_directory_initialize(
+		     &directory,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create directory.",
+			 function );
+
+			goto on_error;
+		}
+		if( libfsxfs_directory_read_file_io_handle(
+		     directory,
+		     io_handle,
+		     file_io_handle,
+		     safe_inode,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read directory from inode: %" PRIu64 ".",
+			 function,
+			 inode_number );
+
+			goto on_error;
+		}
+		utf8_string_segment        = &( utf8_string[ utf8_string_index ] );
+		utf8_string_segment_length = utf8_string_index;
+
+		while( utf8_string_index < utf8_string_length )
+		{
+			if( libuna_unicode_character_copy_from_utf8(
+			     &unicode_character,
+			     utf8_string,
+			     utf8_string_length,
+			     &utf8_string_index,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_COPY_FAILED,
+				 "%s: unable to copy UTF-8 string to Unicode character.",
+				 function );
+
+				goto on_error;
+			}
+			if( ( unicode_character == (libuna_unicode_character_t) LIBFSXFS_SEPARATOR )
+			 || ( unicode_character == 0 ) )
+			{
+				utf8_string_segment_length += 1;
+
+				break;
+			}
+		}
+		utf8_string_segment_length = utf8_string_index - utf8_string_segment_length;
+
+		if( utf8_string_segment_length == 0 )
+		{
+			result = 0;
+		}
+		else
+		{
+			result = libfsxfs_directory_get_entry_by_utf8_name(
+			          directory,
+			          utf8_string_segment,
+			          utf8_string_segment_length,
+			          &safe_directory_entry,
+			          error );
+		}
+		if( result == -1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve directory entry by UTF-8 name.",
+			 function );
+
+			goto on_error;
+		}
+		else if( result == 0 )
+		{
+			break;
+		}
+		if( libfsxfs_directory_entry_get_inode_number(
+		     safe_directory_entry,
+		     &inode_number,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve inode number from directory entry.",
+			 function );
+
+			goto on_error;
+		}
+		if( safe_inode != NULL )
+		{
+			if( libfsxfs_inode_free(
+			     &safe_inode,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free inode.",
+				 function );
+
+				goto on_error;
+			}
+		}
+		if( libfsxfs_file_system_get_inode_by_number(
+		     file_system,
+		     io_handle,
+		     file_io_handle,
+		     inode_number,
+		     &safe_inode,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve inode: %" PRIu32 ".",
+			 function,
+			 inode_number );
+
+			goto on_error;
+		}
+	}
+	if( directory != NULL )
+	{
+		if( libfsxfs_directory_free(
+		     &directory,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free directory.",
+			 function );
+
+			goto on_error;
+		}
+	}
+	if( libfsxfs_directory_entry_clone(
+	     directory_entry,
+	     safe_directory_entry,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create directory entry.",
+		 function );
+
+		goto on_error;
+	}
+	*inode = safe_inode;
+
+	return( result );
+
+on_error:
+	if( directory != NULL )
+	{
+		libfsxfs_directory_free(
+		 &directory,
+		 NULL );
+	}
+	if( safe_inode != NULL )
+	{
+		libfsxfs_inode_free(
+		 &safe_inode,
+		 NULL );
+	}
+	return( -1 );
+}
+
+/* Retrieves a directory entry for a specific UTF-16 formatted path
+ * Returns 1 if successful, 0 if not found or -1 on error
+ */
+int libfsxfs_file_system_get_directory_entry_by_utf16_path(
+     libfsxfs_file_system_t *file_system,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     const uint16_t *utf16_string,
+     size_t utf16_string_length,
+     libfsxfs_inode_t **inode,
+     libfsxfs_directory_entry_t **directory_entry,
+     libcerror_error_t **error )
+{
+	libfsxfs_directory_t *directory                  = NULL;
+	libfsxfs_directory_entry_t *safe_directory_entry = NULL;
+	libfsxfs_inode_t *safe_inode                     = NULL;
+	const uint16_t *utf16_string_segment             = NULL;
+	static char *function                            = "libfsxfs_file_system_get_directory_entry_by_utf16_path";
+	libuna_unicode_character_t unicode_character     = 0;
+	size_t utf16_string_index                        = 0;
+	size_t utf16_string_segment_length               = 0;
+	uint64_t inode_number                            = 0;
+	int result                                       = 0;
+
+	if( file_system == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file system.",
+		 function );
+
+		return( -1 );
+	}
+	if( utf16_string == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid UTF-16 string.",
+		 function );
+
+		return( -1 );
+	}
+	if( utf16_string_length > (size_t) SSIZE_MAX )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_EXCEEDS_MAXIMUM,
+		 "%s: invalid UTF-16 string length value exceeds maximum.",
+		 function );
+
+		return( -1 );
+	}
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( directory_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid directory entry.",
+		 function );
+
+		return( -1 );
+	}
+	if( utf16_string_length > 0 )
+	{
+		/* Ignore a leading separator
+		 */
+		if( utf16_string[ utf16_string_index ] == (uint16_t) LIBFSXFS_SEPARATOR )
+		{
+			utf16_string_index++;
+		}
+	}
+	inode_number = file_system->root_directory_inode_number;
+
+	if( libfsxfs_file_system_get_inode_by_number(
+	     file_system,
+	     io_handle,
+	     file_io_handle,
+	     inode_number,
+	     &safe_inode,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve inode: %" PRIu64 ".",
+		 function,
+		 inode_number );
+
+		goto on_error;
+	}
+	if( ( utf16_string_length == 0 )
+	 || ( utf16_string_length == 1 ) )
+	{
+		result = 1;
+	}
+	else while( utf16_string_index < utf16_string_length )
+	{
+		if( directory != NULL )
+		{
+			if( libfsxfs_directory_free(
+			     &directory,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free directory.",
+				 function );
+
+				goto on_error;
+			}
+		}
+		if( libfsxfs_directory_initialize(
+		     &directory,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create directory.",
+			 function );
+
+			goto on_error;
+		}
+		if( libfsxfs_directory_read_file_io_handle(
+		     directory,
+		     io_handle,
+		     file_io_handle,
+		     safe_inode,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read directory from inode: %" PRIu64 ".",
+			 function,
+			 inode_number );
+
+			goto on_error;
+		}
+		utf16_string_segment        = &( utf16_string[ utf16_string_index ] );
+		utf16_string_segment_length = utf16_string_index;
+
+		while( utf16_string_index < utf16_string_length )
+		{
+			if( libuna_unicode_character_copy_from_utf16(
+			     &unicode_character,
+			     utf16_string,
+			     utf16_string_length,
+			     &utf16_string_index,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_COPY_FAILED,
+				 "%s: unable to copy UTF-16 string to Unicode character.",
+				 function );
+
+				goto on_error;
+			}
+			if( ( unicode_character == (libuna_unicode_character_t) LIBFSXFS_SEPARATOR )
+			 || ( unicode_character == 0 ) )
+			{
+				utf16_string_segment_length += 1;
+
+				break;
+			}
+		}
+		utf16_string_segment_length = utf16_string_index - utf16_string_segment_length;
+
+		if( utf16_string_segment_length == 0 )
+		{
+			result = 0;
+		}
+		else
+		{
+			result = libfsxfs_directory_get_entry_by_utf16_name(
+			          directory,
+			          utf16_string_segment,
+			          utf16_string_segment_length,
+			          &safe_directory_entry,
+			          error );
+		}
+		if( result == -1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve directory entry by UTF-16 name.",
+			 function );
+
+			goto on_error;
+		}
+		else if( result == 0 )
+		{
+			break;
+		}
+		if( libfsxfs_directory_entry_get_inode_number(
+		     safe_directory_entry,
+		     &inode_number,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve inode number from directory entry.",
+			 function );
+
+			goto on_error;
+		}
+		if( safe_inode != NULL )
+		{
+			if( libfsxfs_inode_free(
+			     &safe_inode,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free inode.",
+				 function );
+
+				goto on_error;
+			}
+		}
+		if( libfsxfs_file_system_get_inode_by_number(
+		     file_system,
+		     io_handle,
+		     file_io_handle,
+		     inode_number,
+		     &safe_inode,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve inode: %" PRIu32 ".",
+			 function,
+			 inode_number );
+
+			goto on_error;
+		}
+	}
+	if( directory != NULL )
+	{
+		if( libfsxfs_directory_free(
+		     &directory,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free directory.",
+			 function );
+
+			goto on_error;
+		}
+	}
+	if( libfsxfs_directory_entry_clone(
+	     directory_entry,
+	     safe_directory_entry,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create directory entry.",
+		 function );
+
+		goto on_error;
+	}
+	*inode = safe_inode;
+
+	return( result );
+
+on_error:
+	if( directory != NULL )
+	{
+		libfsxfs_directory_free(
+		 &directory,
+		 NULL );
+	}
 	if( safe_inode != NULL )
 	{
 		libfsxfs_inode_free(

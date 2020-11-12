@@ -40,7 +40,7 @@ ssize_t libfsxfs_block_data_handle_read_segment_data(
          int segment_file_index LIBFSXFS_ATTRIBUTE_UNUSED,
          uint8_t *segment_data,
          size_t segment_data_size,
-         uint32_t segment_flags,
+         uint32_t segment_flags LIBFSXFS_ATTRIBUTE_UNUSED,
          uint8_t read_flags LIBFSXFS_ATTRIBUTE_UNUSED,
          libcerror_error_t **error )
 {
@@ -50,6 +50,7 @@ ssize_t libfsxfs_block_data_handle_read_segment_data(
 	LIBFSXFS_UNREFERENCED_PARAMETER( data_handle )
 	LIBFSXFS_UNREFERENCED_PARAMETER( segment_index )
 	LIBFSXFS_UNREFERENCED_PARAMETER( segment_file_index )
+	LIBFSXFS_UNREFERENCED_PARAMETER( segment_flags )
 	LIBFSXFS_UNREFERENCED_PARAMETER( read_flags )
 
 	if( segment_data == NULL )
@@ -74,43 +75,22 @@ ssize_t libfsxfs_block_data_handle_read_segment_data(
 
 		return( -1 );
 	}
-	if( ( segment_flags & LIBFDATA_RANGE_FLAG_IS_SPARSE ) != 0 )
+	read_count = libbfio_handle_read_buffer(
+	              file_io_handle,
+	              segment_data,
+	              segment_data_size,
+	              error );
+
+	if( read_count < 0 )
 	{
-		if( memory_set(
-		     segment_data,
-		     0,
-		     segment_data_size ) == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_MEMORY,
-			 LIBCERROR_MEMORY_ERROR_SET_FAILED,
-			 "%s: unable to clear segment data.",
-			 function );
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_IO,
+		 LIBCERROR_IO_ERROR_READ_FAILED,
+		 "%s: unable to read segment data.",
+		 function );
 
-			return( -1 );
-		}
-		read_count = (ssize_t) segment_data_size;
-	}
-	else
-	{
-		read_count = libbfio_handle_read_buffer(
-		              file_io_handle,
-		              segment_data,
-		              segment_data_size,
-		              error );
-
-		if( read_count < 0 )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_IO,
-			 LIBCERROR_IO_ERROR_READ_FAILED,
-			 "%s: unable to read segment data.",
-			 function );
-
-			return( -1 );
-		}
+		return( -1 );
 	}
 	return( read_count );
 }
