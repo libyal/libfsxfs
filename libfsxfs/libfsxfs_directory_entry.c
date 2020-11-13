@@ -194,12 +194,7 @@ int libfsxfs_directory_entry_clone(
 		 "%s: unable to copy source to destination directory entry.",
 		 function );
 
-		memory_free(
-		 *destination_directory_entry );
-
-		*destination_directory_entry = NULL;
-
-		return( -1 );
+		goto on_error;
 	}
 	return( 1 );
 

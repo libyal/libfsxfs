@@ -174,7 +174,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\pyfsxfs\pyfsxfs_datetime.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\pyfsxfs\pyfsxfs_error.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\pyfsxfs\pyfsxfs_file_entries.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\pyfsxfs\pyfsxfs_file_entry.c"
 				>
 			</File>
 			<File
@@ -200,7 +212,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\pyfsxfs\pyfsxfs_datetime.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\pyfsxfs\pyfsxfs_error.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\pyfsxfs\pyfsxfs_file_entries.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\pyfsxfs\pyfsxfs_file_entry.h"
 				>
 			</File>
 			<File

@@ -190,7 +190,6 @@ int libfsxfs_directory_read_file_io_handle(
 	size64_t extent_size                        = 0;
 	off64_t block_directory_offset              = 0;
 	off64_t logical_offset                      = 0;
-	uint32_t block_index                        = 0;
 	int extent_index                            = 0;
 	int number_of_extents                       = 0;
 

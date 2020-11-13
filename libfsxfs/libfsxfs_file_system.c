@@ -652,6 +652,22 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 			goto on_error;
 		}
 	}
+	if( libfsxfs_directory_entry_clone(
+	     directory_entry,
+	     safe_directory_entry,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create directory entry.",
+		 function );
+
+		goto on_error;
+	}
+	/* Directory needs to be freed after making a clone of directory_entry
+	 */
 	if( directory != NULL )
 	{
 		if( libfsxfs_directory_free(
@@ -668,25 +684,17 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 			goto on_error;
 		}
 	}
-	if( libfsxfs_directory_entry_clone(
-	     directory_entry,
-	     safe_directory_entry,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create directory entry.",
-		 function );
-
-		goto on_error;
-	}
 	*inode = safe_inode;
 
 	return( result );
 
 on_error:
+	if( safe_directory_entry != NULL )
+	{
+		libfsxfs_directory_entry_free(
+		 &safe_directory_entry,
+		 NULL );
+	}
 	if( directory != NULL )
 	{
 		libfsxfs_directory_free(
@@ -971,6 +979,22 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 			goto on_error;
 		}
 	}
+	if( libfsxfs_directory_entry_clone(
+	     directory_entry,
+	     safe_directory_entry,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create directory entry.",
+		 function );
+
+		goto on_error;
+	}
+	/* Directory needs to be freed after making a clone of directory_entry
+	 */
 	if( directory != NULL )
 	{
 		if( libfsxfs_directory_free(
@@ -987,25 +1011,17 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 			goto on_error;
 		}
 	}
-	if( libfsxfs_directory_entry_clone(
-	     directory_entry,
-	     safe_directory_entry,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create directory entry.",
-		 function );
-
-		goto on_error;
-	}
 	*inode = safe_inode;
 
 	return( result );
 
 on_error:
+	if( safe_directory_entry != NULL )
+	{
+		libfsxfs_directory_entry_free(
+		 &safe_directory_entry,
+		 NULL );
+	}
 	if( directory != NULL )
 	{
 		libfsxfs_directory_free(

@@ -277,6 +277,22 @@ int libfsxfs_file_entry_free(
 				result = -1;
 			}
 		}
+		if( internal_file_entry->data_stream != NULL )
+		{
+			if( libfdata_stream_free(
+			     &( internal_file_entry->data_stream ),
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free data stream.",
+				 function );
+
+				result = -1;
+			}
+		}
 		if( internal_file_entry->symbolic_link_data != NULL )
 		{
 			memory_free(

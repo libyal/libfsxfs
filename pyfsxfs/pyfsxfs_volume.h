@@ -81,6 +81,20 @@ PyObject *pyfsxfs_volume_get_label(
            pyfsxfs_volume_t *pyfsxfs_volume,
            PyObject *arguments );
 
+PyObject *pyfsxfs_volume_get_file_entry_by_inode(
+           pyfsxfs_volume_t *pyfsxfs_volume,
+           PyObject *arguments,
+           PyObject *keywords );
+
+PyObject *pyfsxfs_volume_get_root_directory(
+           pyfsxfs_volume_t *pyfsxfs_volume,
+           PyObject *arguments );
+
+PyObject *pyfsxfs_volume_get_file_entry_by_path(
+           pyfsxfs_volume_t *pyfsxfs_volume,
+           PyObject *arguments,
+           PyObject *keywords );
+
 #if defined( __cplusplus )
 }
 #endif

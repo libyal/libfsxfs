@@ -29,6 +29,8 @@
 
 #include "pyfsxfs.h"
 #include "pyfsxfs_error.h"
+#include "pyfsxfs_file_entries.h"
+#include "pyfsxfs_file_entry.h"
 #include "pyfsxfs_file_object_io_handle.h"
 #include "pyfsxfs_libbfio.h"
 #include "pyfsxfs_libcerror.h"
@@ -61,14 +63,14 @@ PyMethodDef pyfsxfs_module_methods[] = {
 	  METH_VARARGS | METH_KEYWORDS,
 	  "check_volume_signature(filename) -> Boolean\n"
 	  "\n"
-	  "Checks if a volume has an Extended File System (ext) volume signature." },
+	  "Checks if a volume has a X File System (XFS) volume signature." },
 
 	{ "check_volume_signature_file_object",
 	  (PyCFunction) pyfsxfs_check_volume_signature_file_object,
 	  METH_VARARGS | METH_KEYWORDS,
 	  "check_volume_signature_file_object(file_object) -> Boolean\n"
 	  "\n"
-	  "Checks if a volume has an Extended File System (ext) volume signature using a file-like object." },
+	  "Checks if a volume has a X File System (XFS) volume signature using a file-like object." },
 
 	{ "open",
 	  (PyCFunction) pyfsxfs_open_new_volume,
@@ -121,7 +123,7 @@ PyObject *pyfsxfs_get_version(
 	         errors ) );
 }
 
-/* Checks if a volume has an Extended File System (ext) volume signature
+/* Checks if a volume has a X File System (XFS) volume signature
  * Returns a Python object if successful or NULL on error
  */
 PyObject *pyfsxfs_check_volume_signature(
@@ -317,7 +319,7 @@ PyObject *pyfsxfs_check_volume_signature(
 	return( NULL );
 }
 
-/* Checks if a volume has an Extended File System (ext) volume signature using a file-like object
+/* Checks if a volume has a X File System (XFS) volume signature using a file-like object
  * Returns a Python object if successful or NULL on error
  */
 PyObject *pyfsxfs_check_volume_signature_file_object(
@@ -591,6 +593,40 @@ PyMODINIT_FUNC initpyfsxfs(
 	PyEval_InitThreads();
 
 	gil_state = PyGILState_Ensure();
+
+	/* Setup the file_entries type object
+	 */
+	pyfsxfs_file_entries_type_object.tp_new = PyType_GenericNew;
+
+	if( PyType_Ready(
+	     &pyfsxfs_file_entries_type_object ) < 0 )
+	{
+		goto on_error;
+	}
+	Py_IncRef(
+	 (PyObject *) &pyfsxfs_file_entries_type_object );
+
+	PyModule_AddObject(
+	 module,
+	 "file_entries",
+	 (PyObject *) &pyfsxfs_file_entries_type_object );
+
+	/* Setup the file_entry type object
+	 */
+	pyfsxfs_file_entry_type_object.tp_new = PyType_GenericNew;
+
+	if( PyType_Ready(
+	     &pyfsxfs_file_entry_type_object ) < 0 )
+	{
+		goto on_error;
+	}
+	Py_IncRef(
+	 (PyObject *) &pyfsxfs_file_entry_type_object );
+
+	PyModule_AddObject(
+	 module,
+	 "file_entry",
+	 (PyObject *) &pyfsxfs_file_entry_type_object );
 
 	/* Setup the volume type object
 	 */

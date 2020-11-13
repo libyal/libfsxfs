@@ -16,7 +16,10 @@ pyexec_LTLIBRARIES = pyfsxfs.la
 
 pyfsxfs_la_SOURCES = \
 	pyfsxfs.c pyfsxfs.h \
+	pyfsxfs_datetime.c pyfsxfs_datetime.h \
 	pyfsxfs_error.c pyfsxfs_error.h \
+	pyfsxfs_file_entries.c pyfsxfs_file_entries.h \
+	pyfsxfs_file_entry.c pyfsxfs_file_entry.h \
 	pyfsxfs_file_object_io_handle.c pyfsxfs_file_object_io_handle.h \
 	pyfsxfs_integer.c pyfsxfs_integer.h \
 	pyfsxfs_libbfio.h \

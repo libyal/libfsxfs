@@ -27,8 +27,8 @@
 #include <stdlib.h>
 #endif
 
-#include "pyfsxfs_datetime.h"
 #include "pyfsxfs_error.h"
+#include "pyfsxfs_file_entry.h"
 #include "pyfsxfs_file_object_io_handle.h"
 #include "pyfsxfs_libbfio.h"
 #include "pyfsxfs_libcerror.h"
@@ -85,6 +85,27 @@ PyMethodDef pyfsxfs_volume_object_methods[] = {
 	  "\n"
 	  "Retrieves the label." },
 
+	{ "get_file_entry_by_inode",
+	  (PyCFunction) pyfsxfs_volume_get_file_entry_by_inode,
+	  METH_VARARGS | METH_KEYWORDS,
+	  "get_file_entry_by_inode(inode_number) -> Object or None\n"
+	  "\n"
+	  "Retrieves the file entry specified by the inode number." },
+
+	{ "get_root_directory",
+	  (PyCFunction) pyfsxfs_volume_get_root_directory,
+	  METH_NOARGS,
+	  "get_root_directory() -> Object\n"
+	  "\n"
+	  "Retrieves the root directory file entry." },
+
+	{ "get_file_entry_by_path",
+	  (PyCFunction) pyfsxfs_volume_get_file_entry_by_path,
+	  METH_VARARGS | METH_KEYWORDS,
+	  "get_file_entry_by_path(path) -> Object or None\n"
+	  "\n"
+	  "Retrieves the file entry for an UTF-8 encoded path specified by the path." },
+
 	/* Sentinel */
 	{ NULL, NULL, 0, NULL }
 };
@@ -95,6 +116,12 @@ PyGetSetDef pyfsxfs_volume_object_get_set_definitions[] = {
 	  (getter) pyfsxfs_volume_get_label,
 	  (setter) 0,
 	  "The label.",
+	  NULL },
+
+	{ "root_directory",
+	  (getter) pyfsxfs_volume_get_root_directory,
+	  (setter) 0,
+	  "The root directory file entry.",
 	  NULL },
 
 	/* Sentinel */
@@ -888,6 +915,268 @@ on_error:
 	{
 		PyMem_Free(
 		 utf8_string );
+	}
+	return( NULL );
+}
+
+/* Retrieves a specific of file entry by inode number
+ * Returns a Python object if successful or NULL on error
+ */
+PyObject *pyfsxfs_volume_get_file_entry_by_inode(
+           pyfsxfs_volume_t *pyfsxfs_volume,
+           PyObject *arguments,
+           PyObject *keywords )
+{
+	PyObject *file_entry_object       = NULL;
+	libcerror_error_t *error          = NULL;
+	libfsxfs_file_entry_t *file_entry = NULL;
+	static char *function             = "pyfsxfs_volume_get_file_entry_by_inode";
+	static char *keyword_list[]       = { "inode_number", NULL };
+	unsigned long long inode_number   = 0;
+	int result                        = 0;
+
+	if( pyfsxfs_volume == NULL )
+	{
+		PyErr_Format(
+		 PyExc_ValueError,
+		 "%s: invalid volume.",
+		 function );
+
+		return( NULL );
+	}
+	if( PyArg_ParseTupleAndKeywords(
+	     arguments,
+	     keywords,
+	     "K",
+	     keyword_list,
+	     &inode_number ) == 0 )
+	{
+		return( NULL );
+	}
+	Py_BEGIN_ALLOW_THREADS
+
+	result = libfsxfs_volume_get_file_entry_by_inode(
+	          ( (pyfsxfs_volume_t *) pyfsxfs_volume )->volume,
+	          (uint64_t) inode_number,
+	          &file_entry,
+	          &error );
+
+	Py_END_ALLOW_THREADS
+
+	if( result != 1 )
+	{
+		pyfsxfs_error_raise(
+		 error,
+		 PyExc_IOError,
+		 "%s: unable to retrieve of file entry: %d.",
+		 function,
+		 inode_number );
+
+		libcerror_error_free(
+		 &error );
+
+		goto on_error;
+	}
+	else if( result == 0 )
+	{
+		Py_IncRef(
+		 Py_None );
+
+		return( Py_None );
+	}
+	file_entry_object = pyfsxfs_file_entry_new(
+	                     file_entry,
+	                     (PyObject *) pyfsxfs_volume );
+
+	if( file_entry_object == NULL )
+	{
+		PyErr_Format(
+		 PyExc_MemoryError,
+		 "%s: unable to create file entry object.",
+		 function );
+
+		goto on_error;
+	}
+	return( file_entry_object );
+
+on_error:
+	if( file_entry != NULL )
+	{
+		libfsxfs_file_entry_free(
+		 &file_entry,
+		 NULL );
+	}
+	return( NULL );
+}
+
+/* Retrieves the root directory file entry
+ * Returns a Python object if successful or NULL on error
+ */
+PyObject *pyfsxfs_volume_get_root_directory(
+           pyfsxfs_volume_t *pyfsxfs_volume,
+           PyObject *arguments PYFSXFS_ATTRIBUTE_UNUSED )
+{
+	PyObject *directory_object            = NULL;
+	libcerror_error_t *error              = NULL;
+	libfsxfs_file_entry_t *root_directory = NULL;
+	static char *function                 = "pyfsxfs_volume_get_root_directory";
+	int result                            = 0;
+
+	PYFSXFS_UNREFERENCED_PARAMETER( arguments )
+
+	if( pyfsxfs_volume == NULL )
+	{
+		PyErr_Format(
+		 PyExc_ValueError,
+		 "%s: invalid volume.",
+		 function );
+
+		return( NULL );
+	}
+	Py_BEGIN_ALLOW_THREADS
+
+	result = libfsxfs_volume_get_root_directory(
+	          pyfsxfs_volume->volume,
+	          &root_directory,
+	          &error );
+
+	Py_END_ALLOW_THREADS
+
+	if( result == -1 )
+	{
+		pyfsxfs_error_raise(
+		 error,
+		 PyExc_IOError,
+		 "%s: unable to retrieve root directory file entry.",
+		 function );
+
+		libcerror_error_free(
+		 &error );
+
+		goto on_error;
+	}
+	else if( result == 0 )
+	{
+		Py_IncRef(
+		 Py_None );
+
+		return( Py_None );
+	}
+	directory_object = pyfsxfs_file_entry_new(
+	                    root_directory,
+	                    (PyObject *) pyfsxfs_volume );
+
+	if( directory_object == NULL )
+	{
+		PyErr_Format(
+		 PyExc_MemoryError,
+		 "%s: unable to create root directory file entry object.",
+		 function );
+
+		goto on_error;
+	}
+	return( directory_object );
+
+on_error:
+	if( root_directory != NULL )
+	{
+		libfsxfs_file_entry_free(
+		 &root_directory,
+		 NULL );
+	}
+	return( NULL );
+}
+
+/* Retrieves the file entry for an UTF-8 encoded path specified by the path
+ * Returns a Python object if successful or NULL on error
+ */
+PyObject *pyfsxfs_volume_get_file_entry_by_path(
+           pyfsxfs_volume_t *pyfsxfs_volume,
+           PyObject *arguments,
+           PyObject *keywords )
+{
+	PyObject *file_entry_object       = NULL;
+	libcerror_error_t *error          = NULL;
+	libfsxfs_file_entry_t *file_entry = NULL;
+	static char *function             = "pyfsxfs_volume_get_file_entry_by_path";
+	static char *keyword_list[]       = { "path", NULL };
+	char *utf8_path                   = NULL;
+	size_t utf8_path_length           = 0;
+	int result                        = 0;
+
+	if( pyfsxfs_volume == NULL )
+	{
+		PyErr_Format(
+		 PyExc_ValueError,
+		 "%s: invalid volume.",
+		 function );
+
+		return( NULL );
+	}
+	if( PyArg_ParseTupleAndKeywords(
+	     arguments,
+	     keywords,
+	     "s",
+	     keyword_list,
+	     &utf8_path ) == 0 )
+	{
+		goto on_error;
+	}
+	utf8_path_length = narrow_string_length(
+	                    utf8_path );
+
+	Py_BEGIN_ALLOW_THREADS
+
+	result = libfsxfs_volume_get_file_entry_by_utf8_path(
+	          pyfsxfs_volume->volume,
+	          (uint8_t *) utf8_path,
+	          utf8_path_length,
+	          &file_entry,
+	          &error );
+
+	Py_END_ALLOW_THREADS
+
+	if( result == -1 )
+	{
+		pyfsxfs_error_raise(
+		 error,
+		 PyExc_IOError,
+		 "%s: unable to retrieve file entry for an UTF-8 encoded path.",
+		 function );
+
+		libcerror_error_free(
+		 &error );
+
+		goto on_error;
+	}
+	else if( result == 0 )
+	{
+		Py_IncRef(
+		 Py_None );
+
+		return( Py_None );
+	}
+	file_entry_object = pyfsxfs_file_entry_new(
+	                     file_entry,
+	                     (PyObject *) pyfsxfs_volume );
+
+	if( file_entry_object == NULL )
+	{
+		PyErr_Format(
+		 PyExc_MemoryError,
+		 "%s: unable to create file entry object.",
+		 function );
+
+		goto on_error;
+	}
+	return( file_entry_object );
+
+on_error:
+	if( file_entry != NULL )
+	{
+		libfsxfs_file_entry_free(
+		 &file_entry,
+		 NULL );
 	}
 	return( NULL );
 }
