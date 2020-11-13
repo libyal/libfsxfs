@@ -956,9 +956,11 @@ int libfsxfs_internal_volume_open_read(
      libbfio_handle_t *file_io_handle,
      libcerror_error_t **error )
 {
-	static char *function            = "libfsxfs_internal_volume_open_read";
-	off64_t inode_information_offset = 0;
-	off64_t superblock_offset        = 0;
+	libfsxfs_superblock_t *superblock = NULL;
+	static char *function             = "libfsxfs_internal_volume_open_read";
+	off64_t inode_information_offset  = 0;
+	off64_t superblock_offset         = 0;
+	uint32_t allocation_group_index   = 0;
 
 	if( internal_volume == NULL )
 	{
@@ -1004,94 +1006,130 @@ int libfsxfs_internal_volume_open_read(
 
 		return( -1 );
 	}
+	do
+	{
 #if defined( HAVE_DEBUG_OUTPUT )
-	if( libcnotify_verbose != 0 )
-	{
-		libcnotify_printf(
-		 "Reading superblock: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").\n",
-		 0,
-		 superblock_offset,
-		 superblock_offset );
-	}
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "Reading superblock: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").\n",
+			 allocation_group_index,
+			 superblock_offset,
+			 superblock_offset );
+		}
 #endif
-	if( libfsxfs_superblock_initialize(
-	     &( internal_volume->superblock ),
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create superblock.",
-		 function );
+		if( libfsxfs_superblock_initialize(
+		     &superblock,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create superblock: %" PRIu32 ".",
+			 function,
+			 allocation_group_index );
 
-		goto on_error;
-	}
-	if( libfsxfs_superblock_read_file_io_handle(
-	     internal_volume->superblock,
-	     file_io_handle,
-	     superblock_offset,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_IO,
-		 LIBCERROR_IO_ERROR_READ_FAILED,
-		 "%s: unable to read superblock: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").",
-		 function,
-		 0,
-		 superblock_offset,
-		 superblock_offset );
+			goto on_error;
+		}
+		if( libfsxfs_superblock_read_file_io_handle(
+		     superblock,
+		     file_io_handle,
+		     superblock_offset,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read superblock: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").",
+			 function,
+			 allocation_group_index,
+			 superblock_offset,
+			 superblock_offset );
 
-		goto on_error;
-	}
-	internal_volume->io_handle->format_version          = internal_volume->superblock->format_version;
-	internal_volume->io_handle->secondary_feature_flags = internal_volume->superblock->secondary_feature_flags;
-	internal_volume->io_handle->block_size              = internal_volume->superblock->block_size;
-	internal_volume->io_handle->inode_size              = internal_volume->superblock->inode_size;
+			goto on_error;
+		}
+		if( internal_volume->superblock == NULL )
+		{
+			internal_volume->superblock                               = superblock;
+			internal_volume->io_handle->format_version                = superblock->format_version;
+			internal_volume->io_handle->secondary_feature_flags       = superblock->secondary_feature_flags;
+			internal_volume->io_handle->block_size                    = superblock->block_size;
+			internal_volume->io_handle->allocation_group_size         = superblock->allocation_group_size;
+			internal_volume->io_handle->inode_size                    = superblock->inode_size;
+			internal_volume->io_handle->directory_block_size          = superblock->directory_block_size;
+			internal_volume->io_handle->number_of_relative_inode_bits = superblock->number_of_relative_inode_bits;
+
+			superblock = NULL;
+		}
+		inode_information_offset = superblock_offset + 2 * internal_volume->superblock->sector_size;
 
 #if defined( HAVE_DEBUG_OUTPUT )
-	if( libcnotify_verbose != 0 )
-	{
-		libcnotify_printf(
-		 "Reading inode information: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").\n",
-		 0,
-		 superblock_offset,
-		 superblock_offset );
-	}
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "Reading inode information: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").\n",
+			 allocation_group_index,
+			 inode_information_offset,
+			 inode_information_offset );
+		}
 #endif
-	inode_information_offset = 2 * internal_volume->superblock->sector_size;
+		if( internal_volume->file_system == NULL )
+		{
+			if( libfsxfs_file_system_initialize(
+			     &( internal_volume->file_system ),
+			     internal_volume->superblock->root_directory_inode_number,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+				 "%s: unable to create file system.",
+				 function );
 
-	if( libfsxfs_file_system_initialize(
-	     &( internal_volume->file_system ),
-	     internal_volume->superblock->root_directory_inode_number,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create file system.",
-		 function );
+				goto on_error;
+			}
+		}
+		if( libfsxfs_file_system_read_inode_information(
+		     internal_volume->file_system,
+		     internal_volume->io_handle,
+		     file_io_handle,
+		     inode_information_offset,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read inode B+ tree.",
+			 function );
 
-		goto on_error;
+			goto on_error;
+		}
+		if( superblock != NULL )
+		{
+			if( libfsxfs_superblock_free(
+			     &superblock,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free superblock.",
+				 function );
+
+				goto on_error;
+			}
+		}
+		superblock_offset += internal_volume->io_handle->allocation_group_size * internal_volume->io_handle->block_size;
+
+		allocation_group_index++;
 	}
-	if( libfsxfs_file_system_read_inode_btree(
-	     internal_volume->file_system,
-	     internal_volume->io_handle,
-	     file_io_handle,
-	     inode_information_offset,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_IO,
-		 LIBCERROR_IO_ERROR_READ_FAILED,
-		 "%s: unable to read inode B+ tree.",
-		 function );
+	while( allocation_group_index < internal_volume->superblock->number_of_allocation_groups );
 
-		goto on_error;
-	}
 	return( 1 );
 
 on_error:
@@ -1105,6 +1143,12 @@ on_error:
 	{
 		libfsxfs_superblock_free(
 		 &( internal_volume->superblock ),
+		 NULL );
+	}
+	if( superblock != NULL )
+	{
+		libfsxfs_superblock_free(
+		 &superblock,
 		 NULL );
 	}
 	return( -1 );

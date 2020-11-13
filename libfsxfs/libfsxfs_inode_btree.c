@@ -20,14 +20,18 @@
  */
 
 #include <common.h>
+#include <byte_stream.h>
 #include <memory.h>
 #include <types.h>
 
 #include "libfsxfs_btree_block.h"
 #include "libfsxfs_btree_header.h"
+#include "libfsxfs_definitions.h"
 #include "libfsxfs_inode_btree.h"
 #include "libfsxfs_inode_btree_record.h"
+#include "libfsxfs_inode_information.h"
 #include "libfsxfs_libbfio.h"
+#include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
 
@@ -37,8 +41,6 @@
  */
 int libfsxfs_inode_btree_initialize(
      libfsxfs_inode_btree_t **inode_btree,
-     uint32_t root_block_number,
-     uint32_t depth,
      libcerror_error_t **error )
 {
 	static char *function = "libfsxfs_inode_btree_initialize";
@@ -91,11 +93,27 @@ int libfsxfs_inode_btree_initialize(
 		 "%s: unable to clear inode B+ tree.",
 		 function );
 
+		memory_free(
+		 *inode_btree );
+
+		*inode_btree = NULL;
+
+		return( -1 );
+	}
+	if( libcdata_array_initialize(
+	     &( ( *inode_btree )->inode_information_array ),
+	     0,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create inode information array.",
+		 function );
+
 		goto on_error;
 	}
-	( *inode_btree )->root_block_number = root_block_number;
-	( *inode_btree )->depth             = depth;
-
 	return( 1 );
 
 on_error:
@@ -117,6 +135,7 @@ int libfsxfs_inode_btree_free(
      libcerror_error_t **error )
 {
 	static char *function = "libfsxfs_inode_btree_free";
+	int result            = 1;
 
 	if( inode_btree == NULL )
 	{
@@ -131,31 +150,421 @@ int libfsxfs_inode_btree_free(
 	}
 	if( *inode_btree != NULL )
 	{
+		if( libcdata_array_free(
+		     &( ( *inode_btree )->inode_information_array ),
+		     (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_inode_information_free,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free inode information array.",
+			 function );
+
+			result = -1;
+		}
 		memory_free(
 		 *inode_btree );
 
 		*inode_btree = NULL;
 	}
-	return( 1 );
+	return( result );
 }
 
-/* Retrieves a specific inode from the inode B+ tree
- * Returns 1 if successful, 0 if no such value or -1 on error
+/* Reads the inode information
+ * Returns 1 if successful or -1 on error
  */
-int libfsxfs_inode_btree_get_inode_by_number(
+int libfsxfs_inode_btree_read_inode_information(
      libfsxfs_inode_btree_t *inode_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
+     off64_t file_offset,
+     libcerror_error_t **error )
+{
+	libfsxfs_inode_information_t *inode_information = NULL;
+	static char *function                           = "libfsxfs_file_system_read_inode_information";
+	int entry_index                                 = 0;
+
+	if( inode_btree == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode B+ tree.",
+		 function );
+
+		return( -1 );
+	}
+	if( libfsxfs_inode_information_initialize(
+	     &inode_information,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create inode information.",
+		 function );
+
+		goto on_error;
+	}
+	if( libfsxfs_inode_information_read_file_io_handle(
+	     inode_information,
+	     io_handle,
+	     file_io_handle,
+	     file_offset,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_IO,
+		 LIBCERROR_IO_ERROR_READ_FAILED,
+		 "%s: unable to read inode information at offset: %" PRIi64 " (0x%08" PRIx64 ").",
+		 function,
+		 file_offset,
+		 file_offset );
+
+		goto on_error;
+	}
+	if( libcdata_array_append_entry(
+	     inode_btree->inode_information_array,
+	     &entry_index,
+	     (intptr_t *) inode_information,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_APPEND_FAILED,
+		 "%s: unable to append inode information to array.",
+		 function );
+
+		goto on_error;
+	}
+	return( 1 );
+
+on_error:
+	if( inode_information != NULL )
+	{
+		libfsxfs_inode_information_free(
+		 &inode_information,
+		 NULL );
+	}
+	return( -1 );
+}
+
+/* Retrieves the inode from the inode B+ tree branch node
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_btree_get_inode_from_branch_node(
+     libfsxfs_inode_btree_t *inode_btree,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     uint16_t number_of_records,
+     const uint8_t *records_data,
+     size_t records_data_size,
+     uint64_t inode_number,
+     int recursion_depth,
+     libcerror_error_t **error )
+{
+	static char *function            = "libfsxfs_inode_btree_get_inode_from_branch_node";
+	size_t number_of_key_value_pairs = 0;
+	size_t records_data_offset       = 0;
+	uint32_t key_inode_number        = 0;
+	uint32_t sub_block_number        = 0;
+	uint16_t record_index            = 0;
+	int result                       = 0;
+
+	if( inode_btree == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode B+ tree.",
+		 function );
+
+		return( -1 );
+	}
+	if( records_data == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid records data.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( records_data_size == 0 )
+	 || ( records_data_size > (size_t) SSIZE_MAX ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid records data size value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( recursion_depth < 0 )
+	 || ( recursion_depth > LIBFSXFS_MAXIMUM_RECURSION_DEPTH ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid recursion depth value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	number_of_key_value_pairs = records_data_size / 8;
+
+	if( (size_t) number_of_records > number_of_key_value_pairs )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid number of records value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	for( record_index = 0;
+	     record_index < number_of_records;
+	     record_index++ )
+	{
+		byte_stream_copy_to_uint32_big_endian(
+		 &( records_data[ records_data_offset ] ),
+		 key_inode_number );
+
+		records_data_offset += 4;
+
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: inode number\t\t: %" PRIu32 "\n",
+			 function,
+			 key_inode_number );
+		}
+#endif
+		if( inode_number < key_inode_number )
+		{
+			break;
+		}
+	}
+	if( ( record_index > 0 )
+	 && ( record_index <= number_of_records ) )
+	{
+		records_data_offset = ( number_of_key_value_pairs + record_index - 1 ) * 4;
+
+		byte_stream_copy_to_uint32_big_endian(
+		 &( records_data[ records_data_offset ] ),
+		 sub_block_number );
+
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: sub block number\t: %" PRIu32 "\n",
+			 function,
+			 sub_block_number );
+
+			libcnotify_printf(
+			 "\n" );
+		}
+#endif
+		result = libfsxfs_inode_btree_get_inode_from_node(
+		          inode_btree,
+		          io_handle,
+		          file_io_handle,
+		          sub_block_number,
+		          inode_number,
+		          recursion_depth + 1,
+		          error );
+
+		if( result == -1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve inode from root node.",
+			 function );
+
+			return( -1 );
+		}
+	}
+#if defined( HAVE_DEBUG_OUTPUT )
+	else if( libcnotify_verbose != 0 )
+	{
+		libcnotify_printf(
+		 "\n" );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves the inode from the inode B+ tree leaf node
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_btree_get_inode_from_leaf_node(
+     libfsxfs_inode_btree_t *inode_btree,
+     uint16_t number_of_records,
+     const uint8_t *records_data,
+     size_t records_data_size,
      uint64_t inode_number,
      libcerror_error_t **error )
 {
-	libfsxfs_btree_block_t *btree_block               = NULL;
 	libfsxfs_inode_btree_record_t *inode_btree_record = NULL;
-	static char *function                             = "libfsxfs_inode_btree_get_inode_by_number";
-	size_t data_offset                                = 0;
-	off64_t btree_block_offset                        = 0;
-	int compare_result                                = 0;
+	static char *function                             = "libfsxfs_inode_btree_get_inode_from_leaf_node";
+	size_t records_data_offset                        = 0;
+	uint16_t record_index                             = 0;
 	int result                                        = 0;
+
+	if( inode_btree == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode B+ tree.",
+		 function );
+
+		return( -1 );
+	}
+	if( records_data == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid records data.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( records_data_size == 0 )
+	 || ( records_data_size > (size_t) SSIZE_MAX ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid records data size value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	if( (size_t) number_of_records > ( records_data_size / 16 ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid number of records value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	for( record_index = 0;
+	     record_index < number_of_records;
+	     record_index++ )
+	{
+		if( libfsxfs_inode_btree_record_initialize(
+		     &inode_btree_record,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create inode B+ tree record: %" PRIu16 ".",
+			 function,
+			 record_index );
+
+			goto on_error;
+		}
+		if( libfsxfs_inode_btree_record_read_data(
+		     inode_btree_record,
+		     &( records_data[ records_data_offset ] ),
+		     16,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read inode B+ tree record: %" PRIu16 ".",
+			 function,
+			 record_index );
+
+			goto on_error;
+		}
+		records_data_offset += 16;
+
+		if( ( inode_number >= inode_btree_record->inode_number )
+		 && ( inode_number < ( inode_btree_record->inode_number + 64 ) ) )
+		{
+/* TODO check bitmap */
+			result = 1;
+		}
+/* TODO cache records in block */
+		if( libfsxfs_inode_btree_record_free(
+		     &inode_btree_record,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free inode B+ tree record: %" PRIu16 ".",
+			 function,
+			 record_index );
+
+			goto on_error;
+		}
+		if( result != 0 )
+		{
+			break;
+		}
+	}
+	return( result );
+
+on_error:
+	if( inode_btree_record != NULL )
+	{
+		libfsxfs_inode_btree_record_free(
+		 &inode_btree_record,
+		 NULL );
+	}
+	return( -1 );
+}
+
+/* Retrieves the inode from the inode B+ tree node
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_btree_get_inode_from_node(
+     libfsxfs_inode_btree_t *inode_btree,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     uint64_t block_number,
+     uint64_t inode_number,
+     int recursion_depth,
+     libcerror_error_t **error )
+{
+	libfsxfs_btree_block_t *btree_block = NULL;
+	static char *function               = "libfsxfs_inode_btree_get_inode_from_node";
+	off64_t btree_block_offset          = 0;
+	int compare_result                  = 0;
+	int result                          = 0;
 
 	if( inode_btree == NULL )
 	{
@@ -179,10 +588,34 @@ int libfsxfs_inode_btree_get_inode_by_number(
 
 		return( -1 );
 	}
-/* TODO cache block */
+	if( io_handle->block_size == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid IO handle - block size value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	if( block_number > (uint64_t) ( INT64_MAX / io_handle->block_size ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid block number value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	btree_block_offset = block_number * io_handle->block_size;
+
 	if( libfsxfs_btree_block_initialize(
 	     &btree_block,
 	     io_handle->block_size,
+	     4,
 	     error ) != 1 )
 	{
 		libcerror_error_set(
@@ -194,8 +627,6 @@ int libfsxfs_inode_btree_get_inode_by_number(
 
 		goto on_error;
 	}
-	btree_block_offset = inode_btree->root_block_number * io_handle->block_size;
-
 	if( libfsxfs_btree_block_read_file_io_handle(
 	     btree_block,
 	     io_handle,
@@ -209,7 +640,7 @@ int libfsxfs_inode_btree_get_inode_by_number(
 		 LIBCERROR_IO_ERROR_READ_FAILED,
 		 "%s: unable to read inode B+ tree block: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").",
 		 function,
-		 inode_btree->root_block_number,
+		 block_number,
 		 btree_block_offset,
 		 btree_block_offset );
 
@@ -235,67 +666,69 @@ int libfsxfs_inode_btree_get_inode_by_number(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: invalid signature.",
+		 "%s: invalid block signature.",
 		 function );
 
 		goto on_error;
 	}
-/* TODO traverse sub nodes */
-	while( data_offset < btree_block->records_data_size )
+/* TODO
+	if( btree_block->header->level > inode_btree->maximum_depth )
 	{
-		if( libfsxfs_inode_btree_record_initialize(
-		     &inode_btree_record,
-		     error ) != 1 )
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: unsupported B+ tree node level.",
+		 function );
+
+		goto on_error;
+	}
+*/
+	if( btree_block->header->level == 0 )
+	{
+		result = libfsxfs_inode_btree_get_inode_from_leaf_node(
+		          inode_btree,
+		          btree_block->header->number_of_records,
+		          btree_block->records_data,
+		          btree_block->records_data_size,
+		          inode_number,
+		          error );
+
+		if( result == -1 )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-			 "%s: unable to create inode B+ tree record.",
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve inode from leaf node.",
 			 function );
 
 			goto on_error;
 		}
-		if( libfsxfs_inode_btree_record_read_data(
-		     inode_btree_record,
-		     &( btree_block->records_data[ data_offset ] ),
-		     16,
-		     error ) != 1 )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_IO,
-			 LIBCERROR_IO_ERROR_READ_FAILED,
-			 "%s: unable to read inode B+ tree record.",
-			 function );
+	}
+	else
+	{
+		result = libfsxfs_inode_btree_get_inode_from_branch_node(
+		          inode_btree,
+		          io_handle,
+		          file_io_handle,
+		          btree_block->header->number_of_records,
+		          btree_block->records_data,
+		          btree_block->records_data_size,
+		          inode_number,
+		          recursion_depth,
+		          error );
 
-			goto on_error;
-		}
-		data_offset += 16;
-
-		if( ( inode_number >= inode_btree_record->inode_number )
-		 && ( inode_number < ( inode_btree_record->inode_number + 64 ) ) )
-		{
-/* TODO check bitmap */
-			result = 1;
-		}
-/* TODO cache records in block */
-		if( libfsxfs_inode_btree_record_free(
-		     &inode_btree_record,
-		     error ) != 1 )
+		if( result == -1 )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
-			 "%s: unable to free inode B+ tree record.",
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve inode from branch node.",
 			 function );
 
 			goto on_error;
-		}
-		if( result != 0 )
-		{
-			break;
 		}
 	}
 	if( libfsxfs_btree_block_free(
@@ -314,12 +747,6 @@ int libfsxfs_inode_btree_get_inode_by_number(
 	return( result );
 
 on_error:
-	if( inode_btree_record != NULL )
-	{
-		libfsxfs_inode_btree_record_free(
-		 &inode_btree_record,
-		 NULL );
-	}
 	if( btree_block != NULL )
 	{
 		libfsxfs_btree_block_free(
@@ -327,5 +754,132 @@ on_error:
 		 NULL );
 	}
 	return( -1 );
+}
+
+/* Retrieves a specific inode from the inode B+ tree
+ * Returns 1 if successful, 0 if no such value or -1 on error
+ */
+int libfsxfs_inode_btree_get_inode_by_number(
+     libfsxfs_inode_btree_t *inode_btree,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     uint64_t inode_number,
+     libcerror_error_t **error )
+{
+	libfsxfs_inode_information_t *inode_information = NULL;
+	static char *function                           = "libfsxfs_inode_btree_get_inode_by_number";
+	uint64_t absolute_root_block_number             = 0;
+	uint64_t relative_inode_number                  = 0;
+	int allocation_group_index                      = 0;
+	int result                                      = 0;
+
+	if( inode_btree == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode B+ tree.",
+		 function );
+
+		return( -1 );
+	}
+	if( io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid IO handle.",
+		 function );
+
+		return( -1 );
+	}
+	allocation_group_index = (int) ( inode_number >> io_handle->number_of_relative_inode_bits );
+	relative_inode_number  = inode_number & ( ( 1 << io_handle->number_of_relative_inode_bits ) - 1 );
+
+#if defined( HAVE_DEBUG_OUTPUT )
+	if( libcnotify_verbose != 0 )
+	{
+		libcnotify_printf(
+		 "%s: allocation group index\t: %d\n",
+		 function,
+		 allocation_group_index );
+
+		libcnotify_printf(
+		 "%s: relative inode number\t\t: %" PRIu64 "\n",
+		 function,
+		 relative_inode_number );
+
+		libcnotify_printf(
+		 "\n" );
+	}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+	if( libcdata_array_get_entry_by_index(
+	     inode_btree->inode_information_array,
+	     allocation_group_index,
+	     (intptr_t **) &inode_information,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve inode information: %d.",
+		 function,
+		 allocation_group_index );
+
+		return( -1 );
+	}
+	absolute_root_block_number = ( (uint64_t) allocation_group_index * io_handle->allocation_group_size ) + inode_information->inode_btree_root_block_number;
+
+#if defined( HAVE_DEBUG_OUTPUT )
+	if( libcnotify_verbose != 0 )
+	{
+		libcnotify_printf(
+		 "%s: absolute root block number\t: %" PRIu64 "\n",
+		 function,
+		 absolute_root_block_number );
+
+		libcnotify_printf(
+		 "\n" );
+	}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+	if( inode_information == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+		 "%s: missing inode information.",
+		 function );
+
+		return( -1 );
+	}
+	result = libfsxfs_inode_btree_get_inode_from_node(
+	          inode_btree,
+	          io_handle,
+	          file_io_handle,
+	          absolute_root_block_number,
+	          relative_inode_number,
+	          0,
+	          error );
+
+	if( result == -1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve inode: %" PRIu64 " from root node: %" PRIu32 ".",
+		 function,
+		 inode_number,
+		 inode_information->inode_btree_root_block_number );
+
+		return( -1 );
+	}
+	return( result );
 }
 

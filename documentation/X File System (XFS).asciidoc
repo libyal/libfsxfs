@@ -158,7 +158,7 @@ Contains number of blocks
 Contains number of blocks
 | 188 | 4 | | Stripe of RAID width +
 Contains number of blocks
-| 192 | 1 | | Directory block allocation size in log2
+| 192 | 1 | | Directory block size in log2
 | 193 | 1 | | Journal device sector size in log2
 | 194 | 2 | | Journal device sector size (in bytes)
 4+| _Only used if the XFS_SB_VERSION_LOGV2BIT feature flag is set_
@@ -386,7 +386,7 @@ Contains number of blocks
 | 20 | 4 | | Inode B+ tree root block number
 | 24 | 4 | | Inode B+ tree height/depth
 | 28 | 4 | | Number of unused (free) inodes in the allocation group
-| 32 | 4 | | Last allocated chunk +
+| 32 | 4 | | First inode number of the last allocated inode chunk +
 Contains a relative inode number
 | 36 | 4 | -1 (0xffffffff) | [yellow-background]*Unknown (deprecated)*
 | 40 | 64 x 4 | | Hash table of unlinked (deleted) inodes that are still being referenced +
@@ -410,17 +410,19 @@ types of B+ trees, namely:
 * Inode B+ tree
 * Reference count B+ tree
 
-=== B+ tree block
+=== [[btree_block]]B+ tree block
 
 A B+ tree block consists of:
 
 * B+ tree block header
 * Array of branch or leaf block records
 
-=== B+ tree block header
+=== [[btree_block_header]]B+ tree block header
 
-The B+ tree block header (xfs_btree_sblock_t or xfs_btree_iblock_t) is 16 or 56
-bytes of size and consist of:
+==== [[btree_block_header_32bit]]B+ tree block header 32-bit
+
+The B+ tree block header 32-bit (xfs_btree_sblock_t or xfs_btree_iblock_t) is
+16 or 56 bytes of size and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -441,6 +443,33 @@ Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_met
 | 48 | 4 | | Owner allocation group +
 Contains the allocation group the block is part of
 | 52 | 4 | | Checksum
+|===
+
+==== [[btree_block_header_64bit]]B+ tree block header 64-bit
+
+The B+ tree block header 64-bit (xfs_btree_lblock_t) is 24 or 68 bytes of size
+and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | Signature
+| 4 | 2 | | Level (or depth/height) +
+Contains 0 for a leaf block
+| 6 | 2 | | Number of records
+| 8 | 8 | | Previous B+ tree block number +
+Contains -1 (0xffffffff) if not set
+| 16 | 8 | | Next B+ tree block number +
+Contains -1 (0xffffffff) if not set
+4+| _If version >= 5_
+| 24 | 8 | | Block number
+| 32 | 8 | | Log sequence number
+| 40 | 16 | | Block type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+| 56 | 8 | | Owner allocation group +
+Contains the allocation group the block is part of
+| 64 | 4 | | Checksum
+| 64 | 4 | 0 | [yellow-background]*Unknown (padding)*
 |===
 
 === B+ tree block extended header
@@ -469,7 +498,11 @@ represented in the examples.*
 | "R3FC" | Version 5 reference count B+ tree
 |===
 
-=== Free space B+ tree branch block record
+=== Free space B+ tree
+
+[yellow-background]*TODO describe*
+
+==== Free space B+ tree branch node record
 
 [yellow-background]*TODO describe*
 
@@ -477,7 +510,7 @@ represented in the examples.*
 typedef __be32 xfs_alloc_ptr_t;
 ....
 
-=== Free space B+ tree leaf block record
+==== Free space B+ tree leaf node record
 
 [yellow-background]*TODO describe*
 
@@ -490,9 +523,26 @@ ar_blockcount;
 } xfs_alloc_rec_t, xfs_alloc_key_t;
 ....
 
-=== Inode B+ tree branch block record
+=== Inode B+ tree
 
-The inode B+ tree branch block record (xfs_inobt_key_t) is 4 bytes of size and
+The inode B+ tree uses the <<btree_block_header_32bit,B+ tree block header 32-bit>>.
+
+==== Inode B+ tree branch node
+
+The inode B+ tree branch node consists of:
+
+* node header
+* array of inode B+ tree branch node entry keys
+* array of inode B+ tree branch node entry values
+
+The number of key-value pairs is calculated as following:
+....
+number of key-value pairs = node records data size / 8
+....
+
+===== Inode B+ tree branch node key
+
+The inode B+ tree branch node key (xfs_inobt_key_t) is 4 bytes of size and
 consist of:
 
 [cols="1,1,1,5",options="header"]
@@ -501,9 +551,23 @@ consist of:
 | 0 | 4 | | Number of the first inode in the branch
 |===
 
-=== Inode B+ tree leaf block record
+[NOTE]
+The inode number of the last key can be 0.
 
-The inode B+ tree leaf block record (xfs_inobt_rec_t) is 16 bytes of size and
+===== Inode B+ tree branch node value
+
+The inode B+ tree branch node key is 4 bytes of size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | Block number of the inode B+ tree sub node +
+Contains a block number relative to the start of the allocation group
+|===
+
+==== Inode B+ tree leaf node record
+
+The inode B+ tree leaf node record (xfs_inobt_rec_t) is 16 bytes of size and
 consist of:
 
 [cols="1,1,1,5",options="header"]
@@ -787,7 +851,7 @@ The packed extent (xfs_bmbt_rec_t) is 128 bits of size and consist of:
 | Offset | Size | Value | Description
 | 0 | 21 bits | | Number of blocks
 | 2.4 | 52 bits | Absolute (physical) block number
-| 9.1 | 54 bits | Extent logical block offset
+| 9.1 | 54 bits | Logical block number
 | 15.7 | 1 bit | Is unwritten extent
 |===
 
@@ -799,21 +863,53 @@ file offset = absolute block number x block size
 
 ==== Extent B+ tree root node
 
-The root node of the extents B+ tree is stored in the inode and consist of:
+The root node of the extents B+ tree is stored in the inode and equivalent to a
+<<extent_btree_branch_node,Extent B+ tree branch node>>.
 
-* node header
-* array of extent B+ tree branch node entry keys
-* array of extent B+ tree branch node entry values
-
-The number of reserved key-value pairs is calculated as following:
+The number of key-value pairs is calculated as following:
 ....
-number of reserved key-value pairs = ( node data size - 4 ) / 16
+number of key-value pairs = ( node data size - 4 ) / 16
 ....
 
 Where "node data size" is ( "attributes fork descriptor offset" x 8 ) if the
 value is not 0, or otherwise the remaining inode block size.
 
-==== Extent B+ tree branch node header
+==== Extent B+ tree sub node block
+
+An extent B+ tree sub nodes is stored in a <<btree_block,B+ tree block>>.
+
+The inode B+ tree uses the <<btree_block_header_64bit,B+ tree block header 64-bit>>.
+
+===== Extent B+ tree sub node block header
+
+The sub node block header (xfs_bmbt_block_t) is equivalent to
+<<btree_block_header,B+ tree block header>>.
+
+===== Extent B+ tree sub node block header signatures
+
+[cols="1,5",options="header"]
+|===
+| Signature | Description
+| "BMA3" | Version 5 extent B+ tree sub node block
+| "BMAP" | Extent B+ tree sub node block
+|===
+
+==== [[extent_btree_branch_node]]Extent B+ tree branch node
+
+The extent B+ tree branch node record consists of:
+
+* node header
+* array of extent B+ tree branch node entry keys
+* array of extent B+ tree branch node entry values
+
+[yellow-background]*TODO number of key-value pairs*
+
+The number of key-value pairs is calculated as following:
+....
+number of key-value pairs = node records data size / 16
+....
+
+===== Extent B+ tree branch node header
 
 The branch node header (xfs_bmdr_block_t) is 4 byte of size and consist of:
 
@@ -824,7 +920,7 @@ The branch node header (xfs_bmdr_block_t) is 4 byte of size and consist of:
 | 2 | 2 | | Number of used key-value pairs in the node
 |===
 
-==== Extent B+ tree branch node entry key
+===== Extent B+ tree branch node entry key
 
 The branch node entry key (xfs_bmbt_key_t) is 8 byte of size and consist of:
 
@@ -834,7 +930,7 @@ The branch node entry key (xfs_bmbt_key_t) is 8 byte of size and consist of:
 | 0 | 8 | | Data offset
 |===
 
-==== Extent B+ tree branch node entry value
+===== Extent B+ tree branch node entry value
 
 The branch node entry value (xfs_bmbt_key_t) is 8 byte of size and consist of:
 
@@ -846,44 +942,6 @@ Contains a block number relative to the start of the file
 |===
 
 [yellow-background]*TODO check if block number relative to the start of the file or the allocation group*
-
-==== Extent B+ tree sub node block
-
-===== Extent B+ tree sub node block header
-
-The sub node block header (xfs_bmbt_block_t) is TBD byte of size and consist of:
-
-[cols="1,1,1,5",options="header"]
-|===
-| Offset | Size | Value | Description
-| 0 | 4 | | Signature
-| 4 | 2 | | Level (or depth/height) +
-Contains 0 for a leaf block
-| 6 | 2 | | Number of records
-| 8 | 8 | | Previous B+ tree block number +
-Contains -1 (0xffffffffffffffff) if not set
-| 12 | 8 | | Next B+ tree block number +
-Contains -1 (0xffffffffffffffff) if not set
-|===
-
-==== Extent B+ tree sub node block header signatures
-
-[cols="1,5",options="header"]
-|===
-| Signature | Description
-| "BMA3" | Version 5 extent B+ tree sub node block
-| "BMAP" | Extent B+ tree sub node block
-|===
-
-==== Extent B+ tree branch block node
-
-The extent B+ tree branch block record consists of:
-
-* node header
-* array of extent B+ tree branch node entry keys
-* array of extent B+ tree branch node entry values
-
-[yellow-background]*TODO number of reserved key-value pairs*
 
 ==== Extent B+ tree leaf block node
 
@@ -898,7 +956,7 @@ directory entries can be stored in multiple ways:
 
 * as a short-form directory table
 * as a block directory
-* as a directory B+ tree
+* as a directory B+ tree (or leaf directory)
 
 === Short-form directory table
 
@@ -953,7 +1011,8 @@ is not set.
 
 === Block directory
 
-A block directory (xfs_dir2_block_t) consist of:
+A block directory (xfs_dir2_block_t) consist of one or more blocks that consist
+of:
 
 * a block directory header
 * array of used and unused directory entries
@@ -1081,7 +1140,63 @@ and consists of:
 
 === Directory B+ tree
 
-[yellow-background]*TODO describe B+ tree forms*
+The directory B+ tree uses different offset ranges to reference different
+types of extents:
+
+[cols="1,1,5",options="header"]
+|===
+| Range | Identifier | Description
+| 0 - 32 GiB | | Directory entries (or data) extents
+| 32 - 64 GiB | XFS_DIR2_LEAF_OFFSET | Hash values (or leaf) extents
+| 64 - ... GiB | | Directory free space B+ tree
+|===
+
+==== Directory B+ tree block header signatures
+
+[cols="1,5",options="header"]
+|===
+| Signature | Description
+| "X2D2" | Directory entries B+ tree
+| "XD2F" | Directory free space B+ tree
+| "XDD3" | Version 5 Directory entries B+ tree
+| "XDF3" | Version 5 Directory free space B+ tree
+|===
+
+==== Directory B+ tree directory entries block
+
+A directory B+ tree directory entries block (xfs_dir2_data_t) consist of:
+
+* a block directory header
+* array of used and unused directory entries
+
+==== Directory entries B+ tree hash values block
+
+A directory B+ tree hash values block (xfs_dir2_leaf_entry_t) consist of:
+
+....
+typedef struct xfs_dir2_leaf {
+xfs_dir2_leaf_hdr_t
+hdr;
+xfs_dir2_leaf_entry_t
+ents[1];
+xfs_dir2_data_off_t
+xfs_dir2_leaf_tail_t
+} xfs_dir2_leaf_t;
+bests[1];
+tail;
+typedef struct xfs_dir2_leaf_hdr {
+xfs_da_blkinfo_t
+info;
+__uint16_t
+count;
+__uint16_t
+stale;
+} xfs_dir2_leaf_hdr_t;
+typedef struct xfs_dir2_leaf_tail {
+__uint32_t
+bestcount;
+} xfs_dir2_leaf_tail_t;
+....
 
 :numbered!:
 [appendix]

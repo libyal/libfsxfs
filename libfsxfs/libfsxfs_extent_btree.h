@@ -1,5 +1,5 @@
 /*
- * B+ tree block functions
+ * Extent B+ tree functions
  *
  * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,77 +19,70 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_BTREE_BLOCK_H )
-#define _LIBFSXFS_BTREE_BLOCK_H
+#if !defined( _LIBFSXFS_EXTENT_BTREE_H )
+#define _LIBFSXFS_EXTENT_BTREE_H
 
 #include <common.h>
 #include <types.h>
 
-#include "libfsxfs_btree_header.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
+#include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
 extern "C" {
 #endif
 
-typedef struct libfsxfs_btree_block libfsxfs_btree_block_t;
+typedef struct libfsxfs_extent_btree libfsxfs_extent_btree_t;
 
-struct libfsxfs_btree_block
+struct libfsxfs_extent_btree
 {
-	/* Data
+	/* B+ tree maximum depth
 	 */
-	uint8_t *data;
-
-	/* Data size
-	 */
-	size_t data_size;
-
-	/* Header block number data size
-	 */
-	size_t block_number_data_size;
-
-	/* Header
-	 */
-	libfsxfs_btree_header_t *header;
-
-	/* Records data
-	 */
-	const uint8_t *records_data;
-
-	/* Records data size
-	 */
-	size_t records_data_size;
+	uint32_t maximum_depth;
 };
 
-int libfsxfs_btree_block_initialize(
-     libfsxfs_btree_block_t **btree_block,
-     size_t block_size,
-     size_t block_number_data_size,
+int libfsxfs_extent_btree_initialize(
+     libfsxfs_extent_btree_t **extent_btree,
      libcerror_error_t **error );
 
-int libfsxfs_btree_block_free(
-     libfsxfs_btree_block_t **btree_block,
+int libfsxfs_extent_btree_free(
+     libfsxfs_extent_btree_t **extent_btree,
      libcerror_error_t **error );
 
-int libfsxfs_btree_block_read_data(
-     libfsxfs_btree_block_t *btree_block,
-     libfsxfs_io_handle_t *io_handle,
-     const uint8_t *data,
-     size_t data_size,
-     libcerror_error_t **error );
-
-int libfsxfs_btree_block_read_file_io_handle(
-     libfsxfs_btree_block_t *btree_block,
+int libfsxfs_extent_btree_get_extents_from_root_node(
+     libfsxfs_extent_btree_t *extent_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
-     off64_t file_offset,
+     const uint8_t *data,
+     size_t data_size,
+     libcdata_array_t *extents_array,
+     libcerror_error_t **error );
+
+int libfsxfs_extent_btree_get_extents_from_branch_node(
+     libfsxfs_extent_btree_t *extent_btree,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     uint16_t number_of_records,
+     const uint8_t *records_data,
+     size_t records_data_size,
+     libcdata_array_t *extents_array,
+     int recursion_depth,
+     libcerror_error_t **error );
+
+int libfsxfs_extent_btree_get_extents_from_node(
+     libfsxfs_extent_btree_t *extent_btree,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     uint64_t block_number,
+     libcdata_array_t *extents_array,
+     int recursion_depth,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_BTREE_BLOCK_H ) */
+#endif /* !defined( _LIBFSXFS_EXTENT_BTREE_H ) */
 

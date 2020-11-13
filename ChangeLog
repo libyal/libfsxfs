@@ -1,8 +1,7 @@
 TODO:
 * complete basic format version 4 and 5 support
-** add support for XFS_DINODE_FMT_BTREE directory
-** add support for extents B+ tree
 ** add support for directory B+ tree
+** add support for XFS_DINODE_FMT_BTREE directory
 ** add support for XFS_DINODE_FMT_BTREE data stream
 ** complete libfsxfs_file_entry_get_sub_file_entry_by_utf8_name
 ** complete libfsxfs_file_entry_get_sub_file_entry_by_utf16_name

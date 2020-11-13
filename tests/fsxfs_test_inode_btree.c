@@ -57,8 +57,6 @@ int fsxfs_test_inode_btree_initialize(
 	 */
 	result = libfsxfs_inode_btree_initialize(
 	          &inode_btree,
-	          128,
-	          1,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -95,8 +93,6 @@ int fsxfs_test_inode_btree_initialize(
 	 */
 	result = libfsxfs_inode_btree_initialize(
 	          NULL,
-	          128,
-	          1,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -115,8 +111,6 @@ int fsxfs_test_inode_btree_initialize(
 
 	result = libfsxfs_inode_btree_initialize(
 	          &inode_btree,
-	          128,
-	          1,
 	          &error );
 
 	inode_btree = NULL;
@@ -145,8 +139,6 @@ int fsxfs_test_inode_btree_initialize(
 
 		result = libfsxfs_inode_btree_initialize(
 		          &inode_btree,
-		          128,
-		          1,
 		          &error );
 
 		if( fsxfs_test_malloc_attempts_before_fail != -1 )
@@ -189,8 +181,6 @@ int fsxfs_test_inode_btree_initialize(
 
 		result = libfsxfs_inode_btree_initialize(
 		          &inode_btree,
-		          128,
-		          1,
 		          &error );
 
 		if( fsxfs_test_memset_attempts_before_fail != -1 )

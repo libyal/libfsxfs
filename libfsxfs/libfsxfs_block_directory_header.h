@@ -38,6 +38,10 @@ struct libfsxfs_block_directory_header
 	/* Format version
 	 */
 	uint8_t format_version;
+
+	/* Value to indicate the block directory has a footer
+	 */
+	uint8_t has_footer;
 };
 
 int libfsxfs_block_directory_header_initialize(

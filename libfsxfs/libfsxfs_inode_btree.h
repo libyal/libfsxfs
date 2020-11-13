@@ -26,8 +26,10 @@
 #include <types.h>
 
 #include "libfsxfs_inode_btree_record.h"
+#include "libfsxfs_inode_information.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
+#include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
@@ -38,23 +40,52 @@ typedef struct libfsxfs_inode_btree libfsxfs_inode_btree_t;
 
 struct libfsxfs_inode_btree
 {
-	/* B+ tree root block number
+	/* Inode information array
 	 */
-	uint32_t root_block_number;
-
-	/* B+ tree depth
-	 */
-	uint32_t depth;
+	libcdata_array_t *inode_information_array;
 };
 
 int libfsxfs_inode_btree_initialize(
      libfsxfs_inode_btree_t **inode_btree,
-     uint32_t root_block_number,
-     uint32_t depth,
      libcerror_error_t **error );
 
 int libfsxfs_inode_btree_free(
      libfsxfs_inode_btree_t **inode_btree,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_btree_read_inode_information(
+     libfsxfs_inode_btree_t *inode_btree,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     off64_t file_offset,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_btree_get_inode_from_branch_node(
+     libfsxfs_inode_btree_t *inode_btree,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     uint16_t number_of_records,
+     const uint8_t *records_data,
+     size_t records_data_size,
+     uint64_t inode_number,
+     int recursion_depth,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_btree_get_inode_from_leaf_node(
+     libfsxfs_inode_btree_t *inode_btree,
+     uint16_t number_of_records,
+     const uint8_t *records_data,
+     size_t records_data_size,
+     uint64_t inode_number,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_btree_get_inode_from_node(
+     libfsxfs_inode_btree_t *inode_btree,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     uint64_t block_number,
+     uint64_t inode_number,
+     int recursion_depth,
      libcerror_error_t **error );
 
 int libfsxfs_inode_btree_get_inode_by_number(

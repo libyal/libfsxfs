@@ -148,14 +148,15 @@ int libfsxfs_superblock_read_data(
      size_t data_size,
      libcerror_error_t **error )
 {
-	static char *function              = "libfsxfs_superblock_read_data";
-	uint32_t supported_feature_flags   = 0;
-	uint16_t version_and_feature_flags = 0;
+	static char *function               = "libfsxfs_superblock_read_data";
+	uint32_t supported_feature_flags    = 0;
+	uint16_t number_of_inodes_per_block = 0;
+	uint16_t version_and_feature_flags  = 0;
 
 #if defined( HAVE_DEBUG_OUTPUT )
-	uint64_t value_64bit               = 0;
-	uint32_t value_32bit               = 0;
-	uint16_t value_16bit               = 0;
+	uint64_t value_64bit                = 0;
+	uint32_t value_32bit                = 0;
+	uint16_t value_16bit                = 0;
 #endif
 
 	if( superblock == NULL )
@@ -235,6 +236,14 @@ int libfsxfs_superblock_read_data(
 	 ( (fsxfs_superblock_t *) data )->root_directory_inode_number,
 	 superblock->root_directory_inode_number );
 
+	byte_stream_copy_to_uint32_big_endian(
+	 ( (fsxfs_superblock_t *) data )->allocation_group_size,
+	 superblock->allocation_group_size );
+
+	byte_stream_copy_to_uint32_big_endian(
+	 ( (fsxfs_superblock_t *) data )->number_of_allocation_groups,
+	 superblock->number_of_allocation_groups );
+
 	byte_stream_copy_to_uint16_big_endian(
 	 ( (fsxfs_superblock_t *) data )->version_and_feature_flags,
 	 version_and_feature_flags );
@@ -249,6 +258,10 @@ int libfsxfs_superblock_read_data(
 	byte_stream_copy_to_uint16_big_endian(
 	 ( (fsxfs_superblock_t *) data )->inode_size,
 	 superblock->inode_size );
+
+	byte_stream_copy_to_uint16_big_endian(
+	 ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block,
+	 number_of_inodes_per_block );
 
 	if( memory_copy(
 	     superblock->volume_label,
@@ -357,21 +370,15 @@ int libfsxfs_superblock_read_data(
 		 function,
 		 value_32bit );
 
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_superblock_t *) data )->allocation_group_size,
-		 value_32bit );
 		libcnotify_printf(
 		 "%s: allocation group size\t\t\t: %" PRIu32 " blocks\n",
 		 function,
-		 value_32bit );
+		 superblock->allocation_group_size );
 
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_superblock_t *) data )->number_of_allocation_groups,
-		 value_32bit );
 		libcnotify_printf(
 		 "%s: number of allocation groups\t\t: %" PRIu32 "\n",
 		 function,
-		 value_32bit );
+		 superblock->number_of_allocation_groups );
 
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_superblock_t *) data )->realtime_bitmap_size,
@@ -410,13 +417,10 @@ int libfsxfs_superblock_read_data(
 		 function,
 		 superblock->inode_size );
 
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block,
-		 value_16bit );
 		libcnotify_printf(
 		 "%s: number of inodes per block\t\t: %" PRIu16 "\n",
 		 function,
-		 value_16bit );
+		 number_of_inodes_per_block );
 
 /* TODO print as string */
 		libcnotify_printf(
@@ -564,10 +568,10 @@ int libfsxfs_superblock_read_data(
 		 value_32bit );
 
 		libcnotify_printf(
-		 "%s: directory blocks allocation size (log2)\t: %" PRIu8 " (%" PRIu64 ")\n",
+		 "%s: directory block size (log2)\t\t: %" PRIu8 " (%" PRIu64 ")\n",
 		 function,
-		 ( (fsxfs_superblock_t *) data )->directory_blocks_allocation_size_log2,
-		 (uint64_t) 1UL << ( (fsxfs_superblock_t *) data )->directory_blocks_allocation_size_log2 );
+		 ( (fsxfs_superblock_t *) data )->directory_block_size_log2,
+		 (uint64_t) 1UL << ( (fsxfs_superblock_t *) data )->directory_block_size_log2 );
 
 		libcnotify_printf(
 		 "%s: journal device sector size (log2)\t: %" PRIu8 " (%" PRIu64 ")\n",
@@ -680,7 +684,78 @@ int libfsxfs_superblock_read_data(
 
 		return( -1 );
 	}
+	if( ( ( (uint64_t) 1UL << ( (fsxfs_superblock_t *) data )->allocation_group_size_log2 ) != (uint64_t) superblock->allocation_group_size ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: mismatch between allocation group size and log2 values.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( ( (uint64_t) 1UL << ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2 ) != (uint64_t) number_of_inodes_per_block ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: mismatch between number of inodes per block and log2 values.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 > 32 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: invalid directory block size log2 value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	superblock->directory_block_size = superblock->block_size;
+
+	if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 != 0 )
+	{
+		superblock->directory_block_size *= (uint32_t) 1 << ( (fsxfs_superblock_t *) data )->directory_block_size_log2;
+	}
+	superblock->number_of_relative_inode_bits = (uint8_t) ( (fsxfs_superblock_t *) data )->allocation_group_size_log2 + ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2;
+
+	if( ( superblock->number_of_relative_inode_bits == 0 )
+	 || ( superblock->number_of_relative_inode_bits > 32 ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: invalid number of relative inode bits value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
 /* TODO read version 5 additional values */
+
+#if defined( HAVE_DEBUG_OUTPUT )
+	if( libcnotify_verbose != 0 )
+	{
+		libcnotify_printf(
+		 "%s: directory block size\t\t\t: %" PRIu32 "\n",
+		 function,
+		 superblock->directory_block_size );
+
+		libcnotify_printf(
+		 "%s: number of relative inode bits\t\t: %" PRIu8 "\n",
+		 function,
+		 superblock->number_of_relative_inode_bits );
+
+		libcnotify_printf(
+		 "\n" );
+	}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
 	return( 1 );
 }

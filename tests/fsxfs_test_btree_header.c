@@ -332,6 +332,7 @@ int fsxfs_test_btree_header_read_data(
 	          io_handle,
 	          fsxfs_test_btree_header_data1,
 	          16,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -350,6 +351,7 @@ int fsxfs_test_btree_header_read_data(
 	          io_handle,
 	          fsxfs_test_btree_header_data1,
 	          16,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -369,6 +371,7 @@ int fsxfs_test_btree_header_read_data(
 	          NULL,
 	          fsxfs_test_btree_header_data1,
 	          16,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -388,6 +391,7 @@ int fsxfs_test_btree_header_read_data(
 	          io_handle,
 	          NULL,
 	          16,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -407,6 +411,7 @@ int fsxfs_test_btree_header_read_data(
 	          io_handle,
 	          fsxfs_test_btree_header_data1,
 	          (size_t) SSIZE_MAX + 1,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -425,6 +430,27 @@ int fsxfs_test_btree_header_read_data(
 	          btree_header,
 	          io_handle,
 	          fsxfs_test_btree_header_data1,
+	          0,
+	          4,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_btree_header_read_data(
+	          btree_header,
+	          io_handle,
+	          fsxfs_test_btree_header_data1,
+	          16,
 	          0,
 	          &error );
 

@@ -234,6 +234,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_extent_btree.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_extent_list.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_file_entry.c"
 				>
 			</File>
@@ -365,6 +373,14 @@
 			</File>
 			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_extent.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_extent_btree.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_extent_list.h"
 				>
 			</File>
 			<File

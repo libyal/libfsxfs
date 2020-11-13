@@ -1,5 +1,5 @@
 /*
- * B+ tree header functions
+ * Extent list functions
  *
  * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,55 +19,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_BTREE_HEADER_H )
-#define _LIBFSXFS_BTREE_HEADER_H
+#if !defined( _LIBFSXFS_EXTENT_LIST_H )
+#define _LIBFSXFS_EXTENT_LIST_H
 
 #include <common.h>
 #include <types.h>
 
-#include "libfsxfs_io_handle.h"
+#include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
 extern "C" {
 #endif
 
-typedef struct libfsxfs_btree_header libfsxfs_btree_header_t;
-
-struct libfsxfs_btree_header
-{
-	/* Signature
-	 */
-	uint8_t signature[ 4 ];
-
-	/* Level
-	 */
-	uint16_t level;
-
-	/* Number of records
-	 */
-	uint16_t number_of_records;
-};
-
-int libfsxfs_btree_header_initialize(
-     libfsxfs_btree_header_t **btree_header,
-     libcerror_error_t **error );
-
-int libfsxfs_btree_header_free(
-     libfsxfs_btree_header_t **btree_header,
-     libcerror_error_t **error );
-
-int libfsxfs_btree_header_read_data(
-     libfsxfs_btree_header_t *btree_header,
-     libfsxfs_io_handle_t *io_handle,
+int libfsxfs_extent_list_read_data(
+     libcdata_array_t *extents_array,
+     uint32_t number_of_extents,
      const uint8_t *data,
      size_t data_size,
-     size_t block_number_data_size,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_BTREE_HEADER_H ) */
+#endif /* !defined( _LIBFSXFS_EXTENT_LIST_H ) */
 

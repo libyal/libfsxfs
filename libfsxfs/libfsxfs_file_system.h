@@ -64,7 +64,7 @@ int libfsxfs_file_system_free(
      libfsxfs_file_system_t **file_system,
      libcerror_error_t **error );
 
-int libfsxfs_file_system_read_inode_btree(
+int libfsxfs_file_system_read_inode_information(
      libfsxfs_file_system_t *file_system,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,

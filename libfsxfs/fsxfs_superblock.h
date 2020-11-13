@@ -233,10 +233,10 @@ struct fsxfs_superblock
 	 */
 	uint8_t raid_width[ 4 ];
 
-	/* Directory blocks allocation size in log2
+	/* Directory block size in log2
 	 * Consist of 1 byte
 	 */
-	uint8_t directory_blocks_allocation_size_log2;
+	uint8_t directory_block_size_log2;
 
 	/* Journal device sector size in log2
 	 * Consist of 1 byte
@@ -468,10 +468,10 @@ struct fsxfs_superblock_v5
 	 */
 	uint8_t raid_width[ 4 ];
 
-	/* Directory blocks allocation size in log2
+	/* Directory block size in log2
 	 * Consist of 1 byte
 	 */
-	uint8_t directory_blocks_allocation_size_log2;
+	uint8_t directory_block_size_log2;
 
 	/* Journal device sector size in log2
 	 * Consist of 1 byte

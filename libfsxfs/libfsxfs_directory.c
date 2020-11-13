@@ -187,6 +187,11 @@ int libfsxfs_directory_read_file_io_handle(
 	libfsxfs_directory_table_t *directory_table = NULL;
 	libfsxfs_extent_t *extent                   = NULL;
 	static char *function                       = "libfsxfs_directory_read_file_io_handle";
+	size64_t extent_size                        = 0;
+	off64_t block_directory_offset              = 0;
+	off64_t logical_offset                      = 0;
+	uint32_t block_index                        = 0;
+	int extent_index                            = 0;
 	int number_of_extents                       = 0;
 
 	if( directory == NULL )
@@ -225,7 +230,8 @@ int libfsxfs_directory_read_file_io_handle(
 	if( ( inode->file_mode & 0xf000 ) == LIBFSXFS_FILE_TYPE_DIRECTORY )
 	{
 		if( ( inode->fork_type != LIBFSXFS_FORK_TYPE_INLINE_DATA )
-		 && ( inode->fork_type != LIBFSXFS_FORK_TYPE_EXTENTS ) )
+		 && ( inode->fork_type != LIBFSXFS_FORK_TYPE_EXTENTS )
+		 && ( inode->fork_type != LIBFSXFS_FORK_TYPE_BTREE ) )
 		{
 			libcerror_error_set(
 			 error,
@@ -282,7 +288,7 @@ int libfsxfs_directory_read_file_io_handle(
 				goto on_error;
 			}
 		}
-		else if( inode->fork_type == LIBFSXFS_FORK_TYPE_EXTENTS )
+		else
 		{
 			if( libfsxfs_inode_get_number_of_extents(
 			     inode,
@@ -298,99 +304,98 @@ int libfsxfs_directory_read_file_io_handle(
 
 				goto on_error;
 			}
-			if( number_of_extents != 1 )
+			for( extent_index = 0;
+			     extent_index < number_of_extents;
+			     extent_index++ )
 			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-				 "%s: unsupported number of extents: %d.",
-				 function,
-				 number_of_extents );
+				if( libfsxfs_inode_get_extent_by_index(
+				     inode,
+				     extent_index,
+				     &extent,
+				     error ) != 1 )
+				{
+					libcerror_error_set(
+					 error,
+					 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+					 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+					 "%s: unable to retrieve extent: %d.",
+					 function,
+					 extent_index );
 
-				goto on_error;
-			}
-			if( libfsxfs_inode_get_extent_by_index(
-			     inode,
-			     0,
-			     &extent,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-				 "%s: unable to retrieve extent: 0.",
-				 function );
+					goto on_error;
+				}
+				if( extent == NULL )
+				{
+					libcerror_error_set(
+					 error,
+					 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+					 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+					 "%s: missing extent: %d.",
+					 function,
+					 extent_index );
 
-				goto on_error;
-			}
-			if( extent == NULL )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
-				 "%s: missing extent: 0.",
-				 function );
+					goto on_error;
+				}
+				logical_offset = (off64_t) extent->logical_block_number * io_handle->block_size;
 
-				goto on_error;
-			}
-			if( extent->number_of_blocks != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-				 "%s: invalid extent: 0 - unsupported number of blocks: %d.",
-				 function,
-				 extent->number_of_blocks );
+				if( logical_offset >= (off64_t) 0x800000000UL )
+				{
+					break;
+				}
+				block_directory_offset = (off64_t) extent->physical_block_number * io_handle->block_size;
 
-				goto on_error;
-			}
-			if( libfsxfs_block_directory_initialize(
-			     &block_directory,
-			     io_handle->block_size,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-				 "%s: unable to initialize block directory.",
-				 function );
+				extent_size = (size64_t) extent->number_of_blocks * io_handle->block_size;
 
-				goto on_error;
-			}
-			if( libfsxfs_block_directory_read_file_io_handle(
-			     block_directory,
-			     io_handle,
-			     file_io_handle,
-			     (off64_t) extent->physical_block_number * io_handle->block_size,
-			     directory->entries_array,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_IO,
-				 LIBCERROR_IO_ERROR_READ_FAILED,
-				 "%s: unable to read block directory.",
-				 function );
+				while( extent_size > 0 )
+				{
+					if( libfsxfs_block_directory_initialize(
+					     &block_directory,
+					     io_handle->block_size,
+					     error ) != 1 )
+					{
+						libcerror_error_set(
+						 error,
+						 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+						 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+						 "%s: unable to initialize block directory.",
+						 function );
 
-				goto on_error;
-			}
-			if( libfsxfs_block_directory_free(
-			     &block_directory,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
-				 "%s: unable to free block directory.",
-				 function );
+						goto on_error;
+					}
+					if( libfsxfs_block_directory_read_file_io_handle(
+					     block_directory,
+					     io_handle,
+					     file_io_handle,
+					     block_directory_offset,
+					     directory->entries_array,
+					     error ) != 1 )
+					{
+						libcerror_error_set(
+						 error,
+						 LIBCERROR_ERROR_DOMAIN_IO,
+						 LIBCERROR_IO_ERROR_READ_FAILED,
+						 "%s: unable to read block directory.",
+						 function );
 
-				goto on_error;
+						goto on_error;
+					}
+					block_directory_offset += io_handle->directory_block_size;
+					extent_size            -= io_handle->directory_block_size;
+
+					if( libfsxfs_block_directory_free(
+					     &block_directory,
+					     error ) != 1 )
+					{
+						libcerror_error_set(
+						 error,
+						 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+						 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+						 "%s: unable to free block directory.",
+						 function );
+
+						goto on_error;
+					}
+				}
 			}
 		}
 	}

@@ -43,6 +43,7 @@
 int libfsxfs_btree_block_initialize(
      libfsxfs_btree_block_t **btree_block,
      size_t block_size,
+     size_t block_number_data_size,
      libcerror_error_t **error )
 {
 	static char *function = "libfsxfs_btree_block_initialize";
@@ -128,7 +129,8 @@ int libfsxfs_btree_block_initialize(
 
 		goto on_error;
 	}
-	( *btree_block )->data_size = block_size;
+	( *btree_block )->data_size              = block_size;
+	( *btree_block )->block_number_data_size = block_number_data_size;
 
 	return( 1 );
 
@@ -205,7 +207,6 @@ int libfsxfs_btree_block_read_data(
 {
 	static char *function   = "libfsxfs_btree_block_read_data";
 	size_t header_data_size = 0;
-	size_t record_data_size = 0;
 
 	if( btree_block == NULL )
 	{
@@ -242,11 +243,25 @@ int libfsxfs_btree_block_read_data(
 	}
 	if( io_handle->format_version == 5 )
 	{
-		header_data_size = sizeof( fsxfs_btree_header_v5_t );
+		if( btree_block->block_number_data_size == 8 )
+		{
+			header_data_size = sizeof( fsxfs_btree_header_v5_64bit_t );
+		}
+		else
+		{
+			header_data_size = sizeof( fsxfs_btree_header_v5_32bit_t );
+		}
 	}
 	else
 	{
-		header_data_size = sizeof( fsxfs_btree_header_v1_t );
+		if( btree_block->block_number_data_size == 8 )
+		{
+			header_data_size = sizeof( fsxfs_btree_header_v1_64bit_t );
+		}
+		else
+		{
+			header_data_size = sizeof( fsxfs_btree_header_v1_32bit_t );
+		}
 	}
 	if( data == NULL )
 	{
@@ -271,19 +286,6 @@ int libfsxfs_btree_block_read_data(
 
 		return( -1 );
 	}
-#if defined( HAVE_DEBUG_OUTPUT )
-	if( libcnotify_verbose != 0 )
-	{
-		libcnotify_printf(
-		 "%s: B+ tree block data:\n",
-		 function );
-		libcnotify_print_data(
-		 data,
-		 data_size,
-		 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
-	}
-#endif /* defined( HAVE_DEBUG_OUTPUT ) */
-
 	if( libfsxfs_btree_header_initialize(
 	     &( btree_block->header ),
 	     error ) != 1 )
@@ -302,6 +304,7 @@ int libfsxfs_btree_block_read_data(
 	     io_handle,
 	     data,
 	     header_data_size,
+	     btree_block->block_number_data_size,
 	     error ) != 1 )
 	{
 		libcerror_error_set(
@@ -313,27 +316,8 @@ int libfsxfs_btree_block_read_data(
 
 		goto on_error;
 	}
-	if( btree_block->header->level == 0 )
-	{
-		record_data_size = 16;
-	}
-	else
-	{
-		record_data_size = 4;
-	}
-	if( (size_t) btree_block->header->number_of_records > ( ( data_size - ( header_data_size ) ) / record_data_size ) )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-		 "%s: invalid data size value out of bounds.",
-		 function );
-
-		goto on_error;
-	}
 	btree_block->records_data      = &( data[ header_data_size ] );
-	btree_block->records_data_size = record_data_size * btree_block->header->number_of_records;
+	btree_block->records_data_size = data_size - header_data_size;
 
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )

@@ -248,6 +248,10 @@ int libfsxfs_inode_information_read_data(
 	 ( (fsxfs_inode_information_t *) data )->inode_btree_depth,
 	 inode_information->inode_btree_depth );
 
+	byte_stream_copy_to_uint32_big_endian(
+	 ( (fsxfs_inode_information_t *) data )->last_allocated_chunk,
+	 inode_information->last_allocated_chunk );
+
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
 	{
@@ -306,13 +310,10 @@ int libfsxfs_inode_information_read_data(
 		 function,
 		 value_32bit );
 
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_information_t *) data )->last_allocated_chunk,
-		 value_32bit );
 		libcnotify_printf(
 		 "%s: last allocated chunk\t\t\t: %" PRIu32 "\n",
 		 function,
-		 value_32bit );
+		 inode_information->last_allocated_chunk );
 
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_inode_information_t *) data )->unknown2,

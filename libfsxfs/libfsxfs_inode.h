@@ -26,6 +26,7 @@
 #include <types.h>
 
 #include "libfsxfs_extent.h"
+#include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
@@ -94,9 +95,25 @@ struct libfsxfs_inode
 	 */
 	const uint8_t *inline_data;
 
+	/* Number of data extents
+	 */
+	uint32_t number_of_data_extents;
+
 	/* Extents
 	 */
 	libcdata_array_t *data_extents_array;
+
+	/* Data fork offset
+	 */
+	uint16_t data_fork_offset;
+
+	/* Data fork size
+	 */
+	uint16_t data_fork_size;
+
+	/* Attributes fork offset
+	 */
+	uint16_t attributes_fork_offset;
 };
 
 int libfsxfs_inode_initialize(
@@ -116,6 +133,7 @@ int libfsxfs_inode_read_data(
 
 int libfsxfs_inode_read_file_io_handle(
      libfsxfs_inode_t *inode,
+     libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      off64_t file_offset,
      libcerror_error_t **error );

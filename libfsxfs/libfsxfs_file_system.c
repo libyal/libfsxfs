@@ -101,6 +101,19 @@ int libfsxfs_file_system_initialize(
 
 		return( -1 );
 	}
+	if( libfsxfs_inode_btree_initialize(
+	     &( ( *file_system )->inode_btree ),
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create inode B+ tree.",
+		 function );
+
+		goto on_error;
+	}
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
 	if( libcthreads_read_write_lock_initialize(
 	     &( ( *file_system )->read_write_lock ),
@@ -123,6 +136,12 @@ int libfsxfs_file_system_initialize(
 on_error:
 	if( *file_system != NULL )
 	{
+		if( ( *file_system )->inode_btree != NULL )
+		{
+			libfsxfs_inode_btree_free(
+			 &( ( *file_system )->inode_btree ),
+			 NULL );
+		}
 		memory_free(
 		 *file_system );
 
@@ -169,21 +188,18 @@ int libfsxfs_file_system_free(
 			result = -1;
 		}
 #endif
-		if( ( *file_system )->inode_btree != NULL )
+		if( libfsxfs_inode_btree_free(
+		     &( ( *file_system )->inode_btree ),
+		     error ) != 1 )
 		{
-			if( libfsxfs_inode_btree_free(
-			     &( ( *file_system )->inode_btree ),
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
-				 "%s: unable to free inode B+ tree.",
-				 function );
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free inode B+ tree.",
+			 function );
 
-				result = -1;
-			}
+			result = -1;
 		}
 		memory_free(
 		 *file_system );
@@ -193,18 +209,17 @@ int libfsxfs_file_system_free(
 	return( result );
 }
 
-/* Reads the inode B+ tree
+/* Reads the inode information
  * Returns 1 if successful or -1 on error
  */
-int libfsxfs_file_system_read_inode_btree(
+int libfsxfs_file_system_read_inode_information(
      libfsxfs_file_system_t *file_system,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      off64_t file_offset,
      libcerror_error_t **error )
 {
-	libfsxfs_inode_information_t *inode_information = NULL;
-	static char *function                           = "libfsxfs_file_system_read_inode_btree";
+	static char *function = "libfsxfs_file_system_read_inode_information";
 
 	if( file_system == NULL )
 	{
@@ -217,32 +232,8 @@ int libfsxfs_file_system_read_inode_btree(
 
 		return( -1 );
 	}
-	if( file_system->inode_btree != NULL )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
-		 "%s: invalid file system - inode B+ tree value already set.",
-		 function );
-
-		return( -1 );
-	}
-	if( libfsxfs_inode_information_initialize(
-	     &inode_information,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create inode information.",
-		 function );
-
-		goto on_error;
-	}
-	if( libfsxfs_inode_information_read_file_io_handle(
-	     inode_information,
+	if( libfsxfs_inode_btree_read_inode_information(
+	     file_system->inode_btree,
 	     io_handle,
 	     file_io_handle,
 	     file_offset,
@@ -257,52 +248,9 @@ int libfsxfs_file_system_read_inode_btree(
 		 file_offset,
 		 file_offset );
 
-		goto on_error;
-	}
-	if( libfsxfs_inode_btree_initialize(
-	     &( file_system->inode_btree ),
-	     inode_information->inode_btree_root_block_number,
-	     inode_information->inode_btree_depth,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create inode B+ tree.",
-		 function );
-
-		goto on_error;
-	}
-	if( libfsxfs_inode_information_free(
-	     &inode_information,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
-		 "%s: unable to free inode information.",
-		 function );
-
-		goto on_error;
+		return( 1 );
 	}
 	return( 1 );
-
-on_error:
-	if( file_system->inode_btree != NULL )
-	{
-		libfsxfs_inode_btree_free(
-		 &( file_system->inode_btree ),
-		 NULL );
-	}
-	if( inode_information != NULL )
-	{
-		libfsxfs_inode_information_free(
-		 &inode_information,
-		 NULL );
-	}
-	return( -1 );
 }
 
 /* Retrieves a specific inode
@@ -405,6 +353,7 @@ int libfsxfs_file_system_get_inode_by_number(
 
 		if( libfsxfs_inode_read_file_io_handle(
 		     safe_inode,
+		     io_handle,
 		     file_io_handle,
 		     file_offset,
 		     error ) != 1 )

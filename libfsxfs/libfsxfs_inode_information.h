@@ -44,6 +44,10 @@ struct libfsxfs_inode_information
 	/* Inode B+ tree depth
 	 */
 	uint32_t inode_btree_depth;
+
+	/* Last allocated chunk
+	 */
+	uint32_t last_allocated_chunk;
 };
 
 int libfsxfs_inode_information_initialize(

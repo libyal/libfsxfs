@@ -32,7 +32,7 @@
 
 #include "fsxfs_btree.h"
 
-/* Creates a btree_header
+/* Creates a B+tree header
  * Make sure the value btree_header is referencing, is set to NULL
  * Returns 1 if successful or -1 on error
  */
@@ -105,7 +105,7 @@ on_error:
 	return( -1 );
 }
 
-/* Frees a btree_header
+/* Frees a B+tree header
  * Returns 1 if successful or -1 on error
  */
 int libfsxfs_btree_header_free(
@@ -135,7 +135,7 @@ int libfsxfs_btree_header_free(
 	return( 1 );
 }
 
-/* Reads the btree_header data
+/* Reads the B+tree header data
  * Returns 1 if successful or -1 on error
  */
 int libfsxfs_btree_header_read_data(
@@ -143,6 +143,7 @@ int libfsxfs_btree_header_read_data(
      libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
+     size_t block_number_data_size,
      libcerror_error_t **error )
 {
 	static char *function   = "libfsxfs_btree_header_read_data";
@@ -151,6 +152,7 @@ int libfsxfs_btree_header_read_data(
 #if defined( HAVE_DEBUG_OUTPUT )
 	uint64_t value_64bit    = 0;
 	uint32_t value_32bit    = 0;
+	int result              = 1;
 #endif
 
 	if( btree_header == NULL )
@@ -175,13 +177,39 @@ int libfsxfs_btree_header_read_data(
 
 		return( -1 );
 	}
+	if( ( block_number_data_size != 4 )
+	 && ( block_number_data_size != 8 ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_UNSUPPORTED_VALUE,
+		 "%s: unsupported block number data size.",
+		 function );
+
+		return( -1 );
+	}
 	if( io_handle->format_version == 5 )
 	{
-		header_data_size = sizeof( fsxfs_btree_header_v5_t );
+		if( block_number_data_size == 8 )
+		{
+			header_data_size = sizeof( fsxfs_btree_header_v5_64bit_t );
+		}
+		else
+		{
+			header_data_size = sizeof( fsxfs_btree_header_v5_32bit_t );
+		}
 	}
 	else
 	{
-		header_data_size = sizeof( fsxfs_btree_header_v1_t );
+		if( block_number_data_size == 8 )
+		{
+			header_data_size = sizeof( fsxfs_btree_header_v1_64bit_t );
+		}
+		else
+		{
+			header_data_size = sizeof( fsxfs_btree_header_v1_32bit_t );
+		}
 	}
 	if( data == NULL )
 	{
@@ -221,7 +249,7 @@ int libfsxfs_btree_header_read_data(
 
 	if( memory_copy(
 	     btree_header->signature,
-	     ( (fsxfs_btree_header_v1_t *) data )->signature,
+	     ( (fsxfs_btree_header_v1_32bit_t *) data )->signature,
 	     4 ) == NULL )
 	{
 		libcerror_error_set(
@@ -234,11 +262,11 @@ int libfsxfs_btree_header_read_data(
 		return( -1 );
 	}
 	byte_stream_copy_to_uint16_big_endian(
-	 ( (fsxfs_btree_header_v1_t *) data )->level,
+	 ( (fsxfs_btree_header_v1_32bit_t *) data )->level,
 	 btree_header->level );
 
 	byte_stream_copy_to_uint16_big_endian(
-	 ( (fsxfs_btree_header_v1_t *) data )->number_of_records,
+	 ( (fsxfs_btree_header_v1_32bit_t *) data )->number_of_records,
 	 btree_header->number_of_records );
 
 #if defined( HAVE_DEBUG_OUTPUT )
@@ -247,10 +275,10 @@ int libfsxfs_btree_header_read_data(
 		libcnotify_printf(
 		 "%s: signature\t\t\t\t: %c%c%c%c\n",
 		 function,
-		 ( (fsxfs_btree_header_v1_t *) data )->signature[ 0 ],
-		 ( (fsxfs_btree_header_v1_t *) data )->signature[ 1 ],
-		 ( (fsxfs_btree_header_v1_t *) data )->signature[ 2 ],
-		 ( (fsxfs_btree_header_v1_t *) data )->signature[ 3 ] );
+		 ( (fsxfs_btree_header_v1_32bit_t *) data )->signature[ 0 ],
+		 ( (fsxfs_btree_header_v1_32bit_t *) data )->signature[ 1 ],
+		 ( (fsxfs_btree_header_v1_32bit_t *) data )->signature[ 2 ],
+		 ( (fsxfs_btree_header_v1_32bit_t *) data )->signature[ 3 ] );
 
 		libcnotify_printf(
 		 "%s: level\t\t\t\t\t: %" PRIu16 "\n",
@@ -262,21 +290,39 @@ int libfsxfs_btree_header_read_data(
 		 function,
 		 btree_header->number_of_records );
 
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_btree_header_v1_t *) data )->previous_btree_block_number,
-		 value_32bit );
+		if( block_number_data_size == 4 )
+		{
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_btree_header_v1_32bit_t *) data )->previous_btree_block_number,
+			 value_64bit );
+		}
+		else
+		{
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_btree_header_v1_64bit_t *) data )->previous_btree_block_number,
+			 value_64bit );
+		}
 		libcnotify_printf(
-		 "%s: previous B+ tree block number\t\t: %" PRIu32 "\n",
+		 "%s: previous B+ tree block number\t\t: %" PRIu64 "\n",
 		 function,
-		 value_32bit );
+		 value_64bit );
 
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_btree_header_v1_t *) data )->next_btree_block_number,
-		 value_32bit );
+		if( block_number_data_size == 4 )
+		{
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_btree_header_v1_32bit_t *) data )->next_btree_block_number,
+			 value_64bit );
+		}
+		else
+		{
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_btree_header_v1_64bit_t *) data )->next_btree_block_number,
+			 value_64bit );
+		}
 		libcnotify_printf(
-		 "%s: next B+ tree block number\t\t: %" PRIu32 "\n",
+		 "%s: next B+ tree block number\t\t: %" PRIu64 "\n",
 		 function,
-		 value_32bit );
+		 value_64bit );
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
@@ -285,30 +331,63 @@ int libfsxfs_btree_header_read_data(
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
 		{
-			byte_stream_copy_to_uint64_big_endian(
-			 ( (fsxfs_btree_header_v5_t *) data )->block_number,
-			 value_64bit );
+			if( block_number_data_size == 4 )
+			{
+				byte_stream_copy_to_uint64_big_endian(
+				 ( (fsxfs_btree_header_v5_32bit_t *) data )->block_number,
+				 value_64bit );
+			}
+			else
+			{
+				byte_stream_copy_to_uint64_big_endian(
+				 ( (fsxfs_btree_header_v5_64bit_t *) data )->block_number,
+				 value_64bit );
+			}
 			libcnotify_printf(
 			 "%s: block number\t\t\t\t: %" PRIu64 "\n",
 			 function,
 			 value_64bit );
 
-			byte_stream_copy_to_uint64_big_endian(
-			 ( (fsxfs_btree_header_v5_t *) data )->log_sequence_number,
-			 value_64bit );
+			if( block_number_data_size == 4 )
+			{
+				byte_stream_copy_to_uint64_big_endian(
+				 ( (fsxfs_btree_header_v5_32bit_t *) data )->log_sequence_number,
+				 value_64bit );
+			}
+			else
+			{
+				byte_stream_copy_to_uint64_big_endian(
+				 ( (fsxfs_btree_header_v5_64bit_t *) data )->log_sequence_number,
+				 value_64bit );
+			}
 			libcnotify_printf(
 			 "%s: log sequence number\t\t\t: 0x%08" PRIx64 "\n",
 			 function,
 			 value_64bit );
 
-			if( libfsxfs_debug_print_guid_value(
-			     function,
-			     "block type identifier\t\t\t",
-			     ( (fsxfs_btree_header_v5_t *) data )->block_type_identifier,
-			     16,
-			     LIBFGUID_ENDIAN_BIG,
-			     LIBFGUID_STRING_FORMAT_FLAG_USE_LOWER_CASE,
-			     error ) != 1 )
+			if( block_number_data_size == 4 )
+			{
+				result = libfsxfs_debug_print_guid_value(
+				          function,
+				          "block type identifier\t\t\t",
+				          ( (fsxfs_btree_header_v5_32bit_t *) data )->block_type_identifier,
+				          16,
+				          LIBFGUID_ENDIAN_BIG,
+				          LIBFGUID_STRING_FORMAT_FLAG_USE_LOWER_CASE,
+				          error );
+			}
+			else
+			{
+				result = libfsxfs_debug_print_guid_value(
+				          function,
+				          "block type identifier\t\t\t",
+				          ( (fsxfs_btree_header_v5_64bit_t *) data )->block_type_identifier,
+				          16,
+				          LIBFGUID_ENDIAN_BIG,
+				          LIBFGUID_STRING_FORMAT_FLAG_USE_LOWER_CASE,
+				          error );
+			}
+			if( result != 1 )
 			{
 				libcerror_error_set(
 				 error,
@@ -319,21 +398,50 @@ int libfsxfs_btree_header_read_data(
 
 				return( -1 );
 			}
-			byte_stream_copy_to_uint32_big_endian(
-			 ( (fsxfs_btree_header_v5_t *) data )->owner_allocation_group,
-			 value_32bit );
+			if( block_number_data_size == 4 )
+			{
+				byte_stream_copy_to_uint32_big_endian(
+				 ( (fsxfs_btree_header_v5_32bit_t *) data )->owner_allocation_group,
+				 value_32bit );
+			}
+			else
+			{
+				byte_stream_copy_to_uint32_big_endian(
+				 ( (fsxfs_btree_header_v5_64bit_t *) data )->owner_allocation_group,
+				 value_32bit );
+			}
 			libcnotify_printf(
 			 "%s: owner allocation group\t\t\t: %" PRIu32 "\n",
 			 function,
 			 value_32bit );
 
-			byte_stream_copy_to_uint32_big_endian(
-			 ( (fsxfs_btree_header_v5_t *) data )->checksum,
-			 value_32bit );
+			if( block_number_data_size == 4 )
+			{
+				byte_stream_copy_to_uint32_big_endian(
+				 ( (fsxfs_btree_header_v5_32bit_t *) data )->checksum,
+				 value_32bit );
+			}
+			else
+			{
+				byte_stream_copy_to_uint32_big_endian(
+				 ( (fsxfs_btree_header_v5_64bit_t *) data )->checksum,
+				 value_32bit );
+			}
 			libcnotify_printf(
 			 "%s: checksum\t\t\t\t: 0x%08" PRIx32 "\n",
 			 function,
 			 value_32bit );
+
+			if( block_number_data_size == 8 )
+			{
+				byte_stream_copy_to_uint32_big_endian(
+				 ( (fsxfs_btree_header_v5_64bit_t *) data )->unknown1,
+				 value_32bit );
+				libcnotify_printf(
+				 "%s: unknown1\t\t\t\t: 0x%08" PRIx32 "\n",
+				 function,
+				 value_32bit );
+			}
 		}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 	}

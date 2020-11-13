@@ -48,9 +48,21 @@ struct libfsxfs_io_handle
 	 */
 	uint32_t block_size;
 
+	/* Allocation group size
+	 */
+	uint32_t allocation_group_size;
+
 	/* Inode size
 	 */
 	uint16_t inode_size;
+
+	/* Directory block size
+	 */
+	uint32_t directory_block_size;
+
+	/* Number of bits used for the relative inode
+	 */
+	uint8_t number_of_relative_inode_bits;
 
 	/* Value to indicate if abort was signalled
 	 */

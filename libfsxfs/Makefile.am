@@ -43,6 +43,8 @@ libfsxfs_la_SOURCES = \
 	libfsxfs_directory_table_header.c libfsxfs_directory_table_header.h \
 	libfsxfs_error.c libfsxfs_error.h \
 	libfsxfs_extent.c libfsxfs_extent.h \
+	libfsxfs_extent_btree.c libfsxfs_extent_btree.h \
+	libfsxfs_extent_list.c libfsxfs_extent_list.h \
 	libfsxfs_extern.h \
 	libfsxfs_file_entry.c libfsxfs_file_entry.h \
 	libfsxfs_file_system.c libfsxfs_file_system.h \

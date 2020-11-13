@@ -95,6 +95,7 @@ int fsxfs_test_btree_block_initialize(
 	result = libfsxfs_btree_block_initialize(
 	          &btree_block,
 	          512,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -132,6 +133,7 @@ int fsxfs_test_btree_block_initialize(
 	result = libfsxfs_btree_block_initialize(
 	          NULL,
 	          512,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -151,6 +153,7 @@ int fsxfs_test_btree_block_initialize(
 	result = libfsxfs_btree_block_initialize(
 	          &btree_block,
 	          512,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -180,6 +183,7 @@ int fsxfs_test_btree_block_initialize(
 		result = libfsxfs_btree_block_initialize(
 		          &btree_block,
 		          512,
+		          4,
 		          &error );
 
 		if( fsxfs_test_malloc_attempts_before_fail != -1 )
@@ -223,6 +227,7 @@ int fsxfs_test_btree_block_initialize(
 		result = libfsxfs_btree_block_initialize(
 		          &btree_block,
 		          512,
+		          4,
 		          &error );
 
 		if( fsxfs_test_memset_attempts_before_fail != -1 )
@@ -349,6 +354,7 @@ int fsxfs_test_btree_block_read_data(
 	result = libfsxfs_btree_block_initialize(
 	          &btree_block,
 	          512,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(
@@ -576,6 +582,7 @@ int fsxfs_test_btree_block_read_file_io_handle(
 	result = libfsxfs_btree_block_initialize(
 	          &btree_block,
 	          512,
+	          4,
 	          &error );
 
 	FSXFS_TEST_ASSERT_EQUAL_INT(

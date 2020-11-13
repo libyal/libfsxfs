@@ -54,6 +54,14 @@ struct libfsxfs_superblock
 	 */
 	uint64_t root_directory_inode_number;
 
+	/* Allocation group size
+	 */
+	uint32_t allocation_group_size;
+
+	/* Number of allocation groups
+	 */
+	uint32_t number_of_allocation_groups;
+
 	/* Format version
 	 */
 	uint8_t format_version;
@@ -70,6 +78,10 @@ struct libfsxfs_superblock
 	 */
 	uint16_t inode_size;
 
+	/* Directory block size
+	 */
+	uint32_t directory_block_size;
+
 	/* Volume label
 	 */
 	uint8_t volume_label[ 12 ];
@@ -77,6 +89,10 @@ struct libfsxfs_superblock
 	/* Secondary feature flags
 	 */
 	uint32_t secondary_feature_flags;
+
+	/* Number of bits used for the relative inode
+	 */
+	uint8_t number_of_relative_inode_bits;
 };
 
 int libfsxfs_superblock_initialize(
