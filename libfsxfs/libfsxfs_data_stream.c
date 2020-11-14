@@ -225,7 +225,6 @@ int libfsxfs_data_stream_initialize_from_extents(
 	     extent_index < number_of_extents;
 	     extent_index++ )
 	{
-/* TODO check for out of order extents */
 		if( libfsxfs_inode_get_extent_by_index(
 		     inode,
 		     extent_index,
@@ -343,7 +342,8 @@ int libfsxfs_data_stream_initialize(
 		return( -1 );
 	}
 	if( ( inode->fork_type != LIBFSXFS_FORK_TYPE_INLINE_DATA )
-	 && ( inode->fork_type != LIBFSXFS_FORK_TYPE_EXTENTS ) )
+	 && ( inode->fork_type != LIBFSXFS_FORK_TYPE_EXTENTS )
+	 && ( inode->fork_type != LIBFSXFS_FORK_TYPE_BTREE ) )
 	{
 		libcerror_error_set(
 		 error,

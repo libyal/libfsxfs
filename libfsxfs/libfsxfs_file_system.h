@@ -85,6 +85,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
      libbfio_handle_t *file_io_handle,
      const uint8_t *utf8_string,
      size_t utf8_string_length,
+     uint64_t *inode_number,
      libfsxfs_inode_t **inode,
      libfsxfs_directory_entry_t **directory_entry,
      libcerror_error_t **error );
@@ -95,6 +96,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
      libbfio_handle_t *file_io_handle,
      const uint16_t *utf16_string,
      size_t utf16_string_length,
+     uint64_t *inode_number,
      libfsxfs_inode_t **inode,
      libfsxfs_directory_entry_t **directory_entry,
      libcerror_error_t **error );

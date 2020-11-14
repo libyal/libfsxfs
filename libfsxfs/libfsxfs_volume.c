@@ -1922,6 +1922,7 @@ int libfsxfs_internal_volume_get_file_entry_by_utf8_path(
 	libfsxfs_directory_entry_t *directory_entry = NULL;
 	libfsxfs_inode_t *inode                     = NULL;
 	static char *function                       = "libfsxfs_internal_volume_get_file_entry_by_utf8_path";
+	uint64_t inode_number                       = 0;
 	int result                                  = 0;
 
 	if( internal_volume == NULL )
@@ -1941,6 +1942,7 @@ int libfsxfs_internal_volume_get_file_entry_by_utf8_path(
 	          internal_volume->file_io_handle,
 	          utf8_string,
 	          utf8_string_length,
+	          &inode_number,
 	          &inode,
 	          &directory_entry,
 	          error );
@@ -1965,7 +1967,7 @@ int libfsxfs_internal_volume_get_file_entry_by_utf8_path(
 		     internal_volume->io_handle,
 		     internal_volume->file_io_handle,
 		     internal_volume->file_system,
-		     directory_entry->inode_number,
+		     inode_number,
 		     inode,
 		     directory_entry,
 		     error ) != 1 )
@@ -2115,6 +2117,7 @@ int libfsxfs_internal_volume_get_file_entry_by_utf16_path(
 	libfsxfs_directory_entry_t *directory_entry = NULL;
 	libfsxfs_inode_t *inode                     = NULL;
 	static char *function                       = "libfsxfs_internal_volume_get_file_entry_by_utf16_path";
+	uint64_t inode_number                       = 0;
 	int result                                  = 0;
 
 	if( internal_volume == NULL )
@@ -2134,6 +2137,7 @@ int libfsxfs_internal_volume_get_file_entry_by_utf16_path(
 	          internal_volume->file_io_handle,
 	          utf16_string,
 	          utf16_string_length,
+	          &inode_number,
 	          &inode,
 	          &directory_entry,
 	          error );
@@ -2158,7 +2162,7 @@ int libfsxfs_internal_volume_get_file_entry_by_utf16_path(
 		     internal_volume->io_handle,
 		     internal_volume->file_io_handle,
 		     internal_volume->file_system,
-		     directory_entry->inode_number,
+		     inode_number,
 		     inode,
 		     directory_entry,
 		     error ) != 1 )

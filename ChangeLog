@@ -1,9 +1,7 @@
 TODO:
 * complete basic format version 4 and 5 support
-** add support for XFS_DINODE_FMT_BTREE data stream
 ** complete libfsxfs_file_entry_get_sub_file_entry_by_utf8_name
 ** complete libfsxfs_file_entry_get_sub_file_entry_by_utf16_name
-** add check for out of order extents in extent list
 
 * store (directory table) parent inode number in directory entry?
 
@@ -17,6 +15,7 @@ TODO:
 * add support for format version 3 (need test data)
 
 * create test data with unwritten extent
+
 * determine if out of order extents are allowed, create test data
 
 20200105

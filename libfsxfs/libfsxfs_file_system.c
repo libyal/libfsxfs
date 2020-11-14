@@ -392,6 +392,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
      libbfio_handle_t *file_io_handle,
      const uint8_t *utf8_string,
      size_t utf8_string_length,
+     uint64_t *inode_number,
      libfsxfs_inode_t **inode,
      libfsxfs_directory_entry_t **directory_entry,
      libcerror_error_t **error )
@@ -404,7 +405,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 	libuna_unicode_character_t unicode_character     = 0;
 	size_t utf8_string_index                         = 0;
 	size_t utf8_string_segment_length                = 0;
-	uint64_t inode_number                            = 0;
+	uint64_t safe_inode_number                       = 0;
 	int result                                       = 0;
 
 	if( file_system == NULL )
@@ -471,13 +472,13 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 			utf8_string_index++;
 		}
 	}
-	inode_number = file_system->root_directory_inode_number;
+	safe_inode_number = file_system->root_directory_inode_number;
 
 	if( libfsxfs_file_system_get_inode_by_number(
 	     file_system,
 	     io_handle,
 	     file_io_handle,
-	     inode_number,
+	     safe_inode_number,
 	     &safe_inode,
 	     error ) != 1 )
 	{
@@ -487,7 +488,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
 		 "%s: unable to retrieve inode: %" PRIu64 ".",
 		 function,
-		 inode_number );
+		 safe_inode_number );
 
 		goto on_error;
 	}
@@ -540,7 +541,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 			 LIBCERROR_IO_ERROR_READ_FAILED,
 			 "%s: unable to read directory from inode: %" PRIu64 ".",
 			 function,
-			 inode_number );
+			 safe_inode_number );
 
 			goto on_error;
 		}
@@ -605,7 +606,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 		}
 		if( libfsxfs_directory_entry_get_inode_number(
 		     safe_directory_entry,
-		     &inode_number,
+		     &safe_inode_number,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
@@ -637,7 +638,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 		     file_system,
 		     io_handle,
 		     file_io_handle,
-		     inode_number,
+		     safe_inode_number,
 		     &safe_inode,
 		     error ) != 1 )
 		{
@@ -647,7 +648,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
 			 "%s: unable to retrieve inode: %" PRIu32 ".",
 			 function,
-			 inode_number );
+			 safe_inode_number );
 
 			goto on_error;
 		}
@@ -684,7 +685,8 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 			goto on_error;
 		}
 	}
-	*inode = safe_inode;
+	*inode_number = safe_inode_number;
+	*inode        = safe_inode;
 
 	return( result );
 
@@ -719,6 +721,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
      libbfio_handle_t *file_io_handle,
      const uint16_t *utf16_string,
      size_t utf16_string_length,
+     uint64_t *inode_number,
      libfsxfs_inode_t **inode,
      libfsxfs_directory_entry_t **directory_entry,
      libcerror_error_t **error )
@@ -731,7 +734,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 	libuna_unicode_character_t unicode_character     = 0;
 	size_t utf16_string_index                        = 0;
 	size_t utf16_string_segment_length               = 0;
-	uint64_t inode_number                            = 0;
+	uint64_t safe_inode_number                       = 0;
 	int result                                       = 0;
 
 	if( file_system == NULL )
@@ -798,13 +801,13 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 			utf16_string_index++;
 		}
 	}
-	inode_number = file_system->root_directory_inode_number;
+	safe_inode_number = file_system->root_directory_inode_number;
 
 	if( libfsxfs_file_system_get_inode_by_number(
 	     file_system,
 	     io_handle,
 	     file_io_handle,
-	     inode_number,
+	     safe_inode_number,
 	     &safe_inode,
 	     error ) != 1 )
 	{
@@ -814,7 +817,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
 		 "%s: unable to retrieve inode: %" PRIu64 ".",
 		 function,
-		 inode_number );
+		 safe_inode_number );
 
 		goto on_error;
 	}
@@ -867,7 +870,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 			 LIBCERROR_IO_ERROR_READ_FAILED,
 			 "%s: unable to read directory from inode: %" PRIu64 ".",
 			 function,
-			 inode_number );
+			 safe_inode_number );
 
 			goto on_error;
 		}
@@ -932,7 +935,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 		}
 		if( libfsxfs_directory_entry_get_inode_number(
 		     safe_directory_entry,
-		     &inode_number,
+		     &safe_inode_number,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
@@ -964,7 +967,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 		     file_system,
 		     io_handle,
 		     file_io_handle,
-		     inode_number,
+		     safe_inode_number,
 		     &safe_inode,
 		     error ) != 1 )
 		{
@@ -974,7 +977,7 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
 			 "%s: unable to retrieve inode: %" PRIu32 ".",
 			 function,
-			 inode_number );
+			 safe_inode_number );
 
 			goto on_error;
 		}
@@ -1011,7 +1014,8 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 			goto on_error;
 		}
 	}
-	*inode = safe_inode;
+	*inode_number = safe_inode_number;
+	*inode        = safe_inode;
 
 	return( result );
 

@@ -39,11 +39,12 @@ int libfsxfs_extent_list_read_data(
      size_t data_size,
      libcerror_error_t **error )
 {
-	libfsxfs_extent_t *extent = NULL;
-	static char *function     = "libfsxfs_extent_list_read_data";
-	size_t data_offset        = 0;
-	uint32_t extent_index     = 0;
-	int entry_index           = 0;
+	libfsxfs_extent_t *extent          = NULL;
+	static char *function              = "libfsxfs_extent_list_read_data";
+	size_t data_offset                 = 0;
+	uint64_t last_logical_block_number = 0;
+	uint32_t extent_index              = 0;
+	int entry_index                    = 0;
 
 	if( data == NULL )
 	{
@@ -72,8 +73,8 @@ int libfsxfs_extent_list_read_data(
 	{
 		libcerror_error_set(
 		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
 		 "%s: invalid number of extents value out of bounds.",
 		 function );
 
@@ -96,6 +97,7 @@ int libfsxfs_extent_list_read_data(
 	     extent_index < number_of_extents;
 	     extent_index++ )
 	{
+/* TODO check for out of order extents */
 		if( libfsxfs_extent_initialize(
 		     &extent,
 		     error ) != 1 )
@@ -127,6 +129,19 @@ int libfsxfs_extent_list_read_data(
 			goto on_error;
 		}
 		data_offset += 16;
+
+		if( extent->logical_block_number < last_logical_block_number )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: invalid extent - logical block value out of bounds.",
+			 function );
+
+			goto on_error;
+		}
+		last_logical_block_number = extent->logical_block_number + extent->number_of_blocks;
 
 		if( libcdata_array_append_entry(
 		     extents_array,
