@@ -1,7 +1,5 @@
 libfsxfs is a library to access the SGI X File System (XFS)
 
-Note that this project currently only focuses on the analysis of the format.
-
 Project information:
 
 * Status: experimental
@@ -13,6 +11,7 @@ Read-only supported XFS formats:
 
 Unsupported XFS format features:
 
+* extended attributes
 * XFS version 1, 2 or 3
 
 For more information see:
