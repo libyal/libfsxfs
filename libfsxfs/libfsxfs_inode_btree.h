@@ -64,10 +64,11 @@ int libfsxfs_inode_btree_get_inode_from_branch_node(
      libfsxfs_inode_btree_t *inode_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
+     uint64_t allocation_group_block_number,
      uint16_t number_of_records,
      const uint8_t *records_data,
      size_t records_data_size,
-     uint64_t inode_number,
+     uint64_t relative_inode_number,
      int recursion_depth,
      libcerror_error_t **error );
 
@@ -76,15 +77,16 @@ int libfsxfs_inode_btree_get_inode_from_leaf_node(
      uint16_t number_of_records,
      const uint8_t *records_data,
      size_t records_data_size,
-     uint64_t inode_number,
+     uint64_t relative_inode_number,
      libcerror_error_t **error );
 
 int libfsxfs_inode_btree_get_inode_from_node(
      libfsxfs_inode_btree_t *inode_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
-     uint64_t block_number,
-     uint64_t inode_number,
+     uint64_t allocation_group_block_number,
+     uint64_t relative_block_number,
+     uint64_t relative_inode_number,
      int recursion_depth,
      libcerror_error_t **error );
 
@@ -92,7 +94,8 @@ int libfsxfs_inode_btree_get_inode_by_number(
      libfsxfs_inode_btree_t *inode_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
-     uint64_t inode_number,
+     uint64_t absolute_inode_number,
+     off64_t *file_offset,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )

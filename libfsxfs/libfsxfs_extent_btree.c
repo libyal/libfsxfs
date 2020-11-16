@@ -28,7 +28,7 @@
 #include "libfsxfs_definitions.h"
 #include "libfsxfs_extent.h"
 #include "libfsxfs_extent_btree.h"
-#include "libfsxfs_extent_list.h"
+#include "libfsxfs_extents.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
@@ -143,14 +143,20 @@ int libfsxfs_extent_btree_get_extents_from_root_node(
      libfsxfs_extent_btree_t *extent_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
+     uint64_t number_of_blocks,
      const uint8_t *data,
      size_t data_size,
      libcdata_array_t *extents_array,
+     uint8_t add_sparse_extents,
      libcerror_error_t **error )
 {
-	static char *function      = "libfsxfs_extent_btree_get_extents_from_root_node";
-	uint16_t level             = 0;
-	uint16_t number_of_records = 0;
+	libfsxfs_extent_t *last_extent   = NULL;
+	libfsxfs_extent_t *sparse_extent = NULL;
+	static char *function            = "libfsxfs_extent_btree_get_extents_from_root_node";
+	uint64_t logical_block_number    = 0;
+	uint16_t level                   = 0;
+	uint16_t number_of_records       = 0;
+	int entry_index                  = 0;
 
 	if( extent_btree == NULL )
 	{
@@ -244,6 +250,7 @@ int libfsxfs_extent_btree_get_extents_from_root_node(
 	     &( data[ 4 ] ),
 	     data_size - 4,
 	     extents_array,
+	     add_sparse_extents,
 	     0,
 	     error ) != 1 )
 	{
@@ -256,9 +263,98 @@ int libfsxfs_extent_btree_get_extents_from_root_node(
 
 		goto on_error;
 	}
+	if( libfsxfs_extents_get_last_extent(
+	     extents_array,
+	     &last_extent,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve last extent.",
+		 function );
+
+		goto on_error;
+	}
+	if( last_extent != NULL )
+	{
+		logical_block_number = last_extent->logical_block_number + last_extent->number_of_blocks;
+	}
+	if( ( add_sparse_extents != 0 )
+	 && ( logical_block_number < number_of_blocks ) )
+	{
+		if( ( last_extent == NULL )
+		 || ( ( last_extent->range_flags & LIBFSXFS_EXTENT_FLAG_IS_SPARSE ) == 0 ) )
+		{
+			if( libfsxfs_extent_initialize(
+			     &sparse_extent,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+				 "%s: unable to create sparse extent.",
+				 function );
+
+				goto on_error;
+			}
+			sparse_extent->logical_block_number = logical_block_number;
+			sparse_extent->range_flags          = LIBFSXFS_EXTENT_FLAG_IS_SPARSE;
+
+			if( libcdata_array_append_entry(
+			     extents_array,
+			     &entry_index,
+			     (intptr_t *) sparse_extent,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_APPEND_FAILED,
+				 "%s: unable to append sparse extent to array.",
+				 function );
+
+				goto on_error;
+			}
+			last_extent   = sparse_extent;
+			sparse_extent = NULL;
+		}
+		last_extent->number_of_blocks += number_of_blocks - logical_block_number;
+
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: logical block number\t\t\t: %" PRIu64 "\n",
+			 function,
+			 last_extent->logical_block_number );
+
+			libcnotify_printf(
+			 "%s: physical block number\t\t\t: %" PRIu64 "\n",
+			 function,
+			 last_extent->physical_block_number );
+
+			libcnotify_printf(
+			 "%s: number of blocks\t\t\t: %" PRIu64 "\n",
+			 function,
+			 last_extent->number_of_blocks );
+
+			libcnotify_printf(
+			 "\n" );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+	}
 	return( 1 );
 
 on_error:
+	if( sparse_extent != NULL )
+	{
+		libfsxfs_extent_free(
+		 &sparse_extent,
+		 NULL );
+	}
 	libcdata_array_empty(
 	 extents_array,
 	 (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_extent_free,
@@ -278,6 +374,7 @@ int libfsxfs_extent_btree_get_extents_from_branch_node(
      const uint8_t *records_data,
      size_t records_data_size,
      libcdata_array_t *extents_array,
+     uint8_t add_sparse_extents,
      int recursion_depth,
      libcerror_error_t **error )
 {
@@ -409,6 +506,7 @@ int libfsxfs_extent_btree_get_extents_from_branch_node(
 		     file_io_handle,
 		     sub_block_number,
 		     extents_array,
+		     add_sparse_extents,
 		     recursion_depth + 1,
 		     error ) != 1 )
 		{
@@ -449,12 +547,15 @@ int libfsxfs_extent_btree_get_extents_from_node(
      libbfio_handle_t *file_io_handle,
      uint64_t block_number,
      libcdata_array_t *extents_array,
+     uint8_t add_sparse_extents,
      int recursion_depth,
      libcerror_error_t **error )
 {
 	libfsxfs_btree_block_t *btree_block = NULL;
 	static char *function               = "libfsxfs_extent_btree_get_exents_from_node";
 	off64_t btree_block_offset          = 0;
+	uint64_t relative_block_number      = 0;
+	int allocation_group_index          = 0;
 	int compare_result                  = 0;
 
 	if( extent_btree == NULL )
@@ -479,6 +580,17 @@ int libfsxfs_extent_btree_get_extents_from_node(
 
 		return( -1 );
 	}
+	if( io_handle->allocation_group_size == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid IO handle - allocation group size value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
 	if( io_handle->block_size == 0 )
 	{
 		libcerror_error_set(
@@ -490,18 +602,28 @@ int libfsxfs_extent_btree_get_extents_from_node(
 
 		return( -1 );
 	}
-	if( block_number > (uint64_t) ( INT64_MAX / io_handle->block_size ) )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-		 "%s: invalid block number value out of bounds.",
-		 function );
+	allocation_group_index = (int) ( block_number >> io_handle->number_of_relative_block_number_bits );
+	relative_block_number  = block_number & ( ( 1 << io_handle->number_of_relative_block_number_bits ) - 1 );
 
-		return( -1 );
+#if defined( HAVE_DEBUG_OUTPUT )
+	if( libcnotify_verbose != 0 )
+	{
+		libcnotify_printf(
+		 "%s: allocation group index\t: %d\n",
+		 function,
+		 allocation_group_index );
+
+		libcnotify_printf(
+		 "%s: relative block number\t\t: %" PRIu64 "\n",
+		 function,
+		 relative_block_number );
+
+		libcnotify_printf(
+		 "\n" );
 	}
-	btree_block_offset = block_number * io_handle->block_size;
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+	btree_block_offset = ( ( (off64_t) allocation_group_index * io_handle->allocation_group_size ) + relative_block_number ) * io_handle->block_size;
 
 	if( libfsxfs_btree_block_initialize(
 	     &btree_block,
@@ -575,18 +697,19 @@ int libfsxfs_extent_btree_get_extents_from_node(
 	}
 	if( btree_block->header->level == 0 )
 	{
-		if( libfsxfs_extent_list_read_data(
+		if( libfsxfs_extents_read_data(
 		     extents_array,
 		     (uint32_t) btree_block->header->number_of_records,
 		     btree_block->records_data,
 		     btree_block->records_data_size,
+		     add_sparse_extents,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_IO,
 			 LIBCERROR_IO_ERROR_READ_FAILED,
-			 "%s: unable to read data extent list.",
+			 "%s: unable to read data extents.",
 			 function );
 
 			goto on_error;
@@ -602,6 +725,7 @@ int libfsxfs_extent_btree_get_extents_from_node(
 		     btree_block->records_data,
 		     btree_block->records_data_size,
 		     extents_array,
+		     add_sparse_extents,
 		     recursion_depth,
 		     error ) != 1 )
 		{

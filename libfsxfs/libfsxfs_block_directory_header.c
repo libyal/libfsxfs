@@ -192,21 +192,21 @@ int libfsxfs_block_directory_header_read_data(
 
 	if( memory_compare(
 	     data,
-	     "X2D2",
+	     "XD2B",
 	     4 ) == 0 )
-	{
-		format_version   = 2;
-		header_data_size = sizeof( fsxfs_block_directory_header_v2_t );
-	}
-	else if( memory_compare(
-	          data,
-	          "XD2B",
-	          4 ) == 0 )
 	{
 		format_version   = 2;
 		header_data_size = sizeof( fsxfs_block_directory_header_v2_t );
 
 		block_directory_header->has_footer = 1;
+	}
+	else if( memory_compare(
+	          data,
+	          "XD2D",
+	          4 ) == 0 )
+	{
+		format_version   = 2;
+		header_data_size = sizeof( fsxfs_block_directory_header_v2_t );
 	}
 	else if( memory_compare(
 	          data,

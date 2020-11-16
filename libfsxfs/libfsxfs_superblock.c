@@ -684,17 +684,6 @@ int libfsxfs_superblock_read_data(
 
 		return( -1 );
 	}
-	if( ( ( (uint64_t) 1UL << ( (fsxfs_superblock_t *) data )->allocation_group_size_log2 ) != (uint64_t) superblock->allocation_group_size ) )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: mismatch between allocation group size and log2 values.",
-		 function );
-
-		return( -1 );
-	}
 	if( ( ( (uint64_t) 1UL << ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2 ) != (uint64_t) number_of_inodes_per_block ) )
 	{
 		libcerror_error_set(
@@ -723,16 +712,42 @@ int libfsxfs_superblock_read_data(
 	{
 		superblock->directory_block_size *= (uint32_t) 1 << ( (fsxfs_superblock_t *) data )->directory_block_size_log2;
 	}
-	superblock->number_of_relative_inode_bits = (uint8_t) ( (fsxfs_superblock_t *) data )->allocation_group_size_log2 + ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2;
-
-	if( ( superblock->number_of_relative_inode_bits == 0 )
-	 || ( superblock->number_of_relative_inode_bits > 32 ) )
+	if( ( ( (fsxfs_superblock_t *) data )->allocation_group_size_log2 == 0 )
+	 || ( ( (fsxfs_superblock_t *) data )->allocation_group_size_log2 > 32 ) )
 	{
 		libcerror_error_set(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: invalid number of relative inode bits value out of bounds.",
+		 "%s: invalid allocation group size log2 value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	superblock->number_of_relative_block_number_bits = (uint8_t) ( (fsxfs_superblock_t *) data )->allocation_group_size_log2;
+
+	if( ( ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2 == 0 )
+	 || ( ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2 > ( 32 - superblock->number_of_relative_block_number_bits ) ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: invalid number of inodes per block log2 value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	superblock->number_of_relative_inode_number_bits = superblock->number_of_relative_block_number_bits + (uint8_t) ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2;
+
+	if( ( superblock->number_of_relative_inode_number_bits == 0 )
+	 || ( superblock->number_of_relative_inode_number_bits > 32 ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: invalid number of relative inode number bits value out of bounds.",
 		 function );
 
 		return( -1 );
@@ -748,9 +763,14 @@ int libfsxfs_superblock_read_data(
 		 superblock->directory_block_size );
 
 		libcnotify_printf(
-		 "%s: number of relative inode bits\t\t: %" PRIu8 "\n",
+		 "%s: number of relative block number bits\t: %" PRIu8 "\n",
 		 function,
-		 superblock->number_of_relative_inode_bits );
+		 superblock->number_of_relative_block_number_bits );
+
+		libcnotify_printf(
+		 "%s: number of relative inode number bits\t: %" PRIu8 "\n",
+		 function,
+		 superblock->number_of_relative_inode_number_bits );
 
 		libcnotify_printf(
 		 "\n" );

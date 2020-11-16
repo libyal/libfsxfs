@@ -55,9 +55,11 @@ int libfsxfs_extent_btree_get_extents_from_root_node(
      libfsxfs_extent_btree_t *extent_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
+     uint64_t number_of_blocks,
      const uint8_t *data,
      size_t data_size,
      libcdata_array_t *extents_array,
+     uint8_t add_sparse_extents,
      libcerror_error_t **error );
 
 int libfsxfs_extent_btree_get_extents_from_branch_node(
@@ -68,6 +70,7 @@ int libfsxfs_extent_btree_get_extents_from_branch_node(
      const uint8_t *records_data,
      size_t records_data_size,
      libcdata_array_t *extents_array,
+     uint8_t add_sparse_extents,
      int recursion_depth,
      libcerror_error_t **error );
 
@@ -77,6 +80,7 @@ int libfsxfs_extent_btree_get_extents_from_node(
      libbfio_handle_t *file_io_handle,
      uint64_t block_number,
      libcdata_array_t *extents_array,
+     uint8_t add_sparse_extents,
      int recursion_depth,
      libcerror_error_t **error );
 

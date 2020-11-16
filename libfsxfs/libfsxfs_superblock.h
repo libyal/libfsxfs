@@ -90,9 +90,13 @@ struct libfsxfs_superblock
 	 */
 	uint32_t secondary_feature_flags;
 
-	/* Number of bits used for the relative inode
+	/* Number of bits used for the relative block number
 	 */
-	uint8_t number_of_relative_inode_bits;
+	uint8_t number_of_relative_block_number_bits;
+
+	/* Number of bits used for the relative inode number
+	 */
+	uint8_t number_of_relative_inode_number_bits;
 };
 
 int libfsxfs_superblock_initialize(

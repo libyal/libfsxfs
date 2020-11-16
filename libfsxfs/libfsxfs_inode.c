@@ -778,6 +778,8 @@ int libfsxfs_inode_read_file_io_handle(
 	libfsxfs_extent_btree_t *extent_btree = NULL;
 	static char *function                 = "libfsxfs_inode_read_file_io_handle";
 	ssize_t read_count                    = 0;
+	uint64_t number_of_blocks             = 0;
+	uint8_t add_sparse_extents            = 0;
 
 	if( inode == NULL )
 	{
@@ -786,6 +788,17 @@ int libfsxfs_inode_read_file_io_handle(
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
 		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( io_handle->block_size == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid IO handle - block size value out of bounds.",
 		 function );
 
 		return( -1 );
@@ -853,6 +866,16 @@ int libfsxfs_inode_read_file_io_handle(
 
 		return( -1 );
 	}
+	number_of_blocks = inode->size / io_handle->block_size;
+
+	if( ( inode->size % io_handle->block_size ) != 0 )
+	{
+		number_of_blocks++;
+	}
+	if( ( inode->file_mode & 0xf000 ) != LIBFSXFS_FILE_TYPE_DIRECTORY )
+	{
+		add_sparse_extents = 1;
+	}
 	if( inode->fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
 	{
 		if( inode->size > inode->data_fork_size )
@@ -898,9 +921,11 @@ int libfsxfs_inode_read_file_io_handle(
 		}
 		if( libfsxfs_extent_list_read_data(
 		     inode->data_extents_array,
+		     number_of_blocks,
 		     inode->number_of_data_extents,
 		     &( inode->data[ inode->data_fork_offset ] ),
 		     inode->data_fork_size,
+		     add_sparse_extents,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
@@ -946,9 +971,11 @@ int libfsxfs_inode_read_file_io_handle(
 		     extent_btree,
 		     io_handle,
 		     file_io_handle,
+		     number_of_blocks,
 		     &( inode->data[ inode->data_fork_offset ] ),
 		     inode->data_fork_size,
 		     inode->data_extents_array,
+		     add_sparse_extents,
 		     error ) != 1 )
 		{
 			libcerror_error_set(

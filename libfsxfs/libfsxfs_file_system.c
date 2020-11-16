@@ -303,7 +303,7 @@ int libfsxfs_file_system_get_inode_by_number(
 		return( -1 );
 	}
 	if( ( inode_number == 0 )
-	 || ( inode_number > (uint64_t) UINT32_MAX  ) )
+	 || ( inode_number > (uint64_t) UINT32_MAX ) )
 	{
 		libcerror_error_set(
 		 error,
@@ -319,6 +319,7 @@ int libfsxfs_file_system_get_inode_by_number(
 	          io_handle,
 	          file_io_handle,
 	          inode_number,
+	          &file_offset,
 	          error );
 
 	if( result == -1 )
@@ -349,8 +350,6 @@ int libfsxfs_file_system_get_inode_by_number(
 
 			goto on_error;
 		}
-		file_offset = (off64_t) inode_number * io_handle->inode_size;
-
 		if( libfsxfs_inode_read_file_io_handle(
 		     safe_inode,
 		     io_handle,

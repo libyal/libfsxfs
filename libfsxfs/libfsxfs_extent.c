@@ -24,6 +24,7 @@
 #include <memory.h>
 #include <types.h>
 
+#include "libfsxfs_definitions.h"
 #include "libfsxfs_extent.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
@@ -208,8 +209,16 @@ int libfsxfs_extent_read_data(
 
 	extent->logical_block_number = value_128bit_upper & 0x3fffffffffffffUL;
 
-	value_128bit_upper >>= 52;
+	value_128bit_upper >>= 54;
 
+	if( value_128bit_upper == 0 )
+	{
+		extent->range_flags = 0;
+	}
+	else
+	{
+		extent->range_flags = LIBFSXFS_EXTENT_FLAG_IS_SPARSE;
+	}
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
 	{

@@ -1,5 +1,5 @@
 /*
- * Extent functions
+ * Extents functions
  *
  * Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,56 +19,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_EXTENT_H )
-#define _LIBFSXFS_EXTENT_H
+#if !defined( _LIBFSXFS_EXTENTS_H )
+#define _LIBFSXFS_EXTENTS_H
 
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
 extern "C" {
 #endif
 
-typedef struct libfsxfs_extent libfsxfs_extent_t;
-
-struct libfsxfs_extent
-{
-	/* Logical block number
-	 */
-	uint64_t logical_block_number;
-
-	/* Physical block number
-	 */
-	uint64_t physical_block_number;
-
-	/* Number of blocks
-	 */
-	uint32_t number_of_blocks;
-
-	/* The range flags
-	 */
-	uint32_t range_flags;
-};
-
-int libfsxfs_extent_initialize(
-     libfsxfs_extent_t **extent,
+int libfsxfs_extents_get_last_extent(
+     libcdata_array_t *extents_array,
+     libfsxfs_extent_t **last_extent,
      libcerror_error_t **error );
 
-int libfsxfs_extent_free(
-     libfsxfs_extent_t **extent,
-     libcerror_error_t **error );
-
-int libfsxfs_extent_read_data(
-     libfsxfs_extent_t *extent,
+int libfsxfs_extents_read_data(
+     libcdata_array_t *extents_array,
+     uint32_t number_of_extents,
      const uint8_t *data,
      size_t data_size,
+     uint8_t add_sparse_extents,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_EXTENT_H ) */
+#endif /* !defined( _LIBFSXFS_EXTENTS_H ) */
 

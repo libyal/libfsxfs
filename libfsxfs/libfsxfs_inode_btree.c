@@ -262,20 +262,21 @@ int libfsxfs_inode_btree_get_inode_from_branch_node(
      libfsxfs_inode_btree_t *inode_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
+     uint64_t allocation_group_block_number,
      uint16_t number_of_records,
      const uint8_t *records_data,
      size_t records_data_size,
-     uint64_t inode_number,
+     uint64_t relative_inode_number,
      int recursion_depth,
      libcerror_error_t **error )
 {
-	static char *function            = "libfsxfs_inode_btree_get_inode_from_branch_node";
-	size_t number_of_key_value_pairs = 0;
-	size_t records_data_offset       = 0;
-	uint32_t key_inode_number        = 0;
-	uint32_t sub_block_number        = 0;
-	uint16_t record_index            = 0;
-	int result                       = 0;
+	static char *function              = "libfsxfs_inode_btree_get_inode_from_branch_node";
+	size_t number_of_key_value_pairs   = 0;
+	size_t records_data_offset         = 0;
+	uint32_t relative_key_inode_number = 0;
+	uint32_t relative_sub_block_number = 0;
+	uint16_t record_index              = 0;
+	int result                         = 0;
 
 	if( inode_btree == NULL )
 	{
@@ -342,7 +343,7 @@ int libfsxfs_inode_btree_get_inode_from_branch_node(
 	{
 		byte_stream_copy_to_uint32_big_endian(
 		 &( records_data[ records_data_offset ] ),
-		 key_inode_number );
+		 relative_key_inode_number );
 
 		records_data_offset += 4;
 
@@ -352,10 +353,10 @@ int libfsxfs_inode_btree_get_inode_from_branch_node(
 			libcnotify_printf(
 			 "%s: inode number\t\t: %" PRIu32 "\n",
 			 function,
-			 key_inode_number );
+			 relative_key_inode_number );
 		}
 #endif
-		if( inode_number < key_inode_number )
+		if( relative_inode_number < relative_key_inode_number )
 		{
 			break;
 		}
@@ -367,7 +368,7 @@ int libfsxfs_inode_btree_get_inode_from_branch_node(
 
 		byte_stream_copy_to_uint32_big_endian(
 		 &( records_data[ records_data_offset ] ),
-		 sub_block_number );
+		 relative_sub_block_number );
 
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
@@ -375,7 +376,7 @@ int libfsxfs_inode_btree_get_inode_from_branch_node(
 			libcnotify_printf(
 			 "%s: sub block number\t: %" PRIu32 "\n",
 			 function,
-			 sub_block_number );
+			 relative_sub_block_number );
 
 			libcnotify_printf(
 			 "\n" );
@@ -385,8 +386,9 @@ int libfsxfs_inode_btree_get_inode_from_branch_node(
 		          inode_btree,
 		          io_handle,
 		          file_io_handle,
-		          sub_block_number,
-		          inode_number,
+		          allocation_group_block_number,
+		          relative_sub_block_number,
+		          relative_inode_number,
 		          recursion_depth + 1,
 		          error );
 
@@ -396,7 +398,7 @@ int libfsxfs_inode_btree_get_inode_from_branch_node(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-			 "%s: unable to retrieve inode from root node.",
+			 "%s: unable to retrieve inode from node.",
 			 function );
 
 			return( -1 );
@@ -555,8 +557,9 @@ int libfsxfs_inode_btree_get_inode_from_node(
      libfsxfs_inode_btree_t *inode_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
-     uint64_t block_number,
-     uint64_t inode_number,
+     uint64_t allocation_group_block_number,
+     uint64_t relative_block_number,
+     uint64_t relative_inode_number,
      int recursion_depth,
      libcerror_error_t **error )
 {
@@ -599,18 +602,29 @@ int libfsxfs_inode_btree_get_inode_from_node(
 
 		return( -1 );
 	}
-	if( block_number > (uint64_t) ( INT64_MAX / io_handle->block_size ) )
+	if( allocation_group_block_number > (uint64_t) ( INT64_MAX / io_handle->block_size ) )
 	{
 		libcerror_error_set(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-		 "%s: invalid block number value out of bounds.",
+		 "%s: invalid allocation group block number value out of bounds.",
 		 function );
 
 		return( -1 );
 	}
-	btree_block_offset = block_number * io_handle->block_size;
+	if( relative_block_number > ( (uint64_t) ( INT64_MAX / io_handle->block_size ) - allocation_group_block_number ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid relative block number value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	btree_block_offset = ( allocation_group_block_number + relative_block_number ) * io_handle->block_size;
 
 	if( libfsxfs_btree_block_initialize(
 	     &btree_block,
@@ -640,7 +654,7 @@ int libfsxfs_inode_btree_get_inode_from_node(
 		 LIBCERROR_IO_ERROR_READ_FAILED,
 		 "%s: unable to read inode B+ tree block: %" PRIu32 " at offset: %" PRIi64 " (0x%08" PRIx64 ").",
 		 function,
-		 block_number,
+		 relative_block_number,
 		 btree_block_offset,
 		 btree_block_offset );
 
@@ -691,7 +705,7 @@ int libfsxfs_inode_btree_get_inode_from_node(
 		          btree_block->header->number_of_records,
 		          btree_block->records_data,
 		          btree_block->records_data_size,
-		          inode_number,
+		          relative_inode_number,
 		          error );
 
 		if( result == -1 )
@@ -712,10 +726,11 @@ int libfsxfs_inode_btree_get_inode_from_node(
 		          inode_btree,
 		          io_handle,
 		          file_io_handle,
+		          allocation_group_block_number,
 		          btree_block->header->number_of_records,
 		          btree_block->records_data,
 		          btree_block->records_data_size,
-		          inode_number,
+		          relative_inode_number,
 		          recursion_depth,
 		          error );
 
@@ -763,12 +778,13 @@ int libfsxfs_inode_btree_get_inode_by_number(
      libfsxfs_inode_btree_t *inode_btree,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
-     uint64_t inode_number,
+     uint64_t absolute_inode_number,
+     off64_t *file_offset,
      libcerror_error_t **error )
 {
 	libfsxfs_inode_information_t *inode_information = NULL;
 	static char *function                           = "libfsxfs_inode_btree_get_inode_by_number";
-	uint64_t absolute_root_block_number             = 0;
+	uint64_t allocation_group_block_number          = 0;
 	uint64_t relative_inode_number                  = 0;
 	int allocation_group_index                      = 0;
 	int result                                      = 0;
@@ -795,8 +811,41 @@ int libfsxfs_inode_btree_get_inode_by_number(
 
 		return( -1 );
 	}
-	allocation_group_index = (int) ( inode_number >> io_handle->number_of_relative_inode_bits );
-	relative_inode_number  = inode_number & ( ( 1 << io_handle->number_of_relative_inode_bits ) - 1 );
+	if( io_handle->allocation_group_size == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid IO handle - allocation group size value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	if( io_handle->block_size == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid IO handle - block size value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	if( file_offset == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file offset.",
+		 function );
+
+		return( -1 );
+	}
+	allocation_group_index = (int) ( absolute_inode_number >> io_handle->number_of_relative_inode_number_bits );
+	relative_inode_number  = absolute_inode_number & ( ( 1 << io_handle->number_of_relative_inode_number_bits ) - 1 );
 
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
@@ -832,20 +881,7 @@ int libfsxfs_inode_btree_get_inode_by_number(
 
 		return( -1 );
 	}
-	absolute_root_block_number = ( (uint64_t) allocation_group_index * io_handle->allocation_group_size ) + inode_information->inode_btree_root_block_number;
-
-#if defined( HAVE_DEBUG_OUTPUT )
-	if( libcnotify_verbose != 0 )
-	{
-		libcnotify_printf(
-		 "%s: absolute root block number\t: %" PRIu64 "\n",
-		 function,
-		 absolute_root_block_number );
-
-		libcnotify_printf(
-		 "\n" );
-	}
-#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+	allocation_group_block_number = (uint64_t) allocation_group_index * io_handle->allocation_group_size;
 
 	if( inode_information == NULL )
 	{
@@ -862,7 +898,8 @@ int libfsxfs_inode_btree_get_inode_by_number(
 	          inode_btree,
 	          io_handle,
 	          file_io_handle,
-	          absolute_root_block_number,
+	          allocation_group_block_number,
+	          inode_information->inode_btree_root_block_number,
 	          relative_inode_number,
 	          0,
 	          error );
@@ -875,10 +912,14 @@ int libfsxfs_inode_btree_get_inode_by_number(
 		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
 		 "%s: unable to retrieve inode: %" PRIu64 " from root node: %" PRIu32 ".",
 		 function,
-		 inode_number,
+		 relative_inode_number,
 		 inode_information->inode_btree_root_block_number );
 
 		return( -1 );
+	}
+	else if( result != 0 )
+	{
+		*file_offset = ( (off64_t) allocation_group_block_number * io_handle->block_size ) + ( (off64_t) relative_inode_number * io_handle->inode_size );
 	}
 	return( result );
 }

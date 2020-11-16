@@ -29,6 +29,7 @@
 #include "libfsxfs_inode.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libcerror.h"
+#include "libfsxfs_libcnotify.h"
 #include "libfsxfs_libfdata.h"
 
 /* Creates data data stream from a buffer of data
@@ -149,6 +150,8 @@ int libfsxfs_data_stream_initialize_from_extents(
 	static char *function               = "libfsxfs_data_stream_initialize_from_extents";
 	size64_t data_segment_size          = 0;
 	off64_t data_segment_offset         = 0;
+	uint64_t relative_block_number      = 0;
+	int allocation_group_index          = 0;
 	int extent_index                    = 0;
 	int number_of_extents               = 0;
 	int segment_index                   = 0;
@@ -171,6 +174,17 @@ int libfsxfs_data_stream_initialize_from_extents(
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
 		 "%s: invalid IO handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( io_handle->allocation_group_size == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid IO handle - allocation group size value out of bounds.",
 		 function );
 
 		return( -1 );
@@ -253,7 +267,30 @@ int libfsxfs_data_stream_initialize_from_extents(
 
 			goto on_error;
 		}
-		data_segment_offset = (off64_t) extent->physical_block_number * io_handle->block_size;
+		allocation_group_index = (int) ( extent->physical_block_number >> io_handle->number_of_relative_block_number_bits );
+		relative_block_number  = extent->physical_block_number & ( ( 1 << io_handle->number_of_relative_block_number_bits ) - 1 );
+
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: extent: %d allocation group index\t: %d\n",
+			 function,
+			 extent_index,
+			 allocation_group_index );
+
+			libcnotify_printf(
+			 "%s: extent: %d relative block number\t: %" PRIu64 "\n",
+			 function,
+			 extent_index,
+			 relative_block_number );
+
+			libcnotify_printf(
+			 "\n" );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		data_segment_offset = ( ( (off64_t) allocation_group_index * io_handle->allocation_group_size ) + relative_block_number ) * io_handle->block_size;
 		data_segment_size   = (size64_t) extent->number_of_blocks * io_handle->block_size;
 
 		if( libfdata_stream_append_segment(

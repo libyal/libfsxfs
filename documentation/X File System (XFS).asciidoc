@@ -45,6 +45,7 @@ in the section entitled "GNU Free Documentation License".
 |===
 | Version | Author | Date | Comments
 | 0.0.1 | J.B. Metz | September 2020 | Initial version.
+| 0.0.2 | J.B. Metz | November 2020 | Additional information about data format.
 |===
 
 :numbered:
@@ -64,11 +65,39 @@ a placeholder for a name that never given.
 
 == Terminology
 
-[yellow-background]*TODO determine if block numbers are relative from the start of the volume or the allocation group*
-
 === Absolute and relative inode numbers
 
-[yellow-background]*TODO describe*
+A relative inode number is an inode number used within a specific allocation
+group. An absolute inode number combines the allocation group number and the
+relative inode number.
+
+....
+absolute inode number = ( allocation group number << number of relative inode number bits ) | relative inode number
+....
+
+The number of relative inode number bits is:
+
+....
+number of relative inode number bits = allocation group size log2 + number of inodes per block log2
+....
+
+=== [[file_system_block_number]]File system block number
+
+A relative blcok number is a block number relative to the start of an allocation
+group. A file system block number (xfs_fsblock_t) combines the allocation group
+number and the relative block number.
+
+....
+file system block number = ( allocation group number << number of relative block number bits ) | relative block number
+....
+
+....
+number of relative block number bits = allocation group size log2
+....
+
+....
+file offset = ( allocation group block number + relative block number ) x block size
+....
 
 == The allocation group
 
@@ -100,7 +129,8 @@ Typicaly 4096 bytes (4 KiB), can range from 512 to 65536 bytes
 | 32 | 16 | | File system (or volume) identifier +
 Contains an UUID
 | 48 | 8 | | Journal block number +
-Contains 0 if the journal is stored on a separate device
+Contains a file system block number or 0 if the journal is stored on a separate device +
+See section: <<file_system_block_number,File system block number>>
 | 56 | 8 | | Root directory inode number
 | 64 | 8 | | Real-time bitmap extents inode number
 | 72 | 8 | | Real-time bitmap summary inode number
@@ -180,6 +210,10 @@ See section: <<incompatible_feature_flags,Incompatible feature flags>>
 See section: <<journal_incompatible_feature_flags,Journal incompatible feature flags>>
 | 208 | 4 | | Checksum of the superblock
 |===
+
+[NOTE]
+Allocation group size and allocation group size in log2 are not necessarily
+equivalent.
 
 [yellow-background]*TODO describe*
 
@@ -383,11 +417,12 @@ Contains the allocation group number of the corresponding sector
 | 12 | 4 | | [yellow-background]*Unknown (Allocation group size)* +
 Contains number of blocks
 | 16 | 4 | | Number of inodes in the allocation group
-| 20 | 4 | | Inode B+ tree root block number
+| 20 | 4 | | Inode B+ tree root block number +
+Contains a block number relative to the start of the allocation group
 | 24 | 4 | | Inode B+ tree height/depth
 | 28 | 4 | | Number of unused (free) inodes in the allocation group
 | 32 | 4 | | First inode number of the last allocated inode chunk +
-Contains a relative inode number
+Contains an inode number relative to the allocation group
 | 36 | 4 | -1 (0xffffffff) | [yellow-background]*Unknown (deprecated)*
 | 40 | 64 x 4 | | Hash table of unlinked (deleted) inodes that are still being referenced +
 Contains -1 (0xffffffff) if not set
@@ -397,7 +432,8 @@ Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_met
 | 312 | 4 | | Checksum
 | 316 | 4 | | [yellow-background]*Unknown (padding)*
 | 320 | 8 | | Log sequence number
-| 328 | 4 | | Free inode B+ tree root block number
+| 328 | 4 | | Free inode B+ tree root block number +
+Contains a block number relative to the start of the allocation group
 | 332 | 4 | | Free inode B+ tree height/depth
 |===
 
@@ -432,9 +468,9 @@ The B+ tree block header 32-bit (xfs_btree_sblock_t or xfs_btree_iblock_t) is
 Contains 0 for a leaf block
 | 6 | 2 | | Number of records
 | 8 | 4 | | Previous B+ tree block number +
-Contains -1 (0xffffffff) if not set
+Contains a block number relative to the start of the allocation group or -1 (0xffffffff) if not set
 | 12 | 4 | | Next B+ tree block number +
-Contains -1 (0xffffffff) if not set
+Contains a block number relative to the start of the allocation group or -1 (0xffffffff) if not set
 4+| _If version >= 5_
 | 16 | 8 | | Block number
 | 24 | 8 | | Log sequence number
@@ -548,7 +584,8 @@ consist of:
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
-| 0 | 4 | | Number of the first inode in the branch
+| 0 | 4 | | Number of the first inode in the branch +
+Contains an inode number relative to the allocation group
 |===
 
 [NOTE]
@@ -573,7 +610,8 @@ consist of:
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
-| 0 | 4 | | Number of the first inode of the inode chunk
+| 0 | 4 | | Number of the first inode of the inode chunk +
+Contains an inode number relative to the allocation group
 | 4 | 4 | | Number of unused (free) inodes of the inode chunk
 | 8 | 8 | | Inode chunk allocation bitmap +
 Bitmap to indicated which inodes of the inode chunk are unused (free)
@@ -850,14 +888,12 @@ The packed extent (xfs_bmbt_rec_t) is 128 bits of size and consist of:
 |===
 | Offset | Size | Value | Description
 | 0 | 21 bits | | Number of blocks
-| 2.4 | 52 bits | Absolute (physical) block number
+| 2.4 | 52 bits | Physical block number +
+Contains a file system block number +
+See section: <<file_system_block_number,File system block number>>
 | 9.1 | 54 bits | Logical block number
-| 15.7 | 1 bit | Is unwritten extent
+| 15.7 | 1 bit | Uninitialized (unwritten) extent
 |===
-
-....
-file offset = absolute block number x block size
-....
 
 === [[extent_btree]]Extent B+ tree
 
@@ -932,16 +968,16 @@ The branch node entry key (xfs_bmbt_key_t) is 8 byte of size and consist of:
 
 ===== Extent B+ tree branch node entry value
 
-The branch node entry value (xfs_bmbt_key_t) is 8 byte of size and consist of:
+The branch node entry value (xfs_bmbt_ptr_t or xfs_bmdr_ptr_t) is 8 byte of size
+and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
 | 0 | 8 | | Block number of the extent B+ tree sub node +
-Contains a block number relative to the start of the file
+Contains a file system block number +
+See section: <<file_system_block_number,File system block number>>
 |===
-
-[yellow-background]*TODO check if block number relative to the start of the file or the allocation group*
 
 ==== Extent B+ tree leaf block node
 
@@ -1156,7 +1192,7 @@ types of extents:
 [cols="1,5",options="header"]
 |===
 | Signature | Description
-| "X2D2" | Directory entries B+ tree
+| "XD2D" | Directory entries B+ tree
 | "XD2F" | Directory free space B+ tree
 | "XDD3" | Version 5 Directory entries B+ tree
 | "XDF3" | Version 5 Directory free space B+ tree
@@ -1197,6 +1233,26 @@ __uint32_t
 bestcount;
 } xfs_dir2_leaf_tail_t;
 ....
+
+== File content
+
+HFS supports multiple ways to store file content:
+
+* inline data (fork type XFS_DINODE_FMT_LOCAL)
+* extents defined by either an extent list (fork type XFS_DINODE_FMT_EXTENTS) or an extent B+ tree (fork type XFS_DINODE_FMT_BTREE)
+
+=== Inline data
+
+The file content data is stored in the inode data fork.
+
+=== Extents
+
+The file content data is stored in the block defined by the extents.
+
+If the logical block numbers of successive extents are non-contiguous this means
+the file content data has an implicit sparse extent (or hole).
+
+[yellow-background]*TODO determine if the hole can be at the start or end of the file content data.*
 
 :numbered!:
 [appendix]

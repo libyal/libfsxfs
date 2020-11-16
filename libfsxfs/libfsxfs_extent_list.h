@@ -34,9 +34,11 @@ extern "C" {
 
 int libfsxfs_extent_list_read_data(
      libcdata_array_t *extents_array,
+     uint64_t number_of_blocks,
      uint32_t number_of_extents,
      const uint8_t *data,
      size_t data_size,
+     uint8_t add_sparse_extents,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )

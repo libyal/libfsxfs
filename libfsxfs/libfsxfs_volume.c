@@ -1052,14 +1052,15 @@ int libfsxfs_internal_volume_open_read(
 		}
 		if( internal_volume->superblock == NULL )
 		{
-			internal_volume->superblock                               = superblock;
-			internal_volume->io_handle->format_version                = superblock->format_version;
-			internal_volume->io_handle->secondary_feature_flags       = superblock->secondary_feature_flags;
-			internal_volume->io_handle->block_size                    = superblock->block_size;
-			internal_volume->io_handle->allocation_group_size         = superblock->allocation_group_size;
-			internal_volume->io_handle->inode_size                    = superblock->inode_size;
-			internal_volume->io_handle->directory_block_size          = superblock->directory_block_size;
-			internal_volume->io_handle->number_of_relative_inode_bits = superblock->number_of_relative_inode_bits;
+			internal_volume->superblock                                      = superblock;
+			internal_volume->io_handle->format_version                       = superblock->format_version;
+			internal_volume->io_handle->secondary_feature_flags              = superblock->secondary_feature_flags;
+			internal_volume->io_handle->block_size                           = superblock->block_size;
+			internal_volume->io_handle->allocation_group_size                = superblock->allocation_group_size;
+			internal_volume->io_handle->inode_size                           = superblock->inode_size;
+			internal_volume->io_handle->directory_block_size                 = superblock->directory_block_size;
+			internal_volume->io_handle->number_of_relative_block_number_bits = superblock->number_of_relative_block_number_bits;
+			internal_volume->io_handle->number_of_relative_inode_number_bits = superblock->number_of_relative_inode_number_bits;
 
 			superblock = NULL;
 		}
