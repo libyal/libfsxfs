@@ -373,7 +373,7 @@ int libfsxfs_directory_read_file_io_handle(
 				if( libcnotify_verbose != 0 )
 				{
 					libcnotify_printf(
-					 "%s: extent: %d physical block number\t: %" PRIu64 "\n",
+					 "%s: extent: %d physical block number\t\t: %" PRIu64 "\n",
 					 function,
 					 extent_index,
 					 extent->physical_block_number );
@@ -385,7 +385,7 @@ int libfsxfs_directory_read_file_io_handle(
 					 allocation_group_index );
 
 					libcnotify_printf(
-					 "%s: extent: %d relative block number\t: %" PRIu64 "\n",
+					 "%s: extent: %d relative block number\t\t: %" PRIu64 "\n",
 					 function,
 					 extent_index,
 					 relative_block_number );

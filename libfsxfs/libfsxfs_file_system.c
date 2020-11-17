@@ -32,6 +32,7 @@
 #include "libfsxfs_inode_information.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
+#include "libfsxfs_libcnotify.h"
 #include "libfsxfs_libcthreads.h"
 #include "libfsxfs_libuna.h"
 
@@ -350,6 +351,16 @@ int libfsxfs_file_system_get_inode_by_number(
 
 			goto on_error;
 		}
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "Reading inode: %" PRIu64 " at offset: %" PRIi64 " (0x%08" PRIx64 ").\n",
+			 inode_number,
+			 file_offset,
+			 file_offset );
+		}
+#endif
 		if( libfsxfs_inode_read_file_io_handle(
 		     safe_inode,
 		     io_handle,
@@ -361,8 +372,9 @@ int libfsxfs_file_system_get_inode_by_number(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_IO,
 			 LIBCERROR_IO_ERROR_READ_FAILED,
-			 "%s: unable to read inode at offset: %" PRIi64 " (0x%08" PRIx64 ").",
+			 "%s: unable to read inode: %" PRIu64 " at offset: %" PRIi64 " (0x%08" PRIx64 ").",
 			 function,
+			 inode_number,
 			 file_offset,
 			 file_offset );
 

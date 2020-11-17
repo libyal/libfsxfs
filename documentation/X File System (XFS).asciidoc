@@ -1143,8 +1143,6 @@ Contains the size of the unused block including the size of the signature and en
 | ... | 2 | | [yellow-background]*Unknown (offset, tag)*
 |===
 
-[yellow-background]*TODO describe*
-
 ==== Block directory hash value
 
 ===== Block directory hash value version 2

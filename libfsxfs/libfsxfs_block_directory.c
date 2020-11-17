@@ -226,7 +226,9 @@ int libfsxfs_block_directory_read_data(
 	static char *function                       = "libfsxfs_block_directory_read_data";
 	size_t alignment_padding_size               = 0;
 	size_t data_offset                          = 0;
+	size_t entries_data_end_offset              = 0;
 	size_t entry_data_size                      = 0;
+	size_t hash_values_data_size                = 0;
 	uint64_t inode_number                       = 0;
 	uint32_t directory_entry_index              = 0;
 	uint16_t free_tag                           = 0;
@@ -375,6 +377,24 @@ int libfsxfs_block_directory_read_data(
 
 			goto on_error;
 		}
+		if( (size_t) block_directory->footer->number_of_entries > ( ( data_size - data_offset - 8 ) / 8 ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: invalid number of entries value out of bounds.",
+			 function );
+
+			goto on_error;
+		}
+		hash_values_data_size = (size_t) block_directory->footer->number_of_entries * 8;
+
+		entries_data_end_offset = data_size - ( 8 + hash_values_data_size );
+	}
+	else
+	{
+		entries_data_end_offset = data_size;
 	}
 	if( block_directory->header->format_version == 3 )
 	{
@@ -384,9 +404,9 @@ int libfsxfs_block_directory_read_data(
 	{
 		data_offset = sizeof( fsxfs_block_directory_header_v2_t );
 	}
-	while( data_offset < data_size )
+	while( data_offset < entries_data_end_offset )
 	{
-		if( ( data_size - data_offset ) < 4 )
+		if( ( entries_data_end_offset - data_offset ) < 4 )
 		{
 			libcerror_error_set(
 			 error,
@@ -425,9 +445,11 @@ int libfsxfs_block_directory_read_data(
 			}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-			break;
+			data_offset += entry_data_size;
+
+			continue;
 		}
-		if( ( data_size - data_offset ) < 9 )
+		if( ( entries_data_end_offset - data_offset ) < 9 )
 		{
 			libcerror_error_set(
 			 error,
@@ -455,7 +477,7 @@ int libfsxfs_block_directory_read_data(
 			entry_data_size       += alignment_padding_size;
 		}
 		if( ( entry_data_size < 6 )
-		 || ( entry_data_size > ( data_size - data_offset ) ) )
+		 || ( entry_data_size > ( entries_data_end_offset - data_offset ) ) )
 		{
 			libcerror_error_set(
 			 error,
@@ -635,6 +657,21 @@ int libfsxfs_block_directory_read_data(
 		data_offset += 2;
 
 		directory_entry_index++;
+	}
+	if( hash_values_data_size > 0 )
+	{
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: hash values data:\n",
+			 function );
+			libcnotify_print_data(
+			 &( data[ entries_data_end_offset ] ),
+			 hash_values_data_size,
+			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
 	}
 	return( 1 );
 
