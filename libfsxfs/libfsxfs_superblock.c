@@ -653,6 +653,20 @@ int libfsxfs_superblock_read_data(
 
 		return( -1 );
 	}
+/* TODO check if block size a multitude of 2 */
+	if( ( superblock->block_size < 512 )
+	 || ( superblock->block_size > 65536 ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: unsupported block size: %" PRIu32 ".",
+		 function,
+		 superblock->block_size );
+
+		return( -1 );
+	}
 	if( ( superblock->sector_size != 512 )
 	 && ( superblock->sector_size != 1024 )
 	 && ( superblock->sector_size != 2048 )
@@ -670,8 +684,8 @@ int libfsxfs_superblock_read_data(
 
 		return( -1 );
 	}
-/* TOFO check if inode size a multitude of 2 */
-	if( ( superblock->inode_size == 0 )
+/* TODO check if inode size a multitude of 2 */
+	if( ( superblock->inode_size < 256 )
 	 || ( superblock->inode_size > 2048 ) )
 	{
 		libcerror_error_set(
@@ -684,36 +698,52 @@ int libfsxfs_superblock_read_data(
 
 		return( -1 );
 	}
-	if( ( ( (uint64_t) 1UL << ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2 ) != (uint64_t) number_of_inodes_per_block ) )
+	if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 == 0 )
+	{
+		superblock->directory_block_size = superblock->block_size;
+	}
+	else
+	{
+		if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 > 32 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+			 "%s: invalid directory block size log2 value out of bounds.",
+			 function );
+
+			return( -1 );
+		}
+		superblock->directory_block_size = (uint32_t) 1 << ( (fsxfs_superblock_t *) data )->directory_block_size_log2;
+
+		if( (size_t) superblock->directory_block_size > (size_t) ( UINT32_MAX / superblock->block_size ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+			 "%s: invalid directory block size log2 value out of bounds.",
+			 function );
+
+			return( -1 );
+		}
+		superblock->directory_block_size *= superblock->block_size;
+	}
+	if( ( superblock->allocation_group_size < 5 )
+	 || ( superblock->allocation_group_size > (uint32_t) INT32_MAX ) )
 	{
 		libcerror_error_set(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: mismatch between number of inodes per block and log2 values.",
+		 "%s: invalid allocation group size value out of bounds.",
 		 function );
 
 		return( -1 );
-	}
-	if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 > 32 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: invalid directory block size log2 value out of bounds.",
-		 function );
-
-		return( -1 );
-	}
-	superblock->directory_block_size = superblock->block_size;
-
-	if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 != 0 )
-	{
-		superblock->directory_block_size *= (uint32_t) 1 << ( (fsxfs_superblock_t *) data )->directory_block_size_log2;
 	}
 	if( ( ( (fsxfs_superblock_t *) data )->allocation_group_size_log2 == 0 )
-	 || ( ( (fsxfs_superblock_t *) data )->allocation_group_size_log2 > 32 ) )
+	 || ( ( (fsxfs_superblock_t *) data )->allocation_group_size_log2 > 31 ) )
 	{
 		libcerror_error_set(
 		 error,
@@ -748,6 +778,17 @@ int libfsxfs_superblock_read_data(
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
 		 "%s: invalid number of relative inode number bits value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( ( (uint64_t) 1UL << ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2 ) != (uint64_t) number_of_inodes_per_block ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: mismatch between number of inodes per block and log2 values.",
 		 function );
 
 		return( -1 );
