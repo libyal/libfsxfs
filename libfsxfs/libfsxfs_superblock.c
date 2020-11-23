@@ -704,7 +704,7 @@ int libfsxfs_superblock_read_data(
 	}
 	else
 	{
-		if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 > 32 )
+		if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 >= 32 )
 		{
 			libcerror_error_set(
 			 error,
@@ -771,7 +771,7 @@ int libfsxfs_superblock_read_data(
 	superblock->number_of_relative_inode_number_bits = superblock->number_of_relative_block_number_bits + (uint8_t) ( (fsxfs_superblock_t *) data )->number_of_inodes_per_block_log2;
 
 	if( ( superblock->number_of_relative_inode_number_bits == 0 )
-	 || ( superblock->number_of_relative_inode_number_bits > 32 ) )
+	 || ( superblock->number_of_relative_inode_number_bits >= 32 ) )
 	{
 		libcerror_error_set(
 		 error,

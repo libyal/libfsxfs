@@ -958,6 +958,7 @@ int libfsxfs_internal_volume_open_read(
 {
 	libfsxfs_superblock_t *superblock = NULL;
 	static char *function             = "libfsxfs_internal_volume_open_read";
+	off64_t allocation_group_size     = 0;
 	off64_t inode_information_offset  = 0;
 	off64_t superblock_offset         = 0;
 	uint32_t allocation_group_index   = 0;
@@ -1125,12 +1126,37 @@ int libfsxfs_internal_volume_open_read(
 				goto on_error;
 			}
 		}
-		superblock_offset += internal_volume->io_handle->allocation_group_size * internal_volume->io_handle->block_size;
+		allocation_group_size = (off64_t) internal_volume->io_handle->allocation_group_size * internal_volume->io_handle->block_size;
+
+		if( ( allocation_group_size == 0 )
+		 || ( superblock_offset > ( (off64_t) INT64_MAX - allocation_group_size ) ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: invalid next superblock offset value out of bounds.",
+			 function );
+
+			goto on_error;
+		}
+		superblock_offset += allocation_group_size;
 
 		allocation_group_index++;
 	}
 	while( allocation_group_index < internal_volume->superblock->number_of_allocation_groups );
 
+	if( allocation_group_index != internal_volume->superblock->number_of_allocation_groups )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid last allocation group index value out of bounds.",
+		 function );
+
+		goto on_error;
+	}
 	return( 1 );
 
 on_error:
