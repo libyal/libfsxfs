@@ -10,7 +10,8 @@ Analysis of SGI XFS
 
 The X File System (XFS) is a file system that originates from SGI but is used
 in various Linux distributions like RHEL. Some sources indicate that X was a
-a placeholder for a name that never given.
+a placeholder for a name that never given. This specification is based on
+publicly available work on the format and was enhanced by analyzing test data.
 
 This document is intended as a working document of the data format specification
 for the libfsxfs project.
