@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="fsxfs_test_block_directory_header"
-	ProjectGUID="{BA991BE2-B36A-4554-9417-7A91279F34A4}"
-	RootNamespace="fsxfs_test_block_directory_header"
+	Name="fsxfs_test_tools_signal"
+	ProjectGUID="{11639A8F-5C1B-4C6A-88B1-F6BE7EA83B9E}"
+	RootNamespace="fsxfs_test_tools_signal"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -176,11 +176,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\tests\fsxfs_test_block_directory_header.c"
+				RelativePath="..\..\fsxfstools\fsxfstools_signal.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\tests\fsxfs_test_memory.c"
+				RelativePath="..\..\tests\fsxfs_test_tools_signal.c"
 				>
 			</File>
 		</Filter>
@@ -190,19 +190,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\..\fsxfstools\fsxfstools_signal.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\tests\fsxfs_test_libcerror.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\tests\fsxfs_test_libfsxfs.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\tests\fsxfs_test_macros.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\tests\fsxfs_test_memory.h"
 				>
 			</File>
 			<File

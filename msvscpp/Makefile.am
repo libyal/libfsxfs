@@ -15,6 +15,9 @@ MSVSCPP_FILES = \
 	fsxfs_test_notify/fsxfs_test_notify.vcproj \
 	fsxfs_test_superblock/fsxfs_test_superblock.vcproj \
 	fsxfs_test_support/fsxfs_test_support.vcproj \
+	fsxfs_test_tools_info_handle/fsxfs_test_tools_info_handle.vcproj \
+	fsxfs_test_tools_output/fsxfs_test_tools_output.vcproj \
+	fsxfs_test_tools_signal/fsxfs_test_tools_signal.vcproj \
 	fsxfs_test_volume/fsxfs_test_volume.vcproj \
 	fsxfsinfo/fsxfsinfo.vcproj \
 	libbfio/libbfio.vcproj \
