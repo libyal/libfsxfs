@@ -31,7 +31,7 @@ for the libfsxfs project.
 == License
 
 ....
-Copyright (C) 2020, Joachim Metz <joachim.metz@gmail.com>.
+Copyright (C) 2020-2021, Joachim Metz <joachim.metz@gmail.com>.
 Permission is granted to copy, distribute and/or modify this document under the
 terms of the GNU Free Documentation License, Version 1.3 or any later version
 published by the Free Software Foundation; with no Invariant Sections, no
@@ -47,6 +47,7 @@ in the section entitled "GNU Free Documentation License".
 | Version | Author | Date | Comments
 | 0.0.1 | J.B. Metz | September 2020 | Initial version.
 | 0.0.2 | J.B. Metz | November 2020 | Additional information about data format.
+| 0.0.3 | J.B. Metz | April 2021 | Changes to formatting.
 |===
 
 :numbered:
@@ -889,11 +890,11 @@ The packed extent (xfs_bmbt_rec_t) is 128 bits of size and consist of:
 |===
 | Offset | Size | Value | Description
 | 0 | 21 bits | | Number of blocks
-| 2.4 | 52 bits | Physical block number +
+| 2.4 | 52 bits | | Physical block number +
 Contains a file system block number +
 See section: <<file_system_block_number,File system block number>>
-| 9.1 | 54 bits | Logical block number
-| 15.7 | 1 bit | Uninitialized (unwritten) extent
+| 9.1 | 54 bits | | Logical block number
+| 15.7 | 1 bit | | Uninitialized (unwritten) extent
 |===
 
 === [[extent_btree]]Extent B+ tree
