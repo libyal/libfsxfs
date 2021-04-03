@@ -664,19 +664,41 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 			goto on_error;
 		}
 	}
-	if( libfsxfs_directory_entry_clone(
-	     directory_entry,
-	     safe_directory_entry,
-	     error ) != 1 )
+	if( result == 0 )
 	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create directory entry.",
-		 function );
+		if( safe_inode != NULL )
+		{
+			if( libfsxfs_inode_free(
+			     &safe_inode,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free inode.",
+				 function );
 
-		goto on_error;
+				goto on_error;
+			}
+		}
+	}
+	else
+	{
+		if( libfsxfs_directory_entry_clone(
+		     directory_entry,
+		     safe_directory_entry,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create directory entry.",
+			 function );
+
+			goto on_error;
+		}
 	}
 	/* Directory needs to be freed after making a clone of directory_entry
 	 */
@@ -993,19 +1015,41 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 			goto on_error;
 		}
 	}
-	if( libfsxfs_directory_entry_clone(
-	     directory_entry,
-	     safe_directory_entry,
-	     error ) != 1 )
+	if( result == 0 )
 	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create directory entry.",
-		 function );
+		if( safe_inode != NULL )
+		{
+			if( libfsxfs_inode_free(
+			     &safe_inode,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free inode.",
+				 function );
 
-		goto on_error;
+				goto on_error;
+			}
+		}
+	}
+	else
+	{
+		if( libfsxfs_directory_entry_clone(
+		     directory_entry,
+		     safe_directory_entry,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create directory entry.",
+			 function );
+
+			goto on_error;
+		}
 	}
 	/* Directory needs to be freed after making a clone of directory_entry
 	 */
