@@ -25,6 +25,7 @@
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_extent.h"
 #include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 
