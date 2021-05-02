@@ -1,5 +1,5 @@
 /*
- * OSS-Fuzz target for libfsxfs volume type
+ * OSS-Fuzz target for libfsxfs file_entry type
  *
  * Copyright (C) 2020-2021, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -47,8 +47,11 @@ int LLVMFuzzerTestOneInput(
      const uint8_t *data,
      size_t size )
 {
-	libbfio_handle_t *file_io_handle = NULL;
-	libfsxfs_volume_t *volume        = NULL;
+	libbfio_handle_t *file_io_handle      = NULL;
+	libfsxfs_file_entry_t *root_directory = NULL;
+	libfsxfs_file_entry_t *sub_file_entry = NULL;
+	libfsxfs_volume_t *volume             = NULL;
+	int number_of_sub_file_entries        = 0;
 
 	if( libbfio_memory_range_initialize(
 	     &file_io_handle,
@@ -76,13 +79,44 @@ int LLVMFuzzerTestOneInput(
 	     LIBFSXFS_OPEN_READ,
 	     NULL ) != 1 )
 	{
-		goto on_error_libfsxfs;
+		goto on_error_libfsxfs_volume;
+	}
+	if( libfsxfs_volume_get_root_directory(
+	     volume,
+	     &root_directory,
+	     NULL ) == 1 )
+	{
+		if( libfsxfs_file_entry_get_number_of_sub_file_entries(
+		     root_directory,
+		     &number_of_sub_file_entries,
+		     NULL ) != 1 )
+		{
+			goto on_error_libfsxfs_root_directory;
+		}
+		if( number_of_sub_file_entries > 0 )
+		{
+			if( libfsxfs_file_entry_get_sub_file_entry_by_index(
+			     root_directory,
+			     0,
+			     &sub_file_entry,
+			     NULL ) != 1 )
+			{
+				goto on_error_libfsxfs_root_directory;
+			}
+			libfsxfs_file_entry_free(
+			 &sub_file_entry,
+			 NULL );
+		}
+on_error_libfsxfs_root_directory:
+		libfsxfs_file_entry_free(
+		 &root_directory,
+		 NULL );
 	}
 	libfsxfs_volume_close(
 	 volume,
 	 NULL );
 
-on_error_libfsxfs:
+on_error_libfsxfs_volume:
 	libfsxfs_volume_free(
 	 &volume,
 	 NULL );
