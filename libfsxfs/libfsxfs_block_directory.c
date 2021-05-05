@@ -445,6 +445,17 @@ int libfsxfs_block_directory_read_data(
 			}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
+			if( entry_data_size < 4 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+				 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+				 "%s: invalid data size value out of bounds.",
+				 function );
+
+				goto on_error;
+			}
 			data_offset += entry_data_size;
 
 			continue;
