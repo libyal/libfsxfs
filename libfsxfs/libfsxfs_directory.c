@@ -360,6 +360,18 @@ int libfsxfs_directory_read_file_io_handle(
 
 					goto on_error;
 				}
+				if( (uint64_t) extent->logical_block_number > ( (uint64_t) INT64_MAX / io_handle->block_size ) )
+				{
+					libcerror_error_set(
+					 error,
+					 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+					 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+					 "%s: invalid extent: %d - logical block number value out of bounds.",
+					 function,
+					 extent_index );
+
+					goto on_error;
+				}
 				logical_offset = (off64_t) extent->logical_block_number * io_handle->block_size;
 
 				if( logical_offset >= (off64_t) 0x800000000UL )
