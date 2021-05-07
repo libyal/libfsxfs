@@ -845,7 +845,7 @@ int libfsxfs_inode_btree_get_inode_by_number(
 		return( -1 );
 	}
 	allocation_group_index = (int) ( absolute_inode_number >> io_handle->number_of_relative_inode_number_bits );
-	relative_inode_number  = absolute_inode_number & ( ( 1 << io_handle->number_of_relative_inode_number_bits ) - 1 );
+	relative_inode_number  = absolute_inode_number & ( ( (uint64_t) 1 << io_handle->number_of_relative_inode_number_bits ) - 1 );
 
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
