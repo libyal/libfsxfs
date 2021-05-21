@@ -204,13 +204,20 @@ See section: <<secondary_feature_flags,Secondary feature flags>>
 4+| _If version >= 5_
 | 208 | 4 | | (Read-write) compatible feature flags +
 See section: <<compatible_feature_flags,Compatible feature flags>>
-| 208 | 4 | | Read-only compatible feature flags +
+| 212 | 4 | | Read-only compatible feature flags +
 See section: <<read_only_compatible_feature_flags,Read-only compatible feature flags>>
-| 208 | 4 | | (Read-write) incompatible feature flags +
+| 216 | 4 | | (Read-write) incompatible feature flags +
 See section: <<incompatible_feature_flags,Incompatible feature flags>>
-| 208 | 4 | | Journal (read-write) incompatible feature flags +
+| 220 | 4 | | Journal (read-write) incompatible feature flags +
 See section: <<journal_incompatible_feature_flags,Journal incompatible feature flags>>
-| 208 | 4 | | Checksum of the superblock
+| 224 | 4 | | CRC32 checksum of the superblock
+| 228 | 4 | | Sparse inode alignment
+| 232 | 4 | | Project quota inode
+| 240 | 8 | | Log seq number of last superblock update
+4+| _Only used if the INCOMPAT_META_UUID feature flag is set_
+| 248 | 16 | | Alternate UUID
+4+| _Only used if the INCOMPAT_META_RMAPBT feature flag is set_
+| 264 | 8 | | Inode of RM btree
 |===
 
 [NOTE]
