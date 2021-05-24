@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _FSEXTTOOLS_LIBHMAC_H )
-#define _FSEXTTOOLS_LIBHMAC_H
+#if !defined( _FSXFSTOOLS_LIBHMAC_H )
+#define _FSXFSTOOLS_LIBHMAC_H
 
 #include <common.h>
 
@@ -47,5 +47,5 @@
 
 #endif /* defined( HAVE_LOCAL_LIBHMAC ) */
 
-#endif /* !defined( _FSEXTTOOLS_LIBHMAC_H ) */
+#endif /* !defined( _FSXFSTOOLS_LIBHMAC_H ) */
 

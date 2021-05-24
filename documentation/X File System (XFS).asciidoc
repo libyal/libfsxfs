@@ -48,6 +48,7 @@ in the section entitled "GNU Free Documentation License".
 | 0.0.1 | J.B. Metz | September 2020 | Initial version.
 | 0.0.2 | J.B. Metz | November 2020 | Additional information about data format.
 | 0.0.3 | J.B. Metz | April 2021 | Changes to formatting.
+| 0.0.4 | J.B. Metz | May 2021 | Clean up of some notes.
 |===
 
 :numbered:
@@ -204,27 +205,26 @@ See section: <<secondary_feature_flags,Secondary feature flags>>
 4+| _If version >= 5_
 | 208 | 4 | | (Read-write) compatible feature flags +
 See section: <<compatible_feature_flags,Compatible feature flags>>
-| 208 | 4 | | Read-only compatible feature flags +
+| 212 | 4 | | Read-only compatible feature flags +
 See section: <<read_only_compatible_feature_flags,Read-only compatible feature flags>>
-| 208 | 4 | | (Read-write) incompatible feature flags +
+| 216 | 4 | | (Read-write) incompatible feature flags +
 See section: <<incompatible_feature_flags,Incompatible feature flags>>
-| 208 | 4 | | Journal (read-write) incompatible feature flags +
+| 220 | 4 | | Journal (read-write) incompatible feature flags +
 See section: <<journal_incompatible_feature_flags,Journal incompatible feature flags>>
-| 208 | 4 | | Checksum of the superblock
+| 224 | 4 | | Checksum of the superblock
+| 228 | 4 | | [yellow-background]*Unknown (Sparse inode chunk alignment in number of blocks)*
+| 232 | 4 | | Project quota inode number
+| 240 | 8 | | Journal log sequence number (LSN) of the last superblock update
+4+| _Only used if the XFS_SB_FEAT_INCOMPAT_META_UUID incompatible feature flag is set_
+| 248 | 16 | | Metadata identifier +
+Contains an UUID
+4+| _Only used if the XFS_SB_FEAT_RO_COMPAT_RMAPBT incompatible feature flag is set_
+| 264 | 8 | | Real-time Reverse Mapping B+tree inode number
 |===
 
 [NOTE]
 Allocation group size and allocation group size in log2 are not necessarily
 equivalent.
-
-[yellow-background]*TODO describe*
-
-....
-	xfs_extlen_t	sb_spino_align;	/* sparse inode chunk alignment */
-	xfs_ino_t	sb_pquotino;	/* project quota inode */
-	xfs_lsn_t	sb_lsn;		/* last write sequence */
-	uuid_t		sb_meta_uuid;	/* metadata file system unique id */
-....
 
 === [[feature_flags]]Feature flags
 
@@ -311,7 +311,7 @@ Current no compatible feature flags are defined
 | Value | Identifier | Description
 | 0x00000001 | XFS_SB_FEAT_INCOMPAT_FTYPE |
 | 0x00000002 | XFS_SB_FEAT_INCOMPAT_SPINODES |
-| 0x00000004 | XFS_SB_FEAT_INCOMPAT_META_UUID |
+| 0x00000004 | XFS_SB_FEAT_INCOMPAT_META_UUID | Use a metadata identifier
 |===
 
 === [[journal_incompatible_feature_flags]]Journal incompatible feature flags
