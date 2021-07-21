@@ -1,14 +1,19 @@
 TODO:
+* add support for extended attributes
+
 * complete basic format version 4 and 5 support
 ** complete libfsxfs_file_entry_get_sub_file_entry_by_utf8_name
 ** complete libfsxfs_file_entry_get_sub_file_entry_by_utf16_name
+
+* implement or remove libfsxfs_file_entry_is_empty from info_handle
+
+* move code to read directory table entry into directory entry?
 
 * store (directory table) parent inode number in directory entry?
 
 * change btree_block into btree_node
 
 * add support for XFS_SB_VERSION_BORGBIT
-* add support for extended attributes
 
 * add support for format version 1 (need test data)
 * add support for format version 2 (need test data)

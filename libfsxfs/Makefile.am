@@ -21,12 +21,16 @@ AM_CPPFLAGS = \
 lib_LTLIBRARIES = libfsxfs.la
 
 libfsxfs_la_SOURCES = \
+	fsxfs_attributes.h \
 	fsxfs_block_directory.h \
 	fsxfs_btree.h \
 	fsxfs_inode.h \
 	fsxfs_inode_information.h \
 	fsxfs_superblock.h \
 	libfsxfs.c \
+	libfsxfs_attributes_table.c libfsxfs_attributes_table.h \
+	libfsxfs_attributes_table_header.c libfsxfs_attributes_table_header.h \
+	libfsxfs_attribute_values.c libfsxfs_attribute_values.h \
 	libfsxfs_block_data_handle.c libfsxfs_block_data_handle.h \
 	libfsxfs_block_directory.c libfsxfs_block_directory.h \
 	libfsxfs_block_directory_footer.c libfsxfs_block_directory_footer.h \
@@ -42,6 +46,7 @@ libfsxfs_la_SOURCES = \
 	libfsxfs_directory_table.c libfsxfs_directory_table.h \
 	libfsxfs_directory_table_header.c libfsxfs_directory_table_header.h \
 	libfsxfs_error.c libfsxfs_error.h \
+	libfsxfs_extended_attribute.c libfsxfs_extended_attribute.h \
 	libfsxfs_extent.c libfsxfs_extent.h \
 	libfsxfs_extent_btree.c libfsxfs_extent_btree.h \
 	libfsxfs_extent_list.c libfsxfs_extent_list.h \

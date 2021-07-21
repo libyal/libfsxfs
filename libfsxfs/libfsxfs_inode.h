@@ -111,9 +111,13 @@ struct libfsxfs_inode
 	 */
 	uint16_t data_fork_size;
 
-	/* Attributes fork offset
+	/* (Extended) attributes fork type
 	 */
-	uint16_t attributes_fork_offset;
+	uint8_t attributes_fork_type;
+
+	/* The extended attributes
+	 */
+	libcdata_array_t *extended_attributes_array;
 };
 
 int libfsxfs_inode_initialize(

@@ -49,6 +49,7 @@ in the section entitled "GNU Free Documentation License".
 | 0.0.2 | J.B. Metz | November 2020 | Additional information about data format.
 | 0.0.3 | J.B. Metz | April 2021 | Changes to formatting.
 | 0.0.4 | J.B. Metz | May 2021 | Clean up of some notes.
+| 0.0.5 | J.B. Metz | July 2021 | Additional information about extended attributes.
 |===
 
 :numbered:
@@ -62,7 +63,7 @@ a placeholder for a name that never given.
 |===
 | Characteristics | Description
 | Byte order | big-endian
-| Date and time values |
+| Date and time values | number of seconds since January 1, 1970 00:00:00 UTC (POSIX epoch) and fraction of second in number of nanoseconds
 | Character strings |
 |===
 
@@ -574,6 +575,7 @@ The inode B+ tree branch node consists of:
 * array of inode B+ tree branch node entry values
 
 The number of key-value pairs is calculated as following:
+
 ....
 number of key-value pairs = node records data size / 8
 ....
@@ -631,9 +633,9 @@ file offset = allocation group file offset + ( inode number x inode size )
 The inode can be followed by:
 
 * data fork (descriptor)
-** inline data (fork type XFS_DINODE_FMT_LOCAL)
-** extent list (fork type XFS_DINODE_FMT_EXTENTS)
-** extent B+ tree (fork type XFS_DINODE_FMT_BTREE)
+** inline data (fork type is XFS_DINODE_FMT_LOCAL)
+** extent list (fork type is XFS_DINODE_FMT_EXTENTS)
+** extent B+ tree (fork type is XFS_DINODE_FMT_BTREE)
 * optional (extended) attributes data fork (descriptor)
 
 === Inode version 1
@@ -673,9 +675,9 @@ Contains number of nano seconds
 | 72 | 4 | | Extent size
 | 76 | 4 | | Number of data extents
 | 80 | 2 | | Number of (extended) attributes extents
-| 84 | 1 | | (Extended) attributes fork descriptor offset +
+| 82 | 1 | | (Extended) attributes fork descriptor offset +
 Contains an offset (value x 8) relative to the end of the inode
-| 83 | 1 | | [yellow-background]*Unknown (format of the attributes fork)*
+| 83 | 1 | | (Extended) attributes fork type
 | 84 | 4 | | [yellow-background]*Unknown (DMAPI event mask)*
 | 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
 | 90 | 2 | | Inode flags
@@ -721,9 +723,9 @@ Contains number of nano seconds
 | 72 | 4 | | Extent size
 | 76 | 4 | | Number of data extents
 | 80 | 2 | | Number of (extended) attributes extents
-| 84 | 1 | | (Extended) attributes fork descriptor offset +
+| 82 | 1 | | (Extended) attributes fork descriptor offset +
 Contains an offset (value x 8) relative to the end of the inode
-| 83 | 1 | | [yellow-background]*Unknown (format of the attributes fork)*
+| 83 | 1 | | (Extended) attributes fork type
 | 84 | 4 | | [yellow-background]*Unknown (DMAPI event mask)*
 | 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
 | 90 | 2 | | Inode flags
@@ -771,9 +773,9 @@ Contains number of nano seconds
 | 72 | 4 | | Extent size
 | 76 | 4 | | Number of data extents
 | 80 | 2 | | Number of (extended) attributes extents
-| 84 | 1 | | (Extended) attributes fork descriptor offset +
+| 82 | 1 | | (Extended) attributes fork descriptor offset +
 Contains an offset (value x 8) relative to the end of the inode
-| 83 | 1 | | [yellow-background]*Unknown (format of the attributes fork)*
+| 83 | 1 | | (Extended) attributes fork type
 | 84 | 4 | | [yellow-background]*Unknown (DMAPI event mask)*
 | 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
 | 90 | 2 | | Inode flags +
@@ -905,6 +907,7 @@ The root node of the extents B+ tree is stored in the inode and equivalent to a
 <<extent_btree_branch_node,Extent B+ tree branch node>>.
 
 The number of key-value pairs is calculated as following:
+
 ....
 number of key-value pairs = ( node data size - 4 ) / 16
 ....
@@ -943,6 +946,7 @@ The extent B+ tree branch node record consists of:
 [yellow-background]*TODO number of key-value pairs*
 
 The number of key-value pairs is calculated as following:
+
 ....
 number of key-value pairs = node records data size / 16
 ....
@@ -999,7 +1003,8 @@ directory entries can be stored in multiple ways:
 === Short-form directory table
 
 The short-form directory table (xfs_dir2_sf_t) is stored in the inode (as inline
-data). The short-form directory table consist of:
+data), where fork type is XFS_DINODE_FMT_LOCAL. The short-form directory table
+consist of:
 
 * Short-form directory table header
 * Short-form directory table entries
@@ -1236,10 +1241,10 @@ bestcount;
 
 == File content
 
-HFS supports multiple ways to store file content:
+XFS supports multiple ways to store file content:
 
-* inline data (fork type XFS_DINODE_FMT_LOCAL)
-* extents defined by either an extent list (fork type XFS_DINODE_FMT_EXTENTS) or an extent B+ tree (fork type XFS_DINODE_FMT_BTREE)
+* inline data (fork type is XFS_DINODE_FMT_LOCAL)
+* extents defined by either an extent list (fork type is XFS_DINODE_FMT_EXTENTS) or an extent B+ tree (fork typeis  XFS_DINODE_FMT_BTREE)
 
 === Inline data
 
@@ -1254,11 +1259,89 @@ the file content data has an implicit sparse extent (or hole).
 
 [yellow-background]*TODO determine if the hole can be at the start or end of the file content data.*
 
+== Extended attributes
+
+Extended attributes are stored in the attributes fork of an inode. The extended
+attributes can be stored in multiple ways:
+
+* as a short-form extended attributes table
+* as extent-based attributes
+
+=== Short-form extended attributes table
+
+The short-form extended attributes table (xfs_attr_shortform) is stored in
+the inode (as inline attributes fork data), where attributes fork type is
+XFS_DINODE_FMT_LOCAL. The short-form extended attributes table consist of:
+
+* a short-form extended attribute table header
+* one or more short-form extended attribute table entries
+
+==== The short-form extended attribute table header
+
+The short-form extended attribute table header (xfs_attr_sf_hdr) is 4 bytes
+of size and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 2 | | Data size +
+Size of the short form extended attributes table data
+| 2 | 1 | | Number of entries
+| 3 | 1 | | [yellow-background]*Unknown (padding?)*
+|===
+
+[NOTE]
+The size of the short-form extended attribute header deviates from `[SGI18]`
+based on analysis of test data.
+
+==== The short-form extended attribute entry
+
+The short-form extended attribute table entry (xfs_attr_sf_entry) is variable
+of size and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 1 | | Name size
+| 1 | 1 | | Value data size
+| 2 | 1 | | Flags +
+Also see: <<extended_attribute_flags,extended attribute flags>>
+| 3 | ... | | Name string +
+Contains an ASCII string without end-of-string character
+| ... | ... | | Value data
+|===
+
+=== Extent-based attributes
+
+[yellow-background]*TODO: determine if XFS_DINODE_FMT_BTREE can be used*
+
+The extent-based extended attributes (TBS) are stored in
+where attributes fork type is XFS_DINODE_FMT_EXTENTS.
+The extent-based extended attributes consist of:
+
+* [yellow-background]*TODO: complete this section*
+
+=== [[extended_attribute_flags]]The extended attribute flags
+
+The extended attribute flags indicate the prefix (or namespace) of the extended
+attribute name.
+
+[cols="1,1,1,5",options="header"]
+|===
+| Value | Identifier | Name prefix | Description
+| 0x00 | | "user." | The attribute is part of the user namespace
+| 0x01 | XFS_ATTR_LOCAL | | The attribute value is contained within the current block
+| 0x02 | XFS_ATTR_ROOT | "trusted." | The attribute is part of the trusted namespace
+| 0x04 | XFS_ATTR_SECURE | "secure." | The attribute is part of the secure namespace
+4+|
+| 0x80 | XFS_ATTR_INCOMPLETE | | This attribute is being modified
+|===
+
 :numbered!:
 [appendix]
 == References
 
-`[REFERENCE]`
+`[SGI18]`
 
 [cols="1,5",options="header"]
 |===

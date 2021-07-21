@@ -7,7 +7,7 @@ EXIT_SUCCESS=0;
 EXIT_FAILURE=1;
 EXIT_IGNORE=77;
 
-LIBRARY_TESTS="block_directory_footer block_directory_header btree_block btree_header buffer_data_handle directory_entry directory_table_header error extent inode_btree inode_btree_record inode_information io_handle notify superblock";
+LIBRARY_TESTS="attributes_table attributes_table_header block_directory_footer block_directory_header btree_block btree_header buffer_data_handle directory_entry directory_table_header error extent inode_btree inode_btree_record inode_information io_handle notify superblock";
 LIBRARY_TESTS_WITH_INPUT="support volume";
 OPTION_SETS="offset";
 

@@ -1,4 +1,6 @@
 MSVSCPP_FILES = \
+	fsxfs_test_attributes_table/fsxfs_test_attributes_table.vcproj \
+	fsxfs_test_attributes_table_header/fsxfs_test_attributes_table_header.vcproj \
 	fsxfs_test_block_directory_footer/fsxfs_test_block_directory_footer.vcproj \
 	fsxfs_test_block_directory_header/fsxfs_test_block_directory_header.vcproj \
 	fsxfs_test_btree_block/fsxfs_test_btree_block.vcproj \

@@ -1,5 +1,5 @@
 /*
- * Directory table functions
+ * Short-form directory table functions
  *
  * Copyright (C) 2020-2021, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -280,8 +280,9 @@ int libfsxfs_directory_table_read_data(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-			 "%s: invalid data size value out of bounds.",
-			 function );
+			 "%s: invalid directory entry: %d data size value out of bounds.",
+			 function,
+			 directory_entry_index );
 
 			goto on_error;
 		}
@@ -302,8 +303,9 @@ int libfsxfs_directory_table_read_data(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-			 "%s: invalid data size value out of bounds.",
-			 function );
+			 "%s: invalid directory entry: %d data size value out of bounds.",
+			 function,
+			 directory_entry_index );
 
 			goto on_error;
 		}

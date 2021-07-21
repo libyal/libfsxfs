@@ -614,7 +614,7 @@ int libfsxfs_extent_btree_get_extents_from_node(
 		 allocation_group_index );
 
 		libcnotify_printf(
-		 "%s: relative block number\t\t: %" PRIu64 "\n",
+		 "%s: relative block number\t: %" PRIu64 "\n",
 		 function,
 		 relative_block_number );
 

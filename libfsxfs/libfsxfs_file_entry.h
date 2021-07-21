@@ -69,6 +69,10 @@ struct libfsxfs_internal_file_entry
 	 */
 	libfsxfs_directory_entry_t *directory_entry;
 
+	/* The extended attributes
+	 */
+	libcdata_array_t *extended_attributes_array;
+
 	/* The directory
 	 */
 	libfsxfs_directory_t *directory;
@@ -217,6 +221,23 @@ int libfsxfs_file_entry_get_utf16_symbolic_link_target(
      libfsxfs_file_entry_t *file_entry,
      uint16_t *utf16_string,
      size_t utf16_string_size,
+     libcerror_error_t **error );
+
+int libfsxfs_internal_file_entry_get_extended_attributes(
+     libfsxfs_internal_file_entry_t *internal_file_entry,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_number_of_extended_attributes(
+     libfsxfs_file_entry_t *file_entry,
+     int *number_of_extended_attributes,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_extended_attribute_by_index(
+     libfsxfs_file_entry_t *file_entry,
+     int extended_attribute_index,
+     libfsxfs_extended_attribute_t **extended_attribute,
      libcerror_error_t **error );
 
 LIBFSXFS_EXTERN \

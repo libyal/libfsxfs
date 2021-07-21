@@ -46,6 +46,16 @@ void libfsxfs_debug_print_secondary_feature_flags(
 const char *libfsxfs_debug_print_fork_type(
              uint8_t fork_type );
 
+int libfsxfs_debug_print_posix_time_value(
+     const char *function_name,
+     const char *value_name,
+     const uint8_t *byte_stream,
+     size_t byte_stream_size,
+     int byte_order,
+     uint8_t value_type,
+     uint32_t string_format_flags,
+     libcerror_error_t **error );
+
 int libfsxfs_debug_print_guid_value(
      const char *function_name,
      const char *value_name,

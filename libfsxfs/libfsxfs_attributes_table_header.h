@@ -1,5 +1,5 @@
 /*
- * Short-form directory table functions
+ * Short-form (extended) attributes table header functions
  *
  * Copyright (C) 2020-2021, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,49 +19,48 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_DIRECTORY_TABLE_H )
-#define _LIBFSXFS_DIRECTORY_TABLE_H
+#if !defined( _LIBFSXFS_ATTRIBUTES_TABLE_HEADER_H )
+#define _LIBFSXFS_ATTRIBUTES_TABLE_HEADER_H
 
 #include <common.h>
 #include <types.h>
 
-#include "libfsxfs_directory_table_header.h"
-#include "libfsxfs_io_handle.h"
-#include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
 extern "C" {
 #endif
 
-typedef struct libfsxfs_directory_table libfsxfs_directory_table_t;
+typedef struct libfsxfs_attributes_table_header libfsxfs_attributes_table_header_t;
 
-struct libfsxfs_directory_table
+struct libfsxfs_attributes_table_header
 {
-	/* The header
+	/* Table data size
 	 */
-	libfsxfs_directory_table_header_t *header;
+	uint16_t data_size;
+
+	/* Number of entries
+	 */
+	uint8_t number_of_entries;
 };
 
-int libfsxfs_directory_table_initialize(
-     libfsxfs_directory_table_t **directory_table,
+int libfsxfs_attributes_table_header_initialize(
+     libfsxfs_attributes_table_header_t **attributes_table_header,
      libcerror_error_t **error );
 
-int libfsxfs_directory_table_free(
-     libfsxfs_directory_table_t **directory_table,
+int libfsxfs_attributes_table_header_free(
+     libfsxfs_attributes_table_header_t **attributes_table_header,
      libcerror_error_t **error );
 
-int libfsxfs_directory_table_read_data(
-     libfsxfs_directory_table_t *directory_table,
-     libfsxfs_io_handle_t *io_handle,
+int libfsxfs_attributes_table_header_read_data(
+     libfsxfs_attributes_table_header_t *attributes_table_header,
      const uint8_t *data,
      size_t data_size,
-     libcdata_array_t *entries_array,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_DIRECTORY_TABLE_H ) */
+#endif /* !defined( _LIBFSXFS_ATTRIBUTES_TABLE_HEADER_H ) */
 

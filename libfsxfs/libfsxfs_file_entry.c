@@ -27,6 +27,7 @@
 #include "libfsxfs_definitions.h"
 #include "libfsxfs_directory.h"
 #include "libfsxfs_directory_entry.h"
+#include "libfsxfs_extended_attribute.h"
 #include "libfsxfs_file_entry.h"
 #include "libfsxfs_inode.h"
 #include "libfsxfs_libbfio.h"
@@ -256,6 +257,23 @@ int libfsxfs_file_entry_free(
 				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
 				 "%s: unable to free directory entry.",
+				 function );
+
+				result = -1;
+			}
+		}
+		if( internal_file_entry->extended_attributes_array != NULL )
+		{
+			if( libcdata_array_free(
+			     &( internal_file_entry->extended_attributes_array ),
+			     (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_attribute_values_free,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free extended attributes array.",
 				 function );
 
 				result = -1;
@@ -1588,6 +1606,320 @@ int libfsxfs_file_entry_get_utf8_symbolic_link_target(
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
 			 "%s: unable to retrieve UTF-8 string.",
+			 function );
+
+			result = -1;
+		}
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_write(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Determines the extended attributes
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_internal_file_entry_get_extended_attributes(
+     libfsxfs_internal_file_entry_t *internal_file_entry,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_internal_file_entry_get_extended_attributes";
+
+	if( internal_file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	if( internal_file_entry->io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+		 "%s: invalid file entry - missing IO handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( internal_file_entry->inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+		 "%s: invalid file entry - missing inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( internal_file_entry->extended_attributes_array != NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid file entry - extended attributes array value already set.",
+		 function );
+
+		return( -1 );
+	}
+	if( internal_file_entry->inode->extended_attributes_array != NULL )
+	{
+		internal_file_entry->extended_attributes_array        = internal_file_entry->inode->extended_attributes_array;
+		internal_file_entry->inode->extended_attributes_array = NULL;
+	}
+	else
+	{
+		if( libcdata_array_initialize(
+		     &( internal_file_entry->extended_attributes_array ),
+		     0,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create extended attributes array.",
+			 function );
+
+			goto on_error;
+		}
+	}
+/* TODO implement */
+	return( 1 );
+
+on_error:
+	if( internal_file_entry->extended_attributes_array != NULL )
+	{
+		libcdata_array_free(
+		 &( internal_file_entry->extended_attributes_array ),
+		 (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_attribute_values_free,
+		 NULL );
+	}
+	return( -1 );
+}
+
+/* Retrieves the number of extended attributes
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_file_entry_get_number_of_extended_attributes(
+     libfsxfs_file_entry_t *file_entry,
+     int *number_of_extended_attributes,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_number_of_extended_attributes";
+	int result                                          = 1;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_write(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( internal_file_entry->extended_attributes_array == NULL )
+	{
+		if( libfsxfs_internal_file_entry_get_extended_attributes(
+		     internal_file_entry,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to determine extended attributes.",
+			 function );
+
+			result = -1;
+		}
+	}
+	if( result != -1 )
+	{
+		if( libcdata_array_get_number_of_entries(
+		     internal_file_entry->extended_attributes_array,
+		     number_of_extended_attributes,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve number of entries from extended attributes array.",
+			 function );
+
+			result = -1;
+		}
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_write(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves the extended attribute for the specific index
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_file_entry_get_extended_attribute_by_index(
+     libfsxfs_file_entry_t *file_entry,
+     int extended_attribute_index,
+     libfsxfs_extended_attribute_t **extended_attribute,
+     libcerror_error_t **error )
+{
+	libfsxfs_attribute_values_t *attribute_values       = NULL;
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_extended_attribute_by_index";
+	int result                                          = 1;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+	if( extended_attribute == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid extended attribute.",
+		 function );
+
+		return( -1 );
+	}
+	if( *extended_attribute != NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid extended attribute value already set.",
+		 function );
+
+		return( -1 );
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_write(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( internal_file_entry->extended_attributes_array == NULL )
+	{
+		if( libfsxfs_internal_file_entry_get_extended_attributes(
+		     internal_file_entry,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to determine extended attributes.",
+			 function );
+
+			result = -1;
+		}
+	}
+	if( result != -1 )
+	{
+		if( libcdata_array_get_entry_by_index(
+		     internal_file_entry->extended_attributes_array,
+		     extended_attribute_index,
+		     (intptr_t **) &attribute_values,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve attribute: %d values.",
+			 function,
+			 extended_attribute_index );
+
+			result = -1;
+		}
+		else if( libfsxfs_extended_attribute_initialize(
+		          extended_attribute,
+		          internal_file_entry->io_handle,
+		          internal_file_entry->file_io_handle,
+		          internal_file_entry->file_system,
+		          attribute_values,
+		          error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create extended attribute.",
 			 function );
 
 			result = -1;

@@ -25,10 +25,8 @@
 #include <types.h>
 
 #include "libfsxfs_directory_table_header.h"
-#include "libfsxfs_debug.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
-#include "libfsxfs_libfguid.h"
 
 #include "fsxfs_btree.h"
 

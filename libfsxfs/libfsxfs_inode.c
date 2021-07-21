@@ -24,6 +24,8 @@
 #include <memory.h>
 #include <types.h>
 
+#include "libfsxfs_attribute_values.h"
+#include "libfsxfs_attributes_table.h"
 #include "libfsxfs_debug.h"
 #include "libfsxfs_definitions.h"
 #include "libfsxfs_extent.h"
@@ -33,6 +35,7 @@
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
+#include "libfsxfs_libfdatetime.h"
 #include "libfsxfs_libfguid.h"
 
 #include "fsxfs_inode.h"
@@ -191,6 +194,23 @@ int libfsxfs_inode_free(
 				result = -1;
 			}
 		}
+		if( ( *inode )->extended_attributes_array != NULL )
+		{
+			if( libcdata_array_free(
+			     &( ( *inode )->extended_attributes_array ),
+			     (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_attribute_values_free,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free extended attributes array.",
+				 function );
+
+				result = -1;
+			}
+		}
 		memory_free(
 		 *inode );
 
@@ -208,16 +228,18 @@ int libfsxfs_inode_read_data(
      size_t data_size,
      libcerror_error_t **error )
 {
-	static char *function                 = "libfsxfs_inode_read_data";
-	size_t data_fork_size                 = 0;
-	size_t inode_data_size                = 0;
-	uint32_t number_of_attributes_extents = 0;
-	uint32_t value_32bit                  = 0;
-	uint8_t format_version                = 0;
+	libfsxfs_attributes_table_t *attributes_table = NULL;
+	static char *function                         = "libfsxfs_inode_read_data";
+	size_t data_fork_size                         = 0;
+	size_t inode_data_size                        = 0;
+	uint32_t number_of_attributes_extents         = 0;
+	uint32_t value_32bit                          = 0;
+	uint16_t attributes_fork_offset               = 0;
+	uint8_t format_version                        = 0;
 
 #if defined( HAVE_DEBUG_OUTPUT )
-	uint64_t value_64bit                  = 0;
-	uint16_t value_16bit                  = 0;
+	uint64_t value_64bit                          = 0;
+	uint16_t value_16bit                          = 0;
 #endif
 
 	if( inode == NULL )
@@ -227,6 +249,17 @@ int libfsxfs_inode_read_data(
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
 		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( inode->extended_attributes_array != NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid inode - extended attributes array value already set.",
 		 function );
 
 		return( -1 );
@@ -300,7 +333,7 @@ int libfsxfs_inode_read_data(
 		 "%s: invalid signature.",
 		 function );
 
-		return( -1 );
+		goto on_error;
 	}
 	byte_stream_copy_to_uint16_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->file_mode,
@@ -384,7 +417,9 @@ int libfsxfs_inode_read_data(
 	 ( (fsxfs_inode_v1_t *) data )->number_of_attributes_extents,
 	 number_of_attributes_extents );
 
-	inode->attributes_fork_offset = (uint16_t) ( (fsxfs_inode_v1_t *) data )->attributes_fork_offset * 8;
+	attributes_fork_offset = (uint16_t) ( (fsxfs_inode_v1_t *) data )->attributes_fork_offset * 8;
+
+	inode->attributes_fork_type = ( (fsxfs_inode_v1_t *) data )->attributes_fork_type;
 
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
@@ -487,14 +522,25 @@ int libfsxfs_inode_read_data(
 		 function,
 		 value_16bit );
 
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->access_time,
-		 value_32bit );
-		libcnotify_printf(
-		 "%s: access time\t\t\t\t\t: %" PRIu32 "\n",
-		 function,
-		 value_32bit );
+		if( libfsxfs_debug_print_posix_time_value(
+		     function,
+		     "access time (seconds)\t\t\t\t",
+		     ( (fsxfs_inode_v1_t *) data )->access_time,
+		     4,
+		     LIBFDATETIME_ENDIAN_BIG,
+		     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
+		     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+			 "%s: unable to print POSIX time value.",
+			 function );
 
+			goto on_error;
+		}
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_inode_v1_t *) data )->access_time_nano_seconds,
 		 value_32bit );
@@ -503,14 +549,25 @@ int libfsxfs_inode_read_data(
 		 function,
 		 value_32bit );
 
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->modification_time,
-		 value_32bit );
-		libcnotify_printf(
-		 "%s: modification time\t\t\t\t: %" PRIu32 "\n",
-		 function,
-		 value_32bit );
+		if( libfsxfs_debug_print_posix_time_value(
+		     function,
+		     "modification time (seconds)\t\t\t",
+		     ( (fsxfs_inode_v1_t *) data )->modification_time,
+		     4,
+		     LIBFDATETIME_ENDIAN_BIG,
+		     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
+		     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+			 "%s: unable to print POSIX time value.",
+			 function );
 
+			goto on_error;
+		}
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_inode_v1_t *) data )->modification_time_nano_seconds,
 		 value_32bit );
@@ -519,14 +576,25 @@ int libfsxfs_inode_read_data(
 		 function,
 		 value_32bit );
 
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->inode_change_time,
-		 value_32bit );
-		libcnotify_printf(
-		 "%s: inode change time\t\t\t\t: %" PRIu32 "\n",
-		 function,
-		 value_32bit );
+		if( libfsxfs_debug_print_posix_time_value(
+		     function,
+		     "inode change time (seconds)\t\t\t",
+		     ( (fsxfs_inode_v1_t *) data )->inode_change_time,
+		     4,
+		     LIBFDATETIME_ENDIAN_BIG,
+		     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
+		     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+			 "%s: unable to print POSIX time value.",
+			 function );
 
+			goto on_error;
+		}
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_inode_v1_t *) data )->inode_change_time_nano_seconds,
 		 value_32bit );
@@ -562,14 +630,14 @@ int libfsxfs_inode_read_data(
 		 "%s: attributes fork offset\t\t\t: %" PRIu8 " (%" PRIu16 ")\n",
 		 function,
 		 ( (fsxfs_inode_v1_t *) data )->attributes_fork_offset,
-		 inode->attributes_fork_offset );
+		 attributes_fork_offset );
 
 		libcnotify_printf(
 		 "%s: attributes fork type\t\t\t\t: %" PRIu8 " (%s)\n",
 		 function,
-		 ( (fsxfs_inode_v1_t *) data )->attributes_fork_type,
+		 inode->attributes_fork_type,
 		 libfsxfs_debug_print_fork_type(
-		  ( (fsxfs_inode_v1_t *) data )->attributes_fork_type ) );
+		  inode->attributes_fork_type ) );
 
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_inode_v1_t *) data )->unknown5,
@@ -625,7 +693,7 @@ int libfsxfs_inode_read_data(
 		 function,
 		 format_version );
 
-		return( -1 );
+		goto on_error;
 	}
 	if( format_version == 3 )
 	{
@@ -698,14 +766,25 @@ int libfsxfs_inode_read_data(
 			 12,
 			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
 
-			byte_stream_copy_to_uint32_big_endian(
-			 ( (fsxfs_inode_v3_t *) data )->creation_time,
-			 value_32bit );
-			libcnotify_printf(
-			 "%s: creation time\t\t\t\t\t: %" PRIu32 "\n",
-			 function,
-			 value_32bit );
+			if( libfsxfs_debug_print_posix_time_value(
+			     function,
+			     "creation time (seconds)\t\t\t",
+			     ( (fsxfs_inode_v3_t *) data )->creation_time,
+			     4,
+			     LIBFDATETIME_ENDIAN_BIG,
+			     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
+			     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+				 "%s: unable to print POSIX time value.",
+				 function );
 
+				goto on_error;
+			}
 			byte_stream_copy_to_uint32_big_endian(
 			 ( (fsxfs_inode_v3_t *) data )->creation_time_nano_seconds,
 			 value_32bit );
@@ -738,7 +817,7 @@ int libfsxfs_inode_read_data(
 				 "%s: unable to print GUID value.",
 				 function );
 
-				return( -1 );
+				goto on_error;
 			}
 		}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
@@ -753,16 +832,108 @@ int libfsxfs_inode_read_data(
 
 	data_fork_size = data_size - inode_data_size;
 
-	if( ( inode->attributes_fork_offset != 0 )
-	 && ( inode->attributes_fork_offset < data_fork_size ) )
+	if( ( attributes_fork_offset != 0 )
+	 && ( attributes_fork_offset < data_fork_size ) )
 	{
-		data_fork_size = (size_t) inode->attributes_fork_offset;
+		data_fork_size = (size_t) attributes_fork_offset;
 	}
-	inode->data_fork_offset        = (uint16_t) inode_data_size;
-	inode->data_fork_size          = (uint16_t) data_fork_size;
-	inode->attributes_fork_offset += inode_data_size;
+	inode->data_fork_offset = (uint16_t) inode_data_size;
+	inode->data_fork_size   = (uint16_t) data_fork_size;
+
+	if( ( inode->attributes_fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
+	 && ( attributes_fork_offset > 0 ) )
+	{
+		attributes_fork_offset += inode_data_size;
+
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: extended attributes data:\n",
+			 function );
+			libcnotify_print_data(
+			 &( data[ attributes_fork_offset ] ),
+			 data_size - attributes_fork_offset,
+			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		if( libcdata_array_initialize(
+		     &( inode->extended_attributes_array ),
+		     0,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create extended attributes array.",
+			 function );
+
+			goto on_error;
+		}
+		if( libfsxfs_attributes_table_initialize(
+		     &attributes_table,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create attributes table.",
+			 function );
+
+			goto on_error;
+		}
+		if( libfsxfs_attributes_table_read_data(
+		     attributes_table,
+		     &( data[ attributes_fork_offset ] ),
+		     data_size - attributes_fork_offset,
+		     inode->extended_attributes_array,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read attributes table.",
+			 function );
+
+			goto on_error;
+		}
+		if( libfsxfs_attributes_table_free(
+		     &attributes_table,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free attributes table.",
+			 function );
+
+			goto on_error;
+		}
+	}
+/* TODO print trailing data ? */
 
 	return( 1 );
+
+on_error:
+	if( attributes_table != NULL )
+	{
+		libfsxfs_attributes_table_free(
+		 &attributes_table,
+		 NULL );
+	}
+	if( inode->extended_attributes_array != NULL )
+	{
+		libcdata_array_free(
+		 &( inode->extended_attributes_array ),
+		 (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_attribute_values_free,
+		 NULL );
+	}
+	return( -1 );
 }
 
 /* Reads the inode from a Basic File IO (bfio) handle

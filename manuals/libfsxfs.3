@@ -1,4 +1,4 @@
-.Dd November 11, 2020
+.Dd July 20, 2021
 .Dt libfsxfs 3
 .Os libfsxfs
 .Sh NAME
@@ -123,6 +123,10 @@ File entry functions
 .Ft int
 .Fn libfsxfs_file_entry_get_utf16_symbolic_link_target "libfsxfs_file_entry_t *file_entry" "uint16_t *utf16_string" "size_t utf16_string_size" "libfsxfs_error_t **error"
 .Ft int
+.Fn libfsxfs_file_entry_get_number_of_extended_attributes "libfsxfs_file_entry_t *file_entry" "int *number_of_extended_attributes" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_extended_attribute_by_index "libfsxfs_file_entry_t *file_entry" "int extended_attribute_index" "libfsxfs_extended_attribute_t **extended_attribute" "libfsxfs_error_t **error"
+.Ft int
 .Fn libfsxfs_file_entry_get_number_of_sub_file_entries "libfsxfs_file_entry_t *file_entry" "int *number_of_sub_entries" "libfsxfs_error_t **error"
 .Ft int
 .Fn libfsxfs_file_entry_get_sub_file_entry_by_index "libfsxfs_file_entry_t *file_entry" "int sub_file_entry_index" "libfsxfs_file_entry_t **sub_file_entry" "libfsxfs_error_t **error"
@@ -140,6 +144,28 @@ File entry functions
 .Fn libfsxfs_file_entry_get_offset "libfsxfs_file_entry_t *file_entry" "off64_t *offset" "libfsxfs_error_t **error"
 .Ft int
 .Fn libfsxfs_file_entry_get_size "libfsxfs_file_entry_t *file_entry" "size64_t *size" "libfsxfs_error_t **error"
+.Pp
+Extended attribute functions
+.Ft int
+.Fn libfsxfs_extended_attribute_free "libfsxfs_extended_attribute_t **extended_attribute" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_extended_attribute_get_utf8_name_size "libfsxfs_extended_attribute_t *extended_attribute" "size_t *utf8_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_extended_attribute_get_utf8_name "libfsxfs_extended_attribute_t *extended_attribute" "uint8_t *utf8_string" "size_t utf8_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_extended_attribute_get_utf16_name_size "libfsxfs_extended_attribute_t *extended_attribute" "size_t *utf16_string_size" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_extended_attribute_get_utf16_name "libfsxfs_extended_attribute_t *extended_attribute" "uint16_t *utf16_string" "size_t utf16_string_size" "libfsxfs_error_t **error"
+.Ft ssize_t
+.Fn libfsxfs_extended_attribute_read_buffer "libfsxfs_extended_attribute_t *extended_attribute" "void *buffer" "size_t buffer_size" "libfsxfs_error_t **error"
+.Ft ssize_t
+.Fn libfsxfs_extended_attribute_read_buffer_at_offset "libfsxfs_extended_attribute_t *extended_attribute" "void *buffer" "size_t buffer_size" "off64_t offset" "libfsxfs_error_t **error"
+.Ft off64_t
+.Fn libfsxfs_extended_attribute_seek_offset "libfsxfs_extended_attribute_t *extended_attribute" "off64_t offset" "int whence" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_extended_attribute_get_offset "libfsxfs_extended_attribute_t *extended_attribute" "off64_t *offset" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_extended_attribute_get_size "libfsxfs_extended_attribute_t *extended_attribute" "size64_t *size" "libfsxfs_error_t **error"
 .Sh DESCRIPTION
 The
 .Fn libfsxfs_get_version
