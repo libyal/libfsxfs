@@ -343,6 +343,12 @@ int libfsxfs_inode_read_data(
 
 	inode->format_version = format_version;
 
+	if( format_version == 1 )
+	{
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->number_of_links,
+		 inode->number_of_links );
+	}
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->owner_identifier,
 	 inode->owner_identifier );
@@ -351,6 +357,12 @@ int libfsxfs_inode_read_data(
 	 ( (fsxfs_inode_v1_t *) data )->group_identifier,
 	 inode->group_identifier );
 
+	if( format_version != 1 )
+	{
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v2_t *) data )->number_of_links,
+		 inode->number_of_links );
+	}
 	byte_stream_copy_to_uint32_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->access_time,
 	 value_32bit );
@@ -450,19 +462,18 @@ int libfsxfs_inode_read_data(
 		 libfsxfs_debug_print_fork_type(
 		  ( (fsxfs_inode_v1_t *) data )->fork_type ) );
 
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->number_of_links,
-		 value_16bit );
-
 		if( format_version == 1 )
 		{
 			libcnotify_printf(
-			 "%s: number of links\t\t\t\t: %" PRIu16 "\n",
+			 "%s: number of links\t\t\t\t: %" PRIu32 "\n",
 			 function,
-			 value_16bit );
+			 inode->number_of_links );
 		}
 		else
 		{
+			byte_stream_copy_to_uint16_big_endian(
+			 ( (fsxfs_inode_v1_t *) data )->number_of_links,
+			 value_16bit );
 			libcnotify_printf(
 			 "%s: unknown1\t\t\t\t\t: 0x%04" PRIx16 "\n",
 			 function,
@@ -490,13 +501,10 @@ int libfsxfs_inode_read_data(
 		}
 		else
 		{
-			byte_stream_copy_to_uint32_big_endian(
-			 ( (fsxfs_inode_v2_t *) data )->number_of_links,
-			 value_32bit );
 			libcnotify_printf(
 			 "%s: number of links\t\t\t\t: %" PRIu32 "\n",
 			 function,
-			 value_32bit );
+			 inode->number_of_links );
 
 			byte_stream_copy_to_uint16_big_endian(
 			 ( (fsxfs_inode_v2_t *) data )->project_identifier,
@@ -840,8 +848,7 @@ int libfsxfs_inode_read_data(
 	inode->data_fork_offset = (uint16_t) inode_data_size;
 	inode->data_fork_size   = (uint16_t) data_fork_size;
 
-	if( ( inode->attributes_fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
-	 && ( attributes_fork_offset > 0 ) )
+	if( attributes_fork_offset > 0 )
 	{
 		attributes_fork_offset += inode_data_size;
 
@@ -858,6 +865,8 @@ int libfsxfs_inode_read_data(
 		}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
+if( inode->attributes_fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
+{
 		if( libcdata_array_initialize(
 		     &( inode->extended_attributes_array ),
 		     0,
@@ -914,6 +923,7 @@ int libfsxfs_inode_read_data(
 
 			goto on_error;
 		}
+}
 	}
 /* TODO print trailing data ? */
 
@@ -1438,6 +1448,43 @@ int libfsxfs_inode_get_file_mode(
 		return( -1 );
 	}
 	*file_mode = inode->file_mode;
+
+	return( 1 );
+}
+
+/* Retrieves the number of (hard) links
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_number_of_links(
+     libfsxfs_inode_t *inode,
+     uint32_t *number_of_links,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_number_of_links";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( number_of_links == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid number of (hard) links.",
+		 function );
+
+		return( -1 );
+	}
+	*number_of_links = inode->number_of_links;
 
 	return( 1 );
 }

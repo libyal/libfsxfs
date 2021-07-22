@@ -160,6 +160,12 @@ int libfsxfs_file_entry_get_file_mode(
      libcerror_error_t **error );
 
 LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_number_of_links(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *number_of_links,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
 int libfsxfs_file_entry_get_owner_identifier(
      libfsxfs_file_entry_t *file_entry,
      uint32_t *owner_identifier,

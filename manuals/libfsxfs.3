@@ -1,4 +1,4 @@
-.Dd July 20, 2021
+.Dd July 21, 2021
 .Dt libfsxfs 3
 .Os libfsxfs
 .Sh NAME
@@ -102,6 +102,8 @@ File entry functions
 .Fn libfsxfs_file_entry_get_inode_change_time "libfsxfs_file_entry_t *file_entry" "int64_t *posix_time" "libfsxfs_error_t **error"
 .Ft int
 .Fn libfsxfs_file_entry_get_file_mode "libfsxfs_file_entry_t *file_entry" "uint16_t *file_mode" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_file_entry_get_number_of_links "libfsxfs_file_entry_t *file_entry" "uint32_t *number_of_links" "libfsxfs_error_t **error"
 .Ft int
 .Fn libfsxfs_file_entry_get_owner_identifier "libfsxfs_file_entry_t *file_entry" "uint32_t *owner_identifier" "libfsxfs_error_t **error"
 .Ft int

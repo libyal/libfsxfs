@@ -997,8 +997,8 @@ Directories entries are stored in the data fork of a directory inode. The
 directory entries can be stored in multiple ways:
 
 * as a short-form directory table
-* as a block directory
-* as a directory B+ tree (or leaf directory)
+* as an extent-based block directory
+* as an extent-based directory B+ tree (or leaf directory)
 
 === Short-form directory table
 
@@ -1265,7 +1265,8 @@ Extended attributes are stored in the attributes fork of an inode. The extended
 attributes can be stored in multiple ways:
 
 * as a short-form extended attributes table
-* as extent-based attributes
+* as an extent-based extended attributes block
+* as an extent-based extended attributes B+ tree (or leaf attribute)
 
 === Short-form extended attributes table
 

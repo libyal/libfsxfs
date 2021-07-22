@@ -427,7 +427,17 @@ int libfsxfs_file_entry_get_file_mode(
      uint16_t *file_mode,
      libfsxfs_error_t **error );
 
-/* Retrieves the user identifier
+/* Retrieves the number of (hard) links
+ * This value is retrieved from the inode
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_number_of_links(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *number_of_links,
+     libfsxfs_error_t **error );
+
+/* Retrieves the owner (user) identifier
  * This value is retrieved from the inode
  * Returns 1 if successful or -1 on error
  */

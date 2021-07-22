@@ -102,6 +102,10 @@ PyObject *pyfsxfs_file_entry_get_file_mode(
            pyfsxfs_file_entry_t *pyfsxfs_file_entry,
            PyObject *arguments );
 
+PyObject *pyfsxfs_file_entry_get_number_of_links(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           PyObject *arguments );
+
 PyObject *pyfsxfs_file_entry_get_owner_identifier(
            pyfsxfs_file_entry_t *pyfsxfs_file_entry,
            PyObject *arguments );
@@ -115,6 +119,23 @@ PyObject *pyfsxfs_file_entry_get_name(
            PyObject *arguments );
 
 PyObject *pyfsxfs_file_entry_get_symbolic_link_target(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           PyObject *arguments );
+
+PyObject *pyfsxfs_file_entry_get_number_of_extended_attributes(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           PyObject *arguments );
+
+PyObject *pyfsxfs_file_entry_get_extended_attribute_by_index(
+           PyObject *pyfsxfs_file_entry,
+           int extended_attribute_index );
+
+PyObject *pyfsxfs_file_entry_get_extended_attribute(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           PyObject *arguments,
+           PyObject *keywords );
+
+PyObject *pyfsxfs_file_entry_get_extended_attributes(
            pyfsxfs_file_entry_t *pyfsxfs_file_entry,
            PyObject *arguments );
 

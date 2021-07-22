@@ -724,12 +724,6 @@ int libfsxfs_file_system_get_directory_entry_by_utf8_path(
 	return( result );
 
 on_error:
-	if( *directory_entry != NULL )
-	{
-		libfsxfs_directory_entry_free(
-		 directory_entry,
-		 NULL );
-	}
 	if( directory != NULL )
 	{
 		libfsxfs_directory_free(
@@ -740,6 +734,12 @@ on_error:
 	{
 		libfsxfs_inode_free(
 		 &safe_inode,
+		 NULL );
+	}
+	if( *directory_entry != NULL )
+	{
+		libfsxfs_directory_entry_free(
+		 directory_entry,
 		 NULL );
 	}
 	return( -1 );
@@ -1075,12 +1075,6 @@ int libfsxfs_file_system_get_directory_entry_by_utf16_path(
 	return( result );
 
 on_error:
-	if( *directory_entry != NULL )
-	{
-		libfsxfs_directory_entry_free(
-		 directory_entry,
-		 NULL );
-	}
 	if( directory != NULL )
 	{
 		libfsxfs_directory_free(
@@ -1091,6 +1085,12 @@ on_error:
 	{
 		libfsxfs_inode_free(
 		 &safe_inode,
+		 NULL );
+	}
+	if( *directory_entry != NULL )
+	{
+		libfsxfs_directory_entry_free(
+		 directory_entry,
 		 NULL );
 	}
 	return( -1 );

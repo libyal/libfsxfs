@@ -177,6 +177,11 @@ int libfsxfs_inode_get_file_mode(
      uint16_t *file_mode,
      libcerror_error_t **error );
 
+int libfsxfs_inode_get_number_of_links(
+     libfsxfs_inode_t *inode,
+     uint32_t *number_of_links,
+     libcerror_error_t **error );
+
 int libfsxfs_inode_get_data_size(
      libfsxfs_inode_t *inode,
      uint64_t *data_size,
