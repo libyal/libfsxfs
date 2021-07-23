@@ -29,6 +29,8 @@
 
 #include "pyfsxfs.h"
 #include "pyfsxfs_error.h"
+#include "pyfsxfs_extended_attribute.h"
+#include "pyfsxfs_extended_attributes.h"
 #include "pyfsxfs_file_entries.h"
 #include "pyfsxfs_file_entry.h"
 #include "pyfsxfs_file_object_io_handle.h"
@@ -594,6 +596,40 @@ PyMODINIT_FUNC initpyfsxfs(
 	PyEval_InitThreads();
 #endif
 	gil_state = PyGILState_Ensure();
+
+	/* Setup the extended_attribute type object
+	 */
+	pyfsxfs_extended_attribute_type_object.tp_new = PyType_GenericNew;
+
+	if( PyType_Ready(
+	     &pyfsxfs_extended_attribute_type_object ) < 0 )
+	{
+		goto on_error;
+	}
+	Py_IncRef(
+	 (PyObject *) &pyfsxfs_extended_attribute_type_object );
+
+	PyModule_AddObject(
+	 module,
+	 "extended_attribute",
+	 (PyObject *) &pyfsxfs_extended_attribute_type_object );
+
+	/* Setup the extended_attributes type object
+	 */
+	pyfsxfs_extended_attributes_type_object.tp_new = PyType_GenericNew;
+
+	if( PyType_Ready(
+	     &pyfsxfs_extended_attributes_type_object ) < 0 )
+	{
+		goto on_error;
+	}
+	Py_IncRef(
+	 (PyObject *) &pyfsxfs_extended_attributes_type_object );
+
+	PyModule_AddObject(
+	 module,
+	 "extended_attributes",
+	 (PyObject *) &pyfsxfs_extended_attributes_type_object );
 
 	/* Setup the file_entries type object
 	 */
