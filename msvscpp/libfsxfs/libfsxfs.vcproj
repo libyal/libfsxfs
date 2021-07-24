@@ -178,6 +178,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_attributes_block.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_attributes_block_header.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_attributes_table.c"
 				>
 			</File>
@@ -316,6 +324,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\fsxfs_attributes_block.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\fsxfs_block_directory.h"
 				>
 			</File>
@@ -337,6 +349,14 @@
 			</File>
 			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_attribute_values.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_attributes_block.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_attributes_block_header.h"
 				>
 			</File>
 			<File

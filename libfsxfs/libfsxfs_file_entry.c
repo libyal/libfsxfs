@@ -23,6 +23,7 @@
 #include <memory.h>
 #include <types.h>
 
+#include "libfsxfs_attributes_table.h"
 #include "libfsxfs_data_stream.h"
 #include "libfsxfs_definitions.h"
 #include "libfsxfs_directory.h"
@@ -1709,7 +1710,8 @@ int libfsxfs_internal_file_entry_get_extended_attributes(
      libfsxfs_internal_file_entry_t *internal_file_entry,
      libcerror_error_t **error )
 {
-	static char *function = "libfsxfs_internal_file_entry_get_extended_attributes";
+	libfsxfs_attributes_table_t *attributes_table = NULL;
+	static char *function                         = "libfsxfs_internal_file_entry_get_extended_attributes";
 
 	if( internal_file_entry == NULL )
 	{
@@ -1755,32 +1757,89 @@ int libfsxfs_internal_file_entry_get_extended_attributes(
 
 		return( -1 );
 	}
-	if( internal_file_entry->inode->extended_attributes_array != NULL )
+	if( libcdata_array_initialize(
+	     &( internal_file_entry->extended_attributes_array ),
+	     0,
+	     error ) != 1 )
 	{
-		internal_file_entry->extended_attributes_array        = internal_file_entry->inode->extended_attributes_array;
-		internal_file_entry->inode->extended_attributes_array = NULL;
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create extended attributes array.",
+		 function );
+
+		goto on_error;
 	}
-	else
+	if( internal_file_entry->inode->attributes_fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
 	{
-		if( libcdata_array_initialize(
-		     &( internal_file_entry->extended_attributes_array ),
-		     0,
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: extended attributes data:\n",
+			 function );
+			libcnotify_print_data(
+			 internal_file_entry->inode->inline_attributes_data,
+			 internal_file_entry->inode->attributes_fork_size,
+			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		if( libfsxfs_attributes_table_initialize(
+		     &attributes_table,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-			 "%s: unable to create extended attributes array.",
+			 "%s: unable to create attributes table.",
+			 function );
+
+			goto on_error;
+		}
+		if( libfsxfs_attributes_table_read_data(
+		     attributes_table,
+		     internal_file_entry->inode->inline_attributes_data,
+		     internal_file_entry->inode->attributes_fork_size,
+		     internal_file_entry->extended_attributes_array,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read attributes table.",
+			 function );
+
+			goto on_error;
+		}
+		if( libfsxfs_attributes_table_free(
+		     &attributes_table,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+			 "%s: unable to free attributes table.",
 			 function );
 
 			goto on_error;
 		}
 	}
-/* TODO implement */
+/* TODO read extent-based attributes */
+
 	return( 1 );
 
 on_error:
+	if( attributes_table != NULL )
+	{
+		libfsxfs_attributes_table_free(
+		 &attributes_table,
+		 NULL );
+	}
 	if( internal_file_entry->extended_attributes_array != NULL )
 	{
 		libcdata_array_free(

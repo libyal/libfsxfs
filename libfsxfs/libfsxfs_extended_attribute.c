@@ -504,9 +504,8 @@ int libfsxfs_internal_extended_attribute_get_data_stream(
      libfsxfs_internal_extended_attribute_t *internal_extended_attribute,
      libcerror_error_t **error )
 {
-	libfsxfs_inode_t *inode = NULL;
-	static char *function   = "libfsxfs_internal_extended_attribute_get_data_stream";
-	int result              = 0;
+	static char *function = "libfsxfs_internal_extended_attribute_get_data_stream";
+	int result            = 0;
 
 	if( internal_extended_attribute == NULL )
 	{

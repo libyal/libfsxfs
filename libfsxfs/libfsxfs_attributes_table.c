@@ -309,10 +309,39 @@ int libfsxfs_attributes_table_read_data(
 		}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-/* TODO set value data */
+		if( attribute_values->value_data_size > 0 )
+		{
+			attribute_values->value_data = (uint8_t *) memory_allocate(
+			                                            sizeof( uint8_t ) * attribute_values->value_data_size );
 
-		data_offset += attribute_values->value_data_size;
+			if( attribute_values->value_data == NULL )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_MEMORY,
+				 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+				 "%s: unable to create value data.",
+				 function );
 
+				goto on_error;
+			}
+			if( memory_copy(
+			     attribute_values->value_data,
+			     &( data[ data_offset ] ),
+			     attribute_values->value_data_size ) == NULL )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_MEMORY,
+				 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
+				 "%s: unable to copy value data to attribute: %d values.",
+				 function,
+				 attribute_index );
+
+				goto on_error;
+			}
+			data_offset += attribute_values->value_data_size;
+		}
 		if( libcdata_array_append_entry(
 		     extended_attributes_array,
 		     &entry_index,

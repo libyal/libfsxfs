@@ -215,7 +215,7 @@ int libfsxfs_superblock_read_data(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: invalid signature.",
+		 "%s: unsupported signature.",
 		 function );
 
 		return( -1 );

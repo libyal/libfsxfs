@@ -203,7 +203,7 @@ See section: <<secondary_feature_flags,Secondary feature flags>>
 | 204 | 4 | | Copy of secondary feature flags +
 Introduced to work-around 64-bit alignment errors +
 See section: <<secondary_feature_flags,Secondary feature flags>>
-4+| _If version >= 5_
+4+| _If file system version >= 5_
 | 208 | 4 | | (Read-write) compatible feature flags +
 See section: <<compatible_feature_flags,Compatible feature flags>>
 | 212 | 4 | | Read-only compatible feature flags +
@@ -352,7 +352,7 @@ Contains number of blocks
 Contains number of blocks
 4+| _Only used if the XFS_SB_VERSION2_LAZYSBCOUNTBIT feature flag is set_
 | 60 | 4 | | Number of blocks used for the free space B+ trees
-4+| _If version >= 5_
+4+| _If file system version >= 5_
 | 64 | 0 | |
 |===
 
@@ -429,7 +429,7 @@ Contains an inode number relative to the allocation group
 | 36 | 4 | -1 (0xffffffff) | [yellow-background]*Unknown (deprecated)*
 | 40 | 64 x 4 | | Hash table of unlinked (deleted) inodes that are still being referenced +
 Contains -1 (0xffffffff) if not set
-4+| _If version >= 5_
+4+| _If file system version >= 5_
 | 296 | 16 | | Block type identifier +
 Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
 | 312 | 4 | | Checksum
@@ -474,7 +474,7 @@ Contains 0 for a leaf block
 Contains a block number relative to the start of the allocation group or -1 (0xffffffff) if not set
 | 12 | 4 | | Next B+ tree block number +
 Contains a block number relative to the start of the allocation group or -1 (0xffffffff) if not set
-4+| _If version >= 5_
+4+| _If file system version >= 5_
 | 16 | 8 | | Block number
 | 24 | 8 | | Log sequence number
 | 32 | 16 | | Block type identifier +
@@ -500,7 +500,7 @@ Contains 0 for a leaf block
 Contains -1 (0xffffffff) if not set
 | 16 | 8 | | Next B+ tree block number +
 Contains -1 (0xffffffff) if not set
-4+| _If version >= 5_
+4+| _If file system version >= 5_
 | 24 | 8 | | Block number
 | 32 | 8 | | Log sequence number
 | 40 | 16 | | Block type identifier +
@@ -526,15 +526,15 @@ represented in the examples.*
 [cols="1,5",options="header"]
 |===
 | Signature | Description
-| "AB3B" | Version 5 free space block offset B+ tree
-| "AB3C" | Version 5 free space block count B+ tree
+| "AB3B" | File system version 5 free space block offset B+ tree
+| "AB3C" | File system version 5 free space block count B+ tree
 | "ABTB" | Free space block offset B+ tree
 | "ABTC" | Free space block count B+ tree
-| "FIB3" | Version 5 free inode B+tree
+| "FIB3" | File system version 5 free inode B+tree
 | "FIBT" | Free inode B+tree
-| "IAB3" | Version 5 (allocated) inode B+tree
+| "IAB3" | File system version 5 (allocated) inode B+tree
 | "IABT" | (Allocated) inode B+tree
-| "R3FC" | Version 5 reference count B+ tree
+| "R3FC" | File system version 5 reference count B+ tree
 |===
 
 === Free space B+ tree
@@ -633,10 +633,13 @@ file offset = allocation group file offset + ( inode number x inode size )
 The inode can be followed by:
 
 * data fork (descriptor)
-** inline data (fork type is XFS_DINODE_FMT_LOCAL)
-** extent list (fork type is XFS_DINODE_FMT_EXTENTS)
-** extent B+ tree (fork type is XFS_DINODE_FMT_BTREE)
+** inline data fork (fork type is XFS_DINODE_FMT_LOCAL)
+** extent list data fork (fork type is XFS_DINODE_FMT_EXTENTS)
+** extent B+ tree data fork (fork type is XFS_DINODE_FMT_BTREE)
 * optional (extended) attributes data fork (descriptor)
+** inline attributes fork (fork type is XFS_DINODE_FMT_LOCAL)
+** extent list attributes fork (fork type is XFS_DINODE_FMT_EXTENTS)
+** extent B+ tree attributes fork (fork type is XFS_DINODE_FMT_BTREE)
 
 === Inode version 1
 
@@ -931,7 +934,7 @@ The sub node block header (xfs_bmbt_block_t) is equivalent to
 [cols="1,5",options="header"]
 |===
 | Signature | Description
-| "BMA3" | Version 5 extent B+ tree sub node block
+| "BMA3" | File system version 5 extent B+ tree sub node block
 | "BMAP" | Extent B+ tree sub node block
 |===
 
@@ -997,8 +1000,8 @@ Directories entries are stored in the data fork of a directory inode. The
 directory entries can be stored in multiple ways:
 
 * as a short-form directory table
-* as an extent-based block directory
-* as an extent-based directory B+ tree (or leaf directory)
+* as an extent-based block directory (or leaf directory)
+* as an extent-based directory B+ tree (or node directory)
 
 === Short-form directory table
 
@@ -1199,45 +1202,57 @@ types of extents:
 | Signature | Description
 | "XD2D" | Directory entries B+ tree
 | "XD2F" | Directory free space B+ tree
-| "XDD3" | Version 5 Directory entries B+ tree
-| "XDF3" | Version 5 Directory free space B+ tree
+| "XDD3" | File system version 5 Directory entries B+ tree
+| "XDF3" | File system version 5 Directory free space B+ tree
 |===
 
 ==== Directory B+ tree directory entries block
 
 A directory B+ tree directory entries block (xfs_dir2_data_t) consist of:
 
-* a block directory header
+* an directory entries block header
 * array of used and unused directory entries
+
+[yellow-background]*TODO complete section*
 
 ==== Directory entries B+ tree hash values block
 
-A directory B+ tree hash values block (xfs_dir2_leaf_entry_t) consist of:
+A directory entries B+ tree hash values block (xfs_dir2_leaf_entry_t) consist
+of:
 
-....
-typedef struct xfs_dir2_leaf {
-xfs_dir2_leaf_hdr_t
-hdr;
-xfs_dir2_leaf_entry_t
-ents[1];
-xfs_dir2_data_off_t
-xfs_dir2_leaf_tail_t
-} xfs_dir2_leaf_t;
-bests[1];
-tail;
-typedef struct xfs_dir2_leaf_hdr {
-xfs_da_blkinfo_t
-info;
-__uint16_t
-count;
-__uint16_t
-stale;
-} xfs_dir2_leaf_hdr_t;
-typedef struct xfs_dir2_leaf_tail {
-__uint32_t
-bestcount;
-} xfs_dir2_leaf_tail_t;
-....
+* a hash values block header
+* array of entries (xfs_dir2_leaf_entry_t)
+* array of entries (xfs_dir2_data_off_t)
+* a hash values block footer
+
+[yellow-background]*TODO complete section*
+
+===== Directory entries B+ tree hash values block header
+
+A hash values block header version 1 (xfs_da_blkinfo_t) is 12 bytes of size
+and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | (Logical) block number of the next B+ tree block at the same level
+| 4 | 4 | | (Logical) block number of the previous B+ tree block at the same level
+| 8 | 2 | 0xfbee | Signature (XFS_ATTR_LEAF_MAGIC)
+| 10 | 2 | | [yellow-background]*Unknown (padding)*
+|===
+
+[yellow-background]*TODO describe xfs_dir2_leaf_entry_t and xfs_dir2_data_off_t*
+
+===== Directory entries B+ tree hash values block footer
+
+A hash values block footer version 2 (xfs_dir2_leaf_tail_t) is 4 bytes of size
+and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | [yellow-background]*Unknown (bestcount)*
+|===
 
 == File content
 
@@ -1264,41 +1279,44 @@ the file content data has an implicit sparse extent (or hole).
 Extended attributes are stored in the attributes fork of an inode. The extended
 attributes can be stored in multiple ways:
 
-* as a short-form extended attributes table
-* as an extent-based extended attributes block
-* as an extent-based extended attributes B+ tree (or leaf attribute)
+* as a short-form attributes table
+* as an extent-based attributes block (or leaf attributes)
+* as an extent-based attributes B+ tree (or node attributes)
 
-=== Short-form extended attributes table
+The start of the attributes fork can be determined using the attributes fork
+descriptor offset.
 
-The short-form extended attributes table (xfs_attr_shortform) is stored in
-the inode (as inline attributes fork data), where attributes fork type is
-XFS_DINODE_FMT_LOCAL. The short-form extended attributes table consist of:
+=== Short-form attributes table
 
-* a short-form extended attribute table header
-* one or more short-form extended attribute table entries
+If the inode attributes fork type is XFS_DINODE_FMT_LOCAL the extended
+attributes are sorted in a short-form attributes table (xfs_attr_shortform)
+inline in the attribtes fork. The short-form attributes table consist of:
 
-==== The short-form extended attribute table header
+* a short-form attribute table header
+* one or more short-form attribute table entries
 
-The short-form extended attribute table header (xfs_attr_sf_hdr) is 4 bytes
-of size and consists of:
+==== The short-form attribute table header
+
+The short-form attribute table header (xfs_attr_sf_hdr) is 4 bytes of size
+and consists of:
 
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
 | 0 | 2 | | Data size +
-Size of the short form extended attributes table data
+Size of the short form attributes table data
 | 2 | 1 | | Number of entries
 | 3 | 1 | | [yellow-background]*Unknown (padding?)*
 |===
 
 [NOTE]
-The size of the short-form extended attribute header deviates from `[SGI18]`
-based on analysis of test data.
+The size of the short-form attribute header deviates from `[SGI18]` based on
+analysis of test data.
 
-==== The short-form extended attribute entry
+==== The short-form attribute entry
 
-The short-form extended attribute table entry (xfs_attr_sf_entry) is variable
-of size and consists of:
+The short-form attribute table entry (xfs_attr_sf_entry) is variable of size
+and consists of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -1306,26 +1324,151 @@ of size and consists of:
 | 0 | 1 | | Name size
 | 1 | 1 | | Value data size
 | 2 | 1 | | Flags +
-Also see: <<extended_attribute_flags,extended attribute flags>>
+Also see: <<attribute_flags,attribute flags>>
 | 3 | ... | | Name string +
 Contains an ASCII string without end-of-string character
 | ... | ... | | Value data
 |===
 
-=== Extent-based attributes
+=== Attributes block
 
-[yellow-background]*TODO: determine if XFS_DINODE_FMT_BTREE can be used*
+If the inode attributes fork type is XFS_DINODE_FMT_EXTENTS the extended
+attributes are sorted in an attributes block. The attributes fork contains
+an <<extent_list,extent list>>.
 
-The extent-based extended attributes (TBS) are stored in
-where attributes fork type is XFS_DINODE_FMT_EXTENTS.
-The extent-based extended attributes consist of:
+An attributes block (xfs_attr_leafblock_t or xfs_attr3_leafblock_t) consist
+of one or more blocks that consist of:
 
-* [yellow-background]*TODO: complete this section*
+* an attributes block header
+* array of attributes block entries
+* array of local attribute values entries
+* array of remote attribute values entries
 
-=== [[extended_attribute_flags]]The extended attribute flags
+==== Attributes block header
 
-The extended attribute flags indicate the prefix (or namespace) of the extended
-attribute name.
+===== Attributes block header version 2
+
+If the file system version <=  the attributes block header version 2 is used.
+The attributes block header version 2 (xfs_attr_leaf_hdr_t) is 32 bytes of
+size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+4+| _Block header (xfs_da_blkinfo_t)_
+| 0 | 4 | | (Logical) block number of the next B+ tree block at the same level
+| 4 | 4 | | (Logical) block number of the previous B+ tree block at the same level
+| 8 | 2 | 0xfbee | Signature (XFS_ATTR_LEAF_MAGIC)
+| 10 | 2 | | [yellow-background]*Unknown (padding)*
+4+| _End of block header_
+| 12 | 2 | | Number of entries
+| 14 | 2 | | Entries data size
+| 16 | 2 | | Entries data offset
+| 18 | 1 | | Flag to indicate block compaction is needed
+| 19 | 1 | | [yellow-background]*Unknown (padding)*
+| 20 | 3 x 4 | | Free area descriptors +
+See section: <<attributes_block_free_area_descriptor,Attributes block free area descriptor>>
+|===
+
+===== Attributes block header version 3
+
+If the file system version >= 5 the attributes block header version 3 is used.
+The attributes block header version 3 (xfs_attr3_leaf_hdr_t) is 80 bytes of
+size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+4+| _Block header (xfs_da3_blkinfo_t)_
+| 0 | 4 | | (Logical) block number of the next B+ tree block at the same level
+| 4 | 4 | | (Logical) block number of the previous B+ tree block at the same level
+| 8 | 2 | 0x3bee | Signature (XFS_ATTR3_LEAF_MAGIC)
+| 10 | 2 | | [yellow-background]*Unknown (padding)*
+| 12 | 4 | | Checksum
+| 16 | 8 | | Block number
+| 24 | 8 | | Log sequence number
+| 32 | 16 | | Block type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+| 48 | 8 | | Owner inode number +
+Contains the absolute inode number the block is part of
+4+| _End of block header_
+| 56 | 2 | | Number of entries
+| 58 | 2 | | Entries data size
+| 60 | 2 | | Entries data offset
+| 62 | 1 | | Flag to indicate block compaction is needed
+| 63 | 1 | | [yellow-background]*Unknown (padding)*
+| 64 | 3 x 4 | | Free area descriptors +
+See section: <<attributes_block_free_area_descriptor,Attributes block free area descriptor>>
+| 76 | 4 | | [yellow-background]*Unknown (padding)*
+|===
+
+===== [[attributes_block_free_area_descriptor]]Attributes block free area descriptor
+
+The attributes block free area descriptor (xfs_attr_leaf_map_t) is 4 bytes of
+size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 2 | | Free area offset +
+Contains an offset relative to the start of the attributes block
+| 2 | 2 | | 
+|===
+
+==== Attributes block entry
+
+The attributes block entry (xfs_attr_leaf_entry_t) is 8 bytes of size and
+consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | Name hash
+| 4 | 2 | | Name entry offset +
+Contains an offset relative to the start of the attributes block
+| 6 | 1 | | Flags +
+Also see: <<attribute_flags,attribute flags>>
+| 7 | 1 | | [yellow-background]*Unknown (padding)*
+|===
+
+==== Local attribute values entry
+
+The local attributes values entry (xfs_attr_leaf_name_local_t) is variable of
+size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 2 | | Value data size
+| 2 | 1 | | Name size
+| 3 | ... | | Name string +
+Contains an ASCII string without end-of-string character
+|===
+
+==== Remote attribute values entry
+
+The remote attributes values entry (xfs_attr_leaf_name_remote_t) is variable of
+size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | Value data (logical) block number
+| 4 | 4 | | Value data size
+| 8 | 1 | | Name size
+| 9 | ... | | Name string +
+Contains an ASCII string without end-of-string character
+|===
+
+=== Extended attributes B+ tree
+
+If the inode attributes fork type is XFS_DINODE_FMT_BTREE the extended
+attributes are sorted in an extended attributes block. The attributes fork
+contains an <<extent_btree,extent B+ tree>>.
+
+=== [[attribute_flags]]The attribute flags
+
+The attribute flags indicate the prefix (or namespace) of the attribute name.
 
 [cols="1,1,1,5",options="header"]
 |===

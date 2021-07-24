@@ -22,12 +22,15 @@ lib_LTLIBRARIES = libfsxfs.la
 
 libfsxfs_la_SOURCES = \
 	fsxfs_attributes.h \
+	fsxfs_attributes_block.h \
 	fsxfs_block_directory.h \
 	fsxfs_btree.h \
 	fsxfs_inode.h \
 	fsxfs_inode_information.h \
 	fsxfs_superblock.h \
 	libfsxfs.c \
+	libfsxfs_attributes_block.c libfsxfs_attributes_block.h \
+	libfsxfs_attributes_block_header.c libfsxfs_attributes_block_header.h \
 	libfsxfs_attributes_table.c libfsxfs_attributes_table.h \
 	libfsxfs_attributes_table_header.c libfsxfs_attributes_table_header.h \
 	libfsxfs_attribute_values.c libfsxfs_attribute_values.h \

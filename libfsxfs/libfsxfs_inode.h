@@ -83,13 +83,13 @@ struct libfsxfs_inode
 	 */
 	int64_t creation_time;
 
-	/* (Data) fork type
-	 */
-	uint8_t fork_type;
-
 	/* Size
 	 */
 	uint64_t size;
+
+	/* (Data) fork type
+	 */
+	uint8_t fork_type;
 
 	/* Inline data
 	 */
@@ -99,7 +99,7 @@ struct libfsxfs_inode
 	 */
 	uint32_t number_of_data_extents;
 
-	/* Extents
+	/* Data extents array
 	 */
 	libcdata_array_t *data_extents_array;
 
@@ -115,9 +115,25 @@ struct libfsxfs_inode
 	 */
 	uint8_t attributes_fork_type;
 
-	/* The extended attributes
+	/* Inline (extended) attributes data
 	 */
-	libcdata_array_t *extended_attributes_array;
+	const uint8_t *inline_attributes_data;
+
+	/* Number of (extended) attributes extents
+	 */
+	uint32_t number_of_attributes_extents;
+
+	/* (Extended) attributes extents array
+	 */
+	libcdata_array_t *attributes_extents_array;
+
+	/* (Extended) attributes fork offset
+	 */
+	uint16_t attributes_fork_offset;
+
+	/* (Extended) attributes fork size
+	 */
+	uint16_t attributes_fork_size;
 };
 
 int libfsxfs_inode_initialize(
