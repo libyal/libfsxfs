@@ -146,13 +146,16 @@ int libfsxfs_attributes_block_header_read_data(
 {
 	static char *function   = "libfsxfs_attributes_block_header_read_data";
 	size_t header_data_size = 0;
-	uint8_t format_version  = 0;
 	uint16_t signature      = 0;
+	uint8_t format_version  = 0;
 
 #if defined( HAVE_DEBUG_OUTPUT )
+	size_t data_offset      = 0;
 	uint64_t value_64bit    = 0;
 	uint32_t value_32bit    = 0;
 	uint16_t value_16bit    = 0;
+	uint8_t value_8bit      = 0;
+	int free_region_index   = 0;
 #endif
 
 	if( attributes_block_header == NULL )
@@ -243,6 +246,34 @@ int libfsxfs_attributes_block_header_read_data(
 	}
 	attributes_block_header->format_version = format_version;
 
+	if( format_version == 2 )
+	{
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_attributes_block_header_v2_t *) data )->number_of_entries,
+		 attributes_block_header->number_of_entries );
+
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_attributes_block_header_v2_t *) data )->values_data_size,
+		 attributes_block_header->values_data_size );
+
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_attributes_block_header_v2_t *) data )->values_data_offset,
+		 attributes_block_header->values_data_offset );
+	}
+	else
+	{
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_attributes_block_header_v3_t *) data )->number_of_entries,
+		 attributes_block_header->number_of_entries );
+
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_attributes_block_header_v3_t *) data )->values_data_size,
+		 attributes_block_header->values_data_size );
+
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_attributes_block_header_v3_t *) data )->values_data_offset,
+		 attributes_block_header->values_data_offset );
+	}
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
 	{
@@ -258,7 +289,7 @@ int libfsxfs_attributes_block_header_read_data(
 		 ( (fsxfs_attributes_block_header_v2_t *) data )->previous_block_number,
 		 value_32bit );
 		libcnotify_printf(
-		 "%s: previous block number\t\t: %" PRIu32 "\n",
+		 "%s: previous block number\t: %" PRIu32 "\n",
 		 function,
 		 value_32bit );
 
@@ -267,13 +298,13 @@ int libfsxfs_attributes_block_header_read_data(
 		 function,
 		 signature );
 
-		libcnotify_printf(
-		 "%s: unknown1:\n",
-		 function );
-		libcnotify_print_data(
+		byte_stream_copy_to_uint16_big_endian(
 		 ( (fsxfs_attributes_block_header_v2_t *) data )->unknown1,
-		 2,
-		 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+		 value_16bit );
+		libcnotify_printf(
+		 "%s: unknown1\t\t\t: 0x%04" PRIx16 "\n",
+		 function,
+		 value_16bit );
 
 		if( format_version == 3 )
 		{
@@ -281,7 +312,7 @@ int libfsxfs_attributes_block_header_read_data(
 			 ( (fsxfs_attributes_block_header_v3_t *) data )->checksum,
 			 value_32bit );
 			libcnotify_printf(
-			 "%s: checksum\t\t\t\t: 0x%08" PRIx32 "\n",
+			 "%s: checksum\t\t\t: 0x%08" PRIx32 "\n",
 			 function,
 			 value_32bit );
 
@@ -289,7 +320,7 @@ int libfsxfs_attributes_block_header_read_data(
 			 ( (fsxfs_attributes_block_header_v3_t *) data )->block_number,
 			 value_64bit );
 			libcnotify_printf(
-			 "%s: block number\t\t\t\t: %" PRIu64 "\n",
+			 "%s: block number\t\t: %" PRIu64 "\n",
 			 function,
 			 value_64bit );
 
@@ -297,13 +328,13 @@ int libfsxfs_attributes_block_header_read_data(
 			 ( (fsxfs_attributes_block_header_v3_t *) data )->log_sequence_number,
 			 value_64bit );
 			libcnotify_printf(
-			 "%s: log sequence number\t\t\t: 0x%08" PRIx64 "\n",
+			 "%s: log sequence number\t\t: 0x%08" PRIx64 "\n",
 			 function,
 			 value_64bit );
 
 			if( libfsxfs_debug_print_guid_value(
 			     function,
-			     "block type identifier\t\t\t",
+			     "block type identifier\t",
 			     ( (fsxfs_attributes_block_header_v3_t *) data )->block_type_identifier,
 			     16,
 			     LIBFGUID_ENDIAN_BIG,
@@ -319,9 +350,94 @@ int libfsxfs_attributes_block_header_read_data(
 
 				return( -1 );
 			}
-			libcnotify_printf(
-			 "\n" );
 		}
+		libcnotify_printf(
+		 "%s: number of entries\t\t: %" PRIu16 "\n",
+		 function,
+		 attributes_block_header->number_of_entries );
+
+		libcnotify_printf(
+		 "%s: values data size\t\t: %" PRIu16 "\n",
+		 function,
+		 attributes_block_header->values_data_size );
+
+		libcnotify_printf(
+		 "%s: values data offset\t\t: %" PRIu16 "\n",
+		 function,
+		 attributes_block_header->values_data_offset );
+
+		if( format_version == 2 )
+		{
+			value_8bit = ( (fsxfs_attributes_block_header_v2_t *) data )->block_compaction_flag;
+		}
+		else
+		{
+			value_8bit = ( (fsxfs_attributes_block_header_v3_t *) data )->block_compaction_flag;
+		}
+		libcnotify_printf(
+		 "%s: block compaction flag\t: 0x%02" PRIx8 "\n",
+		 function,
+		 value_8bit );
+
+		if( format_version == 2 )
+		{
+			value_8bit = ( (fsxfs_attributes_block_header_v2_t *) data )->unknown2;
+		}
+		else
+		{
+			value_8bit = ( (fsxfs_attributes_block_header_v3_t *) data )->unknown2;
+		}
+		libcnotify_printf(
+		 "%s: unknown2\t\t\t: 0x%02" PRIx8 "\n",
+		 function,
+		 value_8bit );
+
+		if( format_version == 2 )
+		{
+			data_offset = 20;
+		}
+		else
+		{
+			data_offset = 64;
+		}
+		for( free_region_index = 0;
+		     free_region_index < 3;
+		     free_region_index++ )
+		{
+			byte_stream_copy_to_uint16_big_endian(
+			 &( data[ data_offset ] ),
+			 value_16bit );
+			libcnotify_printf(
+			 "%s: free region: %d offset\t: %" PRIu16 "\n",
+			 function,
+			 free_region_index,
+			 value_16bit );
+
+			data_offset += 2;
+
+			byte_stream_copy_to_uint16_big_endian(
+			 &( data[ data_offset ] ),
+			 value_16bit );
+			libcnotify_printf(
+			 "%s: free region: %d size\t\t: %" PRIu16 "\n",
+			 function,
+			 free_region_index,
+			 value_16bit );
+
+			data_offset += 2;
+		}
+		if( format_version == 3 )
+		{
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_attributes_block_header_v3_t *) data )->unknown3,
+			 value_32bit );
+			libcnotify_printf(
+			 "%s: unknown3\t\t\t: 0x%08" PRIx32 "\n",
+			 function,
+			 value_32bit );
+		}
+		libcnotify_printf(
+		 "\n" );
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 

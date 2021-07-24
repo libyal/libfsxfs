@@ -1592,15 +1592,15 @@ int libfsxfs_inode_get_data_size(
 	return( 1 );
 }
 
-/* Retrieves the number of extents
+/* Retrieves the number of data extents
  * Returns 1 if successful or -1 on error
  */
-int libfsxfs_inode_get_number_of_extents(
+int libfsxfs_inode_get_number_of_data_extents(
      libfsxfs_inode_t *inode,
      int *number_of_extents,
      libcerror_error_t **error )
 {
-	static char *function = "libfsxfs_inode_get_number_of_extents";
+	static char *function = "libfsxfs_inode_get_number_of_data_extents";
 
 	if( inode == NULL )
 	{
@@ -1622,7 +1622,7 @@ int libfsxfs_inode_get_number_of_extents(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-		 "%s: unable to retrieve number of entries.",
+		 "%s: unable to retrieve number of data entries.",
 		 function );
 
 		return( -1 );
@@ -1630,16 +1630,16 @@ int libfsxfs_inode_get_number_of_extents(
 	return( 1 );
 }
 
-/* Retrieves a specific extent
+/* Retrieves a specific data extent
  * Returns 1 if successful or -1 on error
  */
-int libfsxfs_inode_get_extent_by_index(
+int libfsxfs_inode_get_data_extent_by_index(
      libfsxfs_inode_t *inode,
      int extent_index,
      libfsxfs_extent_t **extent,
      libcerror_error_t **error )
 {
-	static char *function = "libfsxfs_inode_get_extent_by_index";
+	static char *function = "libfsxfs_inode_get_data_extent_by_index";
 
 	if( inode == NULL )
 	{
@@ -1662,7 +1662,86 @@ int libfsxfs_inode_get_extent_by_index(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-		 "%s: unable to retrieve extent: %d.",
+		 "%s: unable to retrieve data extent: %d.",
+		 function,
+		 extent_index );
+
+		return( -1 );
+	}
+	return( 1 );
+}
+
+/* Retrieves the number of attributes extents
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_number_of_attributes_extents(
+     libfsxfs_inode_t *inode,
+     int *number_of_extents,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_number_of_attributes_extents";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( libcdata_array_get_number_of_entries(
+	     inode->attributes_extents_array,
+	     number_of_extents,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve number of attributes entries.",
+		 function );
+
+		return( -1 );
+	}
+	return( 1 );
+}
+
+/* Retrieves a specific attributes extent
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_inode_get_attributes_extent_by_index(
+     libfsxfs_inode_t *inode,
+     int extent_index,
+     libfsxfs_extent_t **extent,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_attributes_extent_by_index";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( libcdata_array_get_entry_by_index(
+	     inode->attributes_extents_array,
+	     extent_index,
+	     (intptr_t **) extent,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve attributes extent: %d.",
 		 function,
 		 extent_index );
 

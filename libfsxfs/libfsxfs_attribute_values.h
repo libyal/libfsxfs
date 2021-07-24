@@ -35,10 +35,6 @@ typedef struct libfsxfs_attribute_values libfsxfs_attribute_values_t;
 
 struct libfsxfs_attribute_values
 {
-	/* Name data size
-	 */
-	uint8_t name_data_size;
-
 	/* Name
 	 */
 	uint8_t *name;
@@ -49,11 +45,15 @@ struct libfsxfs_attribute_values
 
 	/* Value data size
 	 */
-	uint8_t value_data_size;
+	uint32_t value_data_size;
 
 	/* Value data
 	 */
 	uint8_t *value_data;
+
+	/* Value data block number
+	 */
+	uint32_t value_data_block_number;
 };
 
 int libfsxfs_attribute_values_initialize(
@@ -64,10 +64,17 @@ int libfsxfs_attribute_values_free(
      libfsxfs_attribute_values_t **attribute_values,
      libcerror_error_t **error );
 
-int libfsxfs_attribute_values_read_data(
+int libfsxfs_attribute_values_set_name(
      libfsxfs_attribute_values_t *attribute_values,
-     const uint8_t *data,
-     size_t data_size,
+     const uint8_t *name,
+     size_t name_size,
+     uint8_t flags,
+     libcerror_error_t **error );
+
+int libfsxfs_attribute_values_set_value_data(
+     libfsxfs_attribute_values_t *attribute_values,
+     const uint8_t *value_data,
+     size_t value_data_size,
      libcerror_error_t **error );
 
 int libfsxfs_attribute_values_get_utf8_name_size(

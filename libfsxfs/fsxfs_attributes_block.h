@@ -52,6 +52,36 @@ struct fsxfs_attributes_block_header_v2
 	 * Consists of 2 bytes
 	 */
 	uint8_t unknown1[ 2 ];
+
+	/* Number of entries
+	 * Consists of 2 bytes
+	 */
+	uint8_t number_of_entries[ 2 ];
+
+	/* Values data size
+	 * Consists of 2 bytes
+	 */
+	uint8_t values_data_size[ 2 ];
+
+	/* Values data offset
+	 * Consists of 2 bytes
+	 */
+	uint8_t values_data_offset[ 2 ];
+
+	/* Block compaction flag
+	 * Consists of 1 byte
+	 */
+	uint8_t block_compaction_flag;
+
+	/* Unknown (padding)
+	 * Consists of 1 byte
+	 */
+	uint8_t unknown2;
+
+	/* Free regions
+	 * Consists of 12 bytes
+	 */
+	uint8_t free_regions[ 12 ];
 };
 
 typedef struct fsxfs_attributes_block_header_v3 fsxfs_attributes_block_header_v3_t;
@@ -102,6 +132,101 @@ struct fsxfs_attributes_block_header_v3
 	 * Consists of 8 bytes
 	 */
 	uint8_t owner_inode_number[ 8 ];
+
+	/* Number of entries
+	 * Consists of 2 bytes
+	 */
+	uint8_t number_of_entries[ 2 ];
+
+	/* Values data size
+	 * Consists of 2 bytes
+	 */
+	uint8_t values_data_size[ 2 ];
+
+	/* Values data offset
+	 * Consists of 2 bytes
+	 */
+	uint8_t values_data_offset[ 2 ];
+
+	/* Block compaction flag
+	 * Consists of 1 byte
+	 */
+	uint8_t block_compaction_flag;
+
+	/* Unknown (padding)
+	 * Consists of 1 byte
+	 */
+	uint8_t unknown2;
+
+	/* Free regions
+	 * Consists of 12 bytes
+	 */
+	uint8_t free_regions[ 12 ];
+
+	/* Unknown (padding)
+	 * Consists of 4 bytes
+	 */
+	uint8_t unknown3[ 4 ];
+};
+
+typedef struct fsxfs_attributes_block_entry fsxfs_attributes_block_entry_t;
+
+struct fsxfs_attributes_block_entry
+{
+	/* Name hash
+	 * Consists of 4 bytes
+	 */
+	uint8_t name_hash[ 4 ];
+
+	/* Values offset
+	 * Consists of 2 bytes
+	 */
+	uint8_t values_offset[ 2 ];
+
+	/* Flags
+	 * Consists of 1 byte
+	 */
+	uint8_t flags;
+
+	/* Unknown (padding)
+	 * Consists of 1 byte
+	 */
+	uint8_t unknown1;
+};
+
+typedef struct fsxfs_attributes_block_values_local fsxfs_attributes_block_values_local_t;
+
+struct fsxfs_attributes_block_values_local
+{
+	/* Value data size
+	 * Consists of 2 bytes
+	 */
+	uint8_t value_data_size[ 2 ];
+
+	/* Name size
+	 * Consists of 1 byte
+	 */
+	uint8_t name_size;
+};
+
+typedef struct fsxfs_attributes_block_values_remote fsxfs_attributes_block_values_remote_t;
+
+struct fsxfs_attributes_block_values_remote
+{
+	/* Value data block number
+	 * Consists of 4 bytes
+	 */
+	uint8_t value_data_block_number[ 4 ];
+
+	/* Value data size
+	 * Consists of 4 bytes
+	 */
+	uint8_t value_data_size[ 4 ];
+
+	/* Name size
+	 * Consists of 1 byte
+	 */
+	uint8_t name_size;
 };
 
 #if defined( __cplusplus )

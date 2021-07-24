@@ -146,20 +146,19 @@ int libfsxfs_attribute_values_free(
 	return( 1 );
 }
 
-/* Reads the attribute values data
+/* Sets the name including prefix
  * Returns 1 if successful or -1 on error
  */
-int libfsxfs_attribute_values_read_data(
+int libfsxfs_attribute_values_set_name(
      libfsxfs_attribute_values_t *attribute_values,
-     const uint8_t *data,
-     size_t data_size,
+     const uint8_t *name,
+     size_t name_size,
+     uint8_t flags,
      libcerror_error_t **error )
 {
-	static char *function     = "libfsxfs_attribute_values_read_data";
+	static char *function     = "libfsxfs_attribute_values_set_name";
 	const char *name_prefix   = NULL;
 	size_t name_prefix_length = 0;
-	uint8_t flags             = 0;
-	uint8_t name_size         = 0;
 
 	if( attribute_values == NULL )
 	{
@@ -172,32 +171,30 @@ int libfsxfs_attribute_values_read_data(
 
 		return( -1 );
 	}
-	if( data == NULL )
+	if( attribute_values->name != NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid attribute values - name value already set.",
+		 function );
+
+		return( -1 );
+	}
+	if( name == NULL )
 	{
 		libcerror_error_set(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
-		 "%s: invalid data.",
+		 "%s: invalid name.",
 		 function );
 
 		return( -1 );
 	}
-	if( ( data_size < sizeof( fsxfs_attributes_short_form_entry_t ) )
-	 || ( data_size > (size_t) SSIZE_MAX ) )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
-		 "%s: invalid data size value out of bounds.",
-		 function );
-
-		return( -1 );
-	}
-	name_size = ( (fsxfs_attributes_short_form_entry_t *) data )->name_size;
-
-	if( name_size > ( data_size - sizeof( fsxfs_attributes_short_form_entry_t ) ) )
+	if( ( name_size == 0 )
+	 || ( name_size > (size_t) 255 ) )
 	{
 		libcerror_error_set(
 		 error,
@@ -206,166 +203,95 @@ int libfsxfs_attribute_values_read_data(
 		 "%s: invalid name size value out of bounds.",
 		 function );
 
-		goto on_error;
+		return( -1 );
 	}
-#if defined( HAVE_DEBUG_OUTPUT )
-	if( libcnotify_verbose != 0 )
+	switch( flags & 0x7e )
 	{
-		libcnotify_printf(
-		 "%s: extended attributes entry data:\n",
-		 function );
-		libcnotify_print_data(
-		 data,
-		 sizeof( fsxfs_attributes_short_form_entry_t ) + name_size,
-		 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
-	}
-#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+		case 0:
+			name_prefix = "user.";
+			break;
 
-	attribute_values->name_data_size = name_size;
+		case 2:
+			name_prefix = "trusted.";
+			break;
 
-	attribute_values->value_data_size = ( (fsxfs_attributes_short_form_entry_t *) data )->value_data_size;
+		case 4:
+			name_prefix = "secure.";
+			break;
 
-	flags = ( (fsxfs_attributes_short_form_entry_t *) data )->flags;
-
-#if defined( HAVE_DEBUG_OUTPUT )
-	if( libcnotify_verbose != 0 )
-	{
-		libcnotify_printf(
-		 "%s: name size\t\t\t\t: %" PRIu8 "\n",
-		 function,
-		 attribute_values->name_data_size );
-
-		libcnotify_printf(
-		 "%s: value data size\t\t\t: %" PRIu32 "\n",
-		 function,
-		 attribute_values->value_data_size );
-
-		libcnotify_printf(
-		 "%s: flags\t\t\t\t: 0x%02" PRIx8 "\n",
-		 function,
-		 flags );
-	}
-#endif /* defined( HAVE_DEBUG_OUTPUT ) */
-
-	if( name_size > 0 )
-	{
-		switch( flags & 0x7f )
-		{
-			case 0:
-				name_prefix = "user.";
-				break;
-
-			case 2:
-				name_prefix = "trusted.";
-				break;
-
-			case 4:
-				name_prefix = "secure.";
-				break;
-
-			default:
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-				 "%s: unsupported flags: 0x%02" PRIx8 ".",
-				 function,
-				 flags );
-
-				return( -1 );
-		}
-		name_prefix_length = narrow_string_length(
-		                      name_prefix );
-
-		attribute_values->name_size = name_prefix_length + name_size + 1;
-
-		if( attribute_values->name_size > (size_t) MEMORY_MAXIMUM_ALLOCATION_SIZE )
-		{
+		default:
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
-			 "%s: invalid name size value out of bounds.",
-			 function );
+			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+			 "%s: unsupported flags: 0x%02" PRIx8 ".",
+			 function,
+			 flags );
 
 			return( -1 );
-		}
-		attribute_values->name = (uint8_t *) memory_allocate(
-		                                      sizeof( uint8_t ) * attribute_values->name_size );
+	}
+	name_prefix_length = narrow_string_length(
+	                      name_prefix );
 
-		if( attribute_values->name == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_MEMORY,
-			 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
-			 "%s: unable to create name.",
-			 function );
+	attribute_values->name_size = name_prefix_length + name_size + 1;
 
-			goto on_error;
-		}
-		if( name_prefix_length > 0 )
-		{
-			if( memory_copy(
-			     attribute_values->name,
-			     name_prefix,
-			     name_prefix_length ) == NULL )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_MEMORY,
-				 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
-				 "%s: unable to copy name prefix to extended attribute name.",
-				 function );
+	if( attribute_values->name_size > (size_t) MEMORY_MAXIMUM_ALLOCATION_SIZE )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid name size value out of bounds.",
+		 function );
 
-				goto on_error;
-			}
-		}
+		return( -1 );
+	}
+	attribute_values->name = (uint8_t *) memory_allocate(
+	                                      sizeof( uint8_t ) * attribute_values->name_size );
+
+	if( attribute_values->name == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+		 "%s: unable to create name.",
+		 function );
+
+		goto on_error;
+	}
+	if( name_prefix_length > 0 )
+	{
 		if( memory_copy(
-		     &( ( attribute_values->name )[ name_prefix_length ] ),
-		     &( data[ sizeof( fsxfs_attributes_short_form_entry_t ) ] ),
-		     name_size ) == NULL )
+		     attribute_values->name,
+		     name_prefix,
+		     name_prefix_length ) == NULL )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_MEMORY,
 			 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
-			 "%s: unable to copy name to extended attribute name.",
+			 "%s: unable to copy name prefix to extended attribute name.",
 			 function );
 
 			goto on_error;
 		}
-		( attribute_values->name )[ attribute_values->name_size - 1 ] = 0;
-
-#if defined( HAVE_DEBUG_OUTPUT )
-		if( libcnotify_verbose != 0 )
-		{
-			if( libfsxfs_debug_print_utf8_string_value(
-			     function,
-			     "name\t\t\t\t",
-			     attribute_values->name,
-			     attribute_values->name_size,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
-				 "%s: unable to print UTF-8 string value.",
-				 function );
-
-				goto on_error;
-			}
-		}
-#endif /* defined( HAVE_DEBUG_OUTPUT ) */
 	}
-#if defined( HAVE_DEBUG_OUTPUT )
-	if( libcnotify_verbose != 0 )
+	if( memory_copy(
+	     &( ( attribute_values->name )[ name_prefix_length ] ),
+	     name,
+	     name_size ) == NULL )
 	{
-		libcnotify_printf(
-		 "\n" );
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
+		 "%s: unable to copy name to extended attribute name.",
+		 function );
+
+		goto on_error;
 	}
-#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+	( attribute_values->name )[ attribute_values->name_size - 1 ] = 0;
 
 	return( 1 );
 
@@ -379,6 +305,107 @@ on_error:
 	}
 	attribute_values->name_size = 0;
 
+	return( -1 );
+}
+
+/* Sets the value data
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_attribute_values_set_value_data(
+     libfsxfs_attribute_values_t *attribute_values,
+     const uint8_t *value_data,
+     size_t value_data_size,
+     libcerror_error_t **error )
+{
+	static char *function     = "libfsxfs_attribute_values_set_value_data";
+	const char *name_prefix   = NULL;
+	size_t name_prefix_length = 0;
+
+	if( attribute_values == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid attribute values.",
+		 function );
+
+		return( -1 );
+	}
+	if( attribute_values->value_data != NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid attribute values - value data value already set.",
+		 function );
+
+		return( -1 );
+	}
+	if( value_data == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid value data.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( value_data_size == 0 )
+	 || ( value_data_size > (size_t) MEMORY_MAXIMUM_ALLOCATION_SIZE ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid value data size value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	attribute_values->value_data = (uint8_t *) memory_allocate(
+	                                            sizeof( uint8_t ) * value_data_size );
+
+	if( attribute_values->value_data == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+		 "%s: unable to create value data.",
+		 function );
+
+		goto on_error;
+	}
+	if( memory_copy(
+	     attribute_values->value_data,
+	     value_data,
+	     value_data_size ) == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
+		 "%s: unable to copy value data.",
+		 function );
+
+		goto on_error;
+	}
+	attribute_values->value_data_size = value_data_size;
+
+	return( 1 );
+
+on_error:
+	if( attribute_values->value_data != NULL )
+	{
+		memory_free(
+		 attribute_values->value_data );
+
+		attribute_values->value_data = NULL;
+	}
 	return( -1 );
 }
 

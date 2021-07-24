@@ -39,9 +39,17 @@ struct libfsxfs_attributes_block_header
 	 */
 	uint8_t format_version;
 
-	/* Value to indicate the attributes block has a footer
+	/* Number of entries
 	 */
-	uint8_t has_footer;
+	uint16_t number_of_entries;
+
+	/* Values data size
+	 */
+	uint16_t values_data_size;
+
+	/* Values data offset
+	 */
+	uint16_t values_data_offset;
 };
 
 int libfsxfs_attributes_block_header_initialize(

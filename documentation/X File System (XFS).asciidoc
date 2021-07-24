@@ -543,24 +543,26 @@ represented in the examples.*
 
 ==== Free space B+ tree branch node record
 
-[yellow-background]*TODO describe*
+The free space B+ tree branch node record (xfs_alloc_ptr_t) is 4 bytes of size
+and consist of:
 
-....
-typedef __be32 xfs_alloc_ptr_t;
-....
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | [yellow-background]*Unknown*
+|===
 
 ==== Free space B+ tree leaf node record
 
-[yellow-background]*TODO describe*
+The free space B+ tree leaf node record (xfs_alloc_key_t) is 8 bytes of size and
+consist of:
 
-....
-typedef struct xfs_alloc_rec {
-__be32
-ar_startblock;
-__be32
-ar_blockcount;
-} xfs_alloc_rec_t, xfs_alloc_key_t;
-....
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | [yellow-background]*Unknown (ar_startblock)*
+| 4 | 4 | | [yellow-background]*Unknown (ar_blockcount)*
+|===
 
 === Inode B+ tree
 
@@ -1077,7 +1079,7 @@ and consist of:
 | Offset | Size | Value | Description
 | 0 | 4 | "XD2B" | Signature
 | 4 | 4 x 3 | | Array of free regions in the block +
-See section: <<block_directory_free_region_v2,Block directory free region>>
+See section: <<block_free_region_v2,Block free region>>
 |===
 
 ===== Block directory header version 3
@@ -1099,14 +1101,14 @@ Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_met
 Contains the absolute inode number the block is part of
 4+|
 | 48 | 4 x 3 | | Array of free regions in the block +
-See section: <<block_directory_free_region_v2,Block directory free region version 2>>
+See section: <<block_free_region_v2,Block free region>>
 | 60 | 4 | | [yellow-background]*Unknown (padding)*
 |===
 
-===== [[block_directory_free_region_v2]]Block directory free region version 2
+===== [[block_free_region_v2]]Block free region version 2
 
-The block directory free region version 2 (xfs_dir2_data_free_t) is 4 bytes of
-size and consist of:
+The block free region version 2 (xfs_dir2_data_free_t) is 4 bytes of size and
+consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -1341,8 +1343,7 @@ of one or more blocks that consist of:
 
 * an attributes block header
 * array of attributes block entries
-* array of local attribute values entries
-* array of remote attribute values entries
+* array of local or remote attribute block values
 
 ==== Attributes block header
 
@@ -1362,12 +1363,12 @@ size and consist of:
 | 10 | 2 | | [yellow-background]*Unknown (padding)*
 4+| _End of block header_
 | 12 | 2 | | Number of entries
-| 14 | 2 | | Entries data size
-| 16 | 2 | | Entries data offset
+| 14 | 2 | | Values data size
+| 16 | 2 | | Values data offset
 | 18 | 1 | | Flag to indicate block compaction is needed
 | 19 | 1 | | [yellow-background]*Unknown (padding)*
-| 20 | 3 x 4 | | Free area descriptors +
-See section: <<attributes_block_free_area_descriptor,Attributes block free area descriptor>>
+| 20 | 4 x 3 | | Array of free regions in the block +
+See section: <<block_free_region_v2,Block free region>>
 |===
 
 ===== Attributes block header version 3
@@ -1393,26 +1394,13 @@ Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_met
 Contains the absolute inode number the block is part of
 4+| _End of block header_
 | 56 | 2 | | Number of entries
-| 58 | 2 | | Entries data size
-| 60 | 2 | | Entries data offset
+| 58 | 2 | | Values data size
+| 60 | 2 | | Values data offset
 | 62 | 1 | | Flag to indicate block compaction is needed
 | 63 | 1 | | [yellow-background]*Unknown (padding)*
-| 64 | 3 x 4 | | Free area descriptors +
-See section: <<attributes_block_free_area_descriptor,Attributes block free area descriptor>>
+| 64 | 4 x 3 | | Array of free regions in the block +
+See section: <<block_free_region_v2,Block free region>>
 | 76 | 4 | | [yellow-background]*Unknown (padding)*
-|===
-
-===== [[attributes_block_free_area_descriptor]]Attributes block free area descriptor
-
-The attributes block free area descriptor (xfs_attr_leaf_map_t) is 4 bytes of
-size and consist of:
-
-[cols="1,1,1,5",options="header"]
-|===
-| Offset | Size | Value | Description
-| 0 | 2 | | Free area offset +
-Contains an offset relative to the start of the attributes block
-| 2 | 2 | | 
 |===
 
 ==== Attributes block entry
@@ -1424,17 +1412,23 @@ consist of:
 |===
 | Offset | Size | Value | Description
 | 0 | 4 | | Name hash
-| 4 | 2 | | Name entry offset +
+| 4 | 2 | | Values offset +
 Contains an offset relative to the start of the attributes block
 | 6 | 1 | | Flags +
 Also see: <<attribute_flags,attribute flags>>
 | 7 | 1 | | [yellow-background]*Unknown (padding)*
 |===
 
-==== Local attribute values entry
+==== Attribute block values
 
-The local attributes values entry (xfs_attr_leaf_name_local_t) is variable of
-size and consist of:
+If the attributes block entry flag XFS_ATTR_LOCAL is set the attribute values
+are stored as local attribute values otherwise as remote attribute values. The
+value data of remote attribute values are stored in a <<remote_attribute_value_block,remote attribute value block>>.
+
+===== Local attribute block values
+
+The local attributes values (xfs_attr_leaf_name_local_t) is variable of size and
+consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -1445,10 +1439,10 @@ size and consist of:
 Contains an ASCII string without end-of-string character
 |===
 
-==== Remote attribute values entry
+===== Remote attribute block values
 
-The remote attributes values entry (xfs_attr_leaf_name_remote_t) is variable of
-size and consist of:
+The remote attributes values (xfs_attr_leaf_name_remote_t) is variable of size
+and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -1466,6 +1460,8 @@ If the inode attributes fork type is XFS_DINODE_FMT_BTREE the extended
 attributes are sorted in an extended attributes block. The attributes fork
 contains an <<extent_btree,extent B+ tree>>.
 
+[yellow-background]*TODO describe*
+
 === [[attribute_flags]]The attribute flags
 
 The attribute flags indicate the prefix (or namespace) of the attribute name.
@@ -1480,6 +1476,10 @@ The attribute flags indicate the prefix (or namespace) of the attribute name.
 4+|
 | 0x80 | XFS_ATTR_INCOMPLETE | | This attribute is being modified
 |===
+
+==== [[remote_attribute_value_block]]Remote attribute value block
+
+[yellow-background]*TODO describe*
 
 :numbered!:
 [appendix]

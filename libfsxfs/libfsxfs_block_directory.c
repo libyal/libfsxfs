@@ -572,8 +572,9 @@ int libfsxfs_block_directory_read_data(
 				 error,
 				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 				 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-				 "%s: unable to create entry.",
-				 function );
+				 "%s: unable to create directory entry: %d.",
+				 function,
+				 directory_entry_index );
 
 				goto on_error;
 			}

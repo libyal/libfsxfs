@@ -23,6 +23,7 @@
 #include <memory.h>
 #include <types.h>
 
+#include "libfsxfs_attributes_block.h"
 #include "libfsxfs_attributes_table.h"
 #include "libfsxfs_data_stream.h"
 #include "libfsxfs_definitions.h"
@@ -1710,8 +1711,16 @@ int libfsxfs_internal_file_entry_get_extended_attributes(
      libfsxfs_internal_file_entry_t *internal_file_entry,
      libcerror_error_t **error )
 {
+	libfsxfs_attributes_block_t *attributes_block = NULL;
 	libfsxfs_attributes_table_t *attributes_table = NULL;
+	libfsxfs_extent_t *extent                     = NULL;
 	static char *function                         = "libfsxfs_internal_file_entry_get_extended_attributes";
+	size64_t extent_size                          = 0;
+	off64_t attributes_block_offset               = 0;
+	uint64_t relative_block_number                = 0;
+	int allocation_group_index                    = 0;
+	int extent_index                              = 0;
+	int number_of_extents                         = 0;
 
 	if( internal_file_entry == NULL )
 	{
@@ -1756,6 +1765,19 @@ int libfsxfs_internal_file_entry_get_extended_attributes(
 		 function );
 
 		return( -1 );
+	}
+	if( ( internal_file_entry->inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_INLINE_DATA )
+	 && ( internal_file_entry->inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_EXTENTS )
+	 && ( internal_file_entry->inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_BTREE ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: invalid file entry - invalid inode - unsupported attributes fork type.",
+		 function );
+
+		goto on_error;
 	}
 	if( libcdata_array_initialize(
 	     &( internal_file_entry->extended_attributes_array ),
@@ -1829,11 +1851,159 @@ int libfsxfs_internal_file_entry_get_extended_attributes(
 			goto on_error;
 		}
 	}
-/* TODO read extent-based attributes */
+	else
+	{
+		if( libfsxfs_inode_get_number_of_attributes_extents(
+		     internal_file_entry->inode,
+		     &number_of_extents,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve number of attributes extents.",
+			 function );
 
+			goto on_error;
+		}
+		for( extent_index = 0;
+		     extent_index < number_of_extents;
+		     extent_index++ )
+		{
+			if( libfsxfs_inode_get_attributes_extent_by_index(
+			     internal_file_entry->inode,
+			     extent_index,
+			     &extent,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+				 "%s: unable to retrieve attributes extent: %d.",
+				 function,
+				 extent_index );
+
+				goto on_error;
+			}
+			if( extent == NULL )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+				 "%s: missing extent: %d.",
+				 function,
+				 extent_index );
+
+				goto on_error;
+			}
+			if( (uint64_t) extent->logical_block_number > ( (uint64_t) INT64_MAX / internal_file_entry->io_handle->block_size ) )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+				 "%s: invalid extent: %d - logical block number value out of bounds.",
+				 function,
+				 extent_index );
+
+				goto on_error;
+			}
+			allocation_group_index = (int) ( extent->physical_block_number >> internal_file_entry->io_handle->number_of_relative_block_number_bits );
+			relative_block_number  = extent->physical_block_number & ( ( 1 << internal_file_entry->io_handle->number_of_relative_block_number_bits ) - 1 );
+
+#if defined( HAVE_DEBUG_OUTPUT )
+			if( libcnotify_verbose != 0 )
+			{
+				libcnotify_printf(
+				 "%s: extent: %d physical block number\t: %" PRIu64 "\n",
+				 function,
+				 extent_index,
+				 extent->physical_block_number );
+
+				libcnotify_printf(
+				 "%s: extent: %d allocation group index\t: %d\n",
+				 function,
+				 extent_index,
+				 allocation_group_index );
+
+				libcnotify_printf(
+				 "%s: extent: %d relative block number\t: %" PRIu64 "\n",
+				 function,
+				 extent_index,
+				 relative_block_number );
+
+				libcnotify_printf(
+				 "\n" );
+			}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+			attributes_block_offset = ( ( (off64_t) allocation_group_index * internal_file_entry->io_handle->allocation_group_size ) + relative_block_number ) * internal_file_entry->io_handle->block_size;
+			extent_size             = (size64_t) extent->number_of_blocks * internal_file_entry->io_handle->block_size;
+
+			while( extent_size > 0 )
+			{
+				if( libfsxfs_attributes_block_initialize(
+				     &attributes_block,
+				     internal_file_entry->io_handle->block_size,
+				     error ) != 1 )
+				{
+					libcerror_error_set(
+					 error,
+					 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+					 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+					 "%s: unable to initialize attributes block.",
+					 function );
+
+					goto on_error;
+				}
+				if( libfsxfs_attributes_block_read_file_io_handle(
+				     attributes_block,
+				     internal_file_entry->io_handle,
+				     internal_file_entry->file_io_handle,
+				     attributes_block_offset,
+				     internal_file_entry->extended_attributes_array,
+				     error ) != 1 )
+				{
+					libcerror_error_set(
+					 error,
+					 LIBCERROR_ERROR_DOMAIN_IO,
+					 LIBCERROR_IO_ERROR_READ_FAILED,
+					 "%s: unable to read attributes block.",
+					 function );
+
+					goto on_error;
+				}
+				attributes_block_offset += internal_file_entry->io_handle->block_size;
+				extent_size             -= internal_file_entry->io_handle->block_size;
+
+				if( libfsxfs_attributes_block_free(
+				     &attributes_block,
+				     error ) != 1 )
+				{
+					libcerror_error_set(
+					 error,
+					 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+					 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+					 "%s: unable to free attributes block.",
+					 function );
+
+					goto on_error;
+				}
+			}
+		}
+	}
 	return( 1 );
 
 on_error:
+	if( attributes_block != NULL )
+	{
+		libfsxfs_attributes_block_free(
+		 &attributes_block,
+		 NULL );
+	}
 	if( attributes_table != NULL )
 	{
 		libfsxfs_attributes_table_free(
@@ -1906,7 +2076,7 @@ int libfsxfs_file_entry_get_number_of_extended_attributes(
 			result = -1;
 		}
 	}
-	if( result != -1 )
+	if( internal_file_entry->extended_attributes_array != NULL )
 	{
 		if( libcdata_array_get_number_of_entries(
 		     internal_file_entry->extended_attributes_array,
@@ -2021,7 +2191,7 @@ int libfsxfs_file_entry_get_extended_attribute_by_index(
 			result = -1;
 		}
 	}
-	if( result != -1 )
+	if( internal_file_entry->extended_attributes_array != NULL )
 	{
 		if( libcdata_array_get_entry_by_index(
 		     internal_file_entry->extended_attributes_array,

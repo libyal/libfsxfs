@@ -203,12 +203,23 @@ int libfsxfs_inode_get_data_size(
      uint64_t *data_size,
      libcerror_error_t **error );
 
-int libfsxfs_inode_get_number_of_extents(
+int libfsxfs_inode_get_number_of_data_extents(
      libfsxfs_inode_t *inode,
      int *number_of_extents,
      libcerror_error_t **error );
 
-int libfsxfs_inode_get_extent_by_index(
+int libfsxfs_inode_get_data_extent_by_index(
+     libfsxfs_inode_t *inode,
+     int extent_index,
+     libfsxfs_extent_t **extent,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_number_of_attributes_extents(
+     libfsxfs_inode_t *inode,
+     int *number_of_extents,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_attributes_extent_by_index(
      libfsxfs_inode_t *inode,
      int extent_index,
      libfsxfs_extent_t **extent,

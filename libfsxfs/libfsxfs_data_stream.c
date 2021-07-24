@@ -221,7 +221,7 @@ int libfsxfs_data_stream_initialize_from_extents(
 
 		goto on_error;
 	}
-	if( libfsxfs_inode_get_number_of_extents(
+	if( libfsxfs_inode_get_number_of_data_extents(
 	     inode,
 	     &number_of_extents,
 	     error ) != 1 )
@@ -230,7 +230,7 @@ int libfsxfs_data_stream_initialize_from_extents(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-		 "%s: unable to retrieve number of extents.",
+		 "%s: unable to retrieve number of data extents.",
 		 function );
 
 		goto on_error;
@@ -239,7 +239,7 @@ int libfsxfs_data_stream_initialize_from_extents(
 	     extent_index < number_of_extents;
 	     extent_index++ )
 	{
-		if( libfsxfs_inode_get_extent_by_index(
+		if( libfsxfs_inode_get_data_extent_by_index(
 		     inode,
 		     extent_index,
 		     &extent,
@@ -249,7 +249,7 @@ int libfsxfs_data_stream_initialize_from_extents(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-			 "%s: unable to retrieve extent: %d.",
+			 "%s: unable to retrieve data extent: %d.",
 			 function,
 			 extent_index );
 

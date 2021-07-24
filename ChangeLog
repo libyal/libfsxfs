@@ -1,6 +1,8 @@
 TODO:
 * add support for extended attributes
 ** add support for extent-based stored attributes
+** check number of attributes that fit in a single block
+** check v1 and v2 attributes
 
 * complete basic format version 4 and 5 support
 ** complete libfsxfs_file_entry_get_sub_file_entry_by_utf8_name

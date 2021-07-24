@@ -66,7 +66,7 @@ int libfsxfs_attributes_block_read_data(
      libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
-     libcdata_array_t *entries_array,
+     libcdata_array_t *extended_attributes_array,
      libcerror_error_t **error );
 
 int libfsxfs_attributes_block_read_file_io_handle(
@@ -74,7 +74,7 @@ int libfsxfs_attributes_block_read_file_io_handle(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      off64_t file_offset,
-     libcdata_array_t *entries_array,
+     libcdata_array_t *extended_attributes_array,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
