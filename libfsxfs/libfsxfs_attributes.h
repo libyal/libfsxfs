@@ -25,12 +25,14 @@
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_attribute_values.h"
 #include "libfsxfs_attributes_leaf_block_header.h"
 #include "libfsxfs_inode.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
+#include "libfsxfs_libfdata.h"
 
 #if defined( __cplusplus )
 extern "C" {
@@ -67,6 +69,13 @@ int libfsxfs_attributes_get_from_inode(
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
      libcdata_array_t *extended_attributes_array,
+     libcerror_error_t **error );
+
+int libfsxfs_attributes_get_value_data_stream(
+     libfsxfs_io_handle_t *io_handle,
+     libfsxfs_inode_t *inode,
+     libfsxfs_attribute_values_t *attribute_values,
+     libfdata_stream_t **data_stream,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )

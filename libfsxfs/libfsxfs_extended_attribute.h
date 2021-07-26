@@ -28,6 +28,7 @@
 #include "libfsxfs_attribute_values.h"
 #include "libfsxfs_extern.h"
 #include "libfsxfs_file_system.h"
+#include "libfsxfs_inode.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcdata.h"
@@ -56,6 +57,10 @@ struct libfsxfs_internal_extended_attribute
 	 */
 	libfsxfs_file_system_t *file_system;
 
+	/* The inode
+	 */
+	libfsxfs_inode_t *inode;
+
 	/* The attribute values
 	 */
 	libfsxfs_attribute_values_t *attribute_values;
@@ -76,6 +81,7 @@ int libfsxfs_extended_attribute_initialize(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_file_system_t *file_system,
+     libfsxfs_inode_t *inode,
      libfsxfs_attribute_values_t *attribute_values,
      libcerror_error_t **error );
 

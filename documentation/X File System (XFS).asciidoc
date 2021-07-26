@@ -326,7 +326,8 @@ The free block information stores references:
 * the block offset B+ tree, that tracks the free space by block number
 * the block count B+ tree, that tracks the size of the free space block
 
-The free block information (xfs_agf_t) is 64 bytes of size and consists of:
+The free block information (xfs_agf_t) is 64 or 224 bytes of size and
+consists of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -353,33 +354,19 @@ Contains number of blocks
 4+| _Only used if the XFS_SB_VERSION2_LAZYSBCOUNTBIT feature flag is set_
 | 60 | 4 | | Number of blocks used for the free space B+ trees
 4+| _If file system version >= 5_
-| 64 | 0 | |
+| 64 | 16 | | Block type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+| 80 | 4 | | [yellow-background]*Unknown (Size of the reverse mapping B+ tree in blocks)*
+| 84 | 4 | | [yellow-background]*Unknown (Size of the reference count B+ tree in blocks)*
+| 88 | 4 | | Reverse mapping B+ tree root block number +
+Contains a block number relative to the start of the allocation group
+| 92 | 4 | | Reference count B+ tree root block number +
+Contains a block number relative to the start of the allocation group
+| 96 | 14 x 8 | | [yellow-background]*Unknown (reserved)*
+| 208 | 8 | | Log sequence number
+| 216 | 4 | | [yellow-background]*Unknown (Checksum of the free sector)*
+| 220 | 4 | | [yellow-background]*Unknown (reserved)*
 |===
-
-[yellow-background]*TODO describe*
-
-....
-/* version 5 filesystem fields start here */
-uuid_t
-agf_uuid;
-__be32
-agf_rmap_blocks;
-__be32
-agf_refcount_blocks;
-__be32
-agf_refcount_root;
-__be32
-agf_refcount_level;
-__be64
-agf_spare64[14];
-/* unlogged fields, written during buffer writeback. */
-__be64
-agf_lsn;
-__be32
-agf_crc;
-__be32
-agf_spare2;
-....
 
 == Free list
 
@@ -1469,7 +1456,7 @@ Also see: <<attribute_flags,attribute flags>>
 If the attributes (leaf) block entry flag XFS_ATTR_LOCAL is set the attribute
 values are stored as local attribute block values otherwise as remote attribute
 block values. The value data of remote attribute values are stored in a
-<<remote_attribute_value_block,remote attribute value block>>.
+<<remote_attribute_value_data_block,remote attribute value data block>>.
 
 ===== Local attribute block values
 
@@ -1493,7 +1480,8 @@ and consist of:
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
-| 0 | 4 | | Value data (logical) block number
+| 0 | 4 | | Value data block number +
+Contains a block number relative to the start of the attributes extents
 | 4 | 4 | | Value data size
 | 8 | 1 | | Name size
 | 9 | ... | | Name string +
@@ -1554,7 +1542,8 @@ version 3 is used. The attributes branch node block header version 3
 |===
 | Offset | Size | Value | Description
 | 0 | 4 | | Name hash
-| 4 | 4 | | Sub block number
+| 4 | 4 | | Sub block number +
+Contains a block number relative to the start of the attributes extents
 |===
 
 === Attributes B+ tree leaf node
@@ -1577,9 +1566,37 @@ The attribute flags indicate the prefix (or namespace) of the attribute name.
 | 0x80 | XFS_ATTR_INCOMPLETE | | This attribute is being modified
 |===
 
-==== [[remote_attribute_value_block]]Remote attribute value block
+==== [[remote_attribute_value_data_block]]Remote attribute value data block
 
-[yellow-background]*TODO describe*
+If the file system version <= 4 the attribute value data is stored directly in
+remote attribute value date blocks.
+
+If the file system version >= 5 each individual remote attribute value data
+block will start with a remote attribute value data block header version 3
+followed by attribute value data.
+
+The attributes extents contain the physical location of the individual remote
+attribute value data blocks.
+
+===== Remote attribute value data block header version 3
+
+The remote attribute value data block header (xfs_attr3_rmt_hdr) is 52 bytes of
+size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | "XARM" | Signature
+| 4 | 4 | | Value data offset
+| 8 | 4 | | Value data size
+| 12 | 4 | | Checksum of the remote attribute value data block
+| 16 | 16 | | Block type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+| 32 | 8 | | Owner inode number +
+Contains the absolute inode number the block is part of
+| 40 | 8 | | Block number
+| 48 | 8 | | Log sequence number
+|===
 
 :numbered!:
 [appendix]

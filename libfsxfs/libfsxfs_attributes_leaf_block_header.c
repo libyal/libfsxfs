@@ -153,7 +153,6 @@ int libfsxfs_attributes_leaf_block_header_read_data(
 	size_t data_offset      = 0;
 	uint32_t value_32bit    = 0;
 	uint16_t value_16bit    = 0;
-	uint8_t value_8bit      = 0;
 	int free_region_index   = 0;
 #endif
 
@@ -239,7 +238,7 @@ int libfsxfs_attributes_leaf_block_header_read_data(
 		 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->used_data_size,
 		 value_32bit );
 		libcnotify_printf(
-		 "%s: used data size\t: %" PRIu16 "\n",
+		 "%s: used data size\t\t: %" PRIu16 "\n",
 		 function,
 		 value_32bit );
 
@@ -247,7 +246,7 @@ int libfsxfs_attributes_leaf_block_header_read_data(
 		 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->used_data_offset,
 		 value_32bit );
 		libcnotify_printf(
-		 "%s: values data offset\t: %" PRIu16 "\n",
+		 "%s: used data offset\t: %" PRIu16 "\n",
 		 function,
 		 value_32bit );
 

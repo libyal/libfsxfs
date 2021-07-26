@@ -24,7 +24,7 @@
 #include <types.h>
 
 #include "libfsxfs_attribute_values.h"
-#include "libfsxfs_data_stream.h"
+#include "libfsxfs_attributes.h"
 #include "libfsxfs_extended_attribute.h"
 #include "libfsxfs_file_system.h"
 #include "libfsxfs_inode.h"
@@ -45,6 +45,7 @@ int libfsxfs_extended_attribute_initialize(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_file_system_t *file_system,
+     libfsxfs_inode_t *inode,
      libfsxfs_attribute_values_t *attribute_values,
      libcerror_error_t **error )
 {
@@ -107,6 +108,7 @@ int libfsxfs_extended_attribute_initialize(
 	internal_extended_attribute->io_handle        = io_handle;
 	internal_extended_attribute->file_io_handle   = file_io_handle;
 	internal_extended_attribute->file_system      = file_system;
+	internal_extended_attribute->inode            = inode;
 	internal_extended_attribute->attribute_values = attribute_values;
 
 #if defined( HAVE_MULTI_THREAD_SUPPORT ) && !defined( HAVE_LOCAL_LIBFSXFS )
@@ -505,7 +507,6 @@ int libfsxfs_internal_extended_attribute_get_data_stream(
      libcerror_error_t **error )
 {
 	static char *function = "libfsxfs_internal_extended_attribute_get_data_stream";
-	int result            = 0;
 
 	if( internal_extended_attribute == NULL )
 	{
@@ -514,17 +515,6 @@ int libfsxfs_internal_extended_attribute_get_data_stream(
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
 		 "%s: invalid extended attribute.",
-		 function );
-
-		return( -1 );
-	}
-	if( internal_extended_attribute->attribute_values == NULL )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
-		 "%s: invalid extended attribute - missing attribute values.",
 		 function );
 
 		return( -1 );
@@ -540,62 +530,18 @@ int libfsxfs_internal_extended_attribute_get_data_stream(
 
 		return( -1 );
 	}
-/* TODO implement support for extend-based attribute value data
-	if( internal_extended_attribute->attribute_values->value_data_inode_number != 0 )
-	{
-		if( libfsxfs_file_system_get_inode_by_number(
-		     internal_extended_attribute->file_system,
-		     internal_extended_attribute->io_handle,
-		     internal_extended_attribute->file_io_handle,
-		     internal_extended_attribute->attribute_values->value_data_inode_number,
-		     &inode,
-		     error ) != 1 )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-			 "%s: unable to retrieve inode number: %" PRIu32 ".",
-			 function,
-			 internal_extended_attribute->attribute_values->value_data_inode_number );
-
-			return( -1 );
-		}
-		if( inode == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
-			 "%s: missing inode: %" PRIu32 ".",
-			 function,
-			 internal_extended_attribute->attribute_values->value_data_inode_number );
-
-			return( -1 );
-		}
-		result = libfsxfs_data_stream_initialize(
-		          &( internal_extended_attribute->data_stream ),
-		          internal_extended_attribute->io_handle,
-		          inode,
-		          (size64_t) internal_extended_attribute->attribute_values->value_data_size,
-		          error );
-	}
-	else
-*/
-	{
-		result = libfsxfs_data_stream_initialize_from_data(
-		          &( internal_extended_attribute->data_stream ),
-		          internal_extended_attribute->attribute_values->value_data,
-		          (size_t) internal_extended_attribute->attribute_values->value_data_size,
-		          error );
-	}
-	if( result != 1 )
+	if( libfsxfs_attributes_get_value_data_stream(
+	     internal_extended_attribute->io_handle,
+	     internal_extended_attribute->inode,
+	     internal_extended_attribute->attribute_values,
+	     &( internal_extended_attribute->data_stream ),
+	     error ) != 1 )
 	{
 		libcerror_error_set(
 		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create data stream.",
+		 LIBCERROR_ERROR_DOMAIN_IO,
+		 LIBCERROR_IO_ERROR_READ_FAILED,
+		 "%s: unable to retrieve value data stream.",
 		 function );
 
 		return( -1 );
