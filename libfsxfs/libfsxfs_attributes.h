@@ -38,9 +38,12 @@ extern "C" {
 
 int libfsxfs_attributes_read_branch_values(
      libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     libfsxfs_inode_t *inode,
      const uint8_t *data,
      size_t data_size,
      libcdata_array_t *extended_attributes_array,
+     int recursion_depth,
      libcerror_error_t **error );
 
 int libfsxfs_attributes_read_leaf_values(
@@ -53,15 +56,16 @@ int libfsxfs_attributes_read_leaf_values(
 int libfsxfs_attributes_get_from_block(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
-     off64_t file_offset,
+     libfsxfs_inode_t *inode,
+     uint32_t block_number,
      libcdata_array_t *extended_attributes_array,
      int recursion_depth,
      libcerror_error_t **error );
 
 int libfsxfs_attributes_get_from_inode(
-     libfsxfs_inode_t *inode,
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
+     libfsxfs_inode_t *inode,
      libcdata_array_t *extended_attributes_array,
      libcerror_error_t **error );
 

@@ -39,14 +39,6 @@ struct libfsxfs_attributes_leaf_block_header
 	/* Number of entries
 	 */
 	uint16_t number_of_entries;
-
-	/* Values data size
-	 */
-	uint16_t values_data_size;
-
-	/* Values data offset
-	 */
-	uint16_t values_data_offset;
 };
 
 int libfsxfs_attributes_leaf_block_header_initialize(

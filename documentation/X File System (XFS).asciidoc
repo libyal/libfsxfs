@@ -1418,8 +1418,9 @@ is used. The attributes (leaf) block header version 2 (xfs_attr_leaf_hdr_t) is
 | Offset | Size | Value | Description
 | 0 | 12 | | <<file_system_block_version_2,File system block header version 2>>
 | 12 | 2 | | Number of entries
-| 14 | 2 | | Values data size
-| 16 | 2 | | Values data offset
+| 14 | 2 | | Used data size +
+Contains the number of bytes of the block data that is used
+| 16 | 2 | | Used data offset
 | 18 | 1 | | Flag to indicate block compaction is needed
 | 19 | 1 | | [yellow-background]*Unknown (padding)*
 | 20 | 4 x 3 | | Array of free regions in the block +
@@ -1437,8 +1438,9 @@ is used. The attributes (leaf) block header version 3 (xfs_attr3_leaf_hdr_t) is
 | Offset | Size | Value | Description
 | 0 | 56 | | <<file_system_block_version_3,File system block header version 3>>
 | 56 | 2 | | Number of entries
-| 58 | 2 | | Values data size
-| 60 | 2 | | Values data offset
+| 58 | 2 | | Used data size +
+Contains the number of bytes of the block data that is used
+| 60 | 2 | | Used data offset
 | 62 | 1 | | Flag to indicate block compaction is needed
 | 63 | 1 | | [yellow-background]*Unknown (padding)*
 | 64 | 4 x 3 | | Array of free regions in the block +
@@ -1552,7 +1554,7 @@ version 3 is used. The attributes branch node block header version 3
 |===
 | Offset | Size | Value | Description
 | 0 | 4 | | Name hash
-| 4 | 4 | | Attributes sub block number
+| 4 | 4 | | Sub block number
 |===
 
 === Attributes B+ tree leaf node

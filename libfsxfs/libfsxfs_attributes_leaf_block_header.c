@@ -223,34 +223,10 @@ int libfsxfs_attributes_leaf_block_header_read_data(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-	if( io_handle->format_version == 5 )
-	{
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_attributes_leaf_block_header_v3_t *) data )->number_of_entries,
-		 attributes_leaf_block_header->number_of_entries );
+	byte_stream_copy_to_uint16_big_endian(
+	 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->number_of_entries,
+	 attributes_leaf_block_header->number_of_entries );
 
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_attributes_leaf_block_header_v3_t *) data )->values_data_size,
-		 attributes_leaf_block_header->values_data_size );
-
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_attributes_leaf_block_header_v3_t *) data )->values_data_offset,
-		 attributes_leaf_block_header->values_data_offset );
-	}
-	else
-	{
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->number_of_entries,
-		 attributes_leaf_block_header->number_of_entries );
-
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->values_data_size,
-		 attributes_leaf_block_header->values_data_size );
-
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->values_data_offset,
-		 attributes_leaf_block_header->values_data_offset );
-	}
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
 	{
@@ -259,41 +235,31 @@ int libfsxfs_attributes_leaf_block_header_read_data(
 		 function,
 		 attributes_leaf_block_header->number_of_entries );
 
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->used_data_size,
+		 value_32bit );
 		libcnotify_printf(
-		 "%s: values data size\t: %" PRIu16 "\n",
+		 "%s: used data size\t: %" PRIu16 "\n",
 		 function,
-		 attributes_leaf_block_header->values_data_size );
+		 value_32bit );
 
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->used_data_offset,
+		 value_32bit );
 		libcnotify_printf(
 		 "%s: values data offset\t: %" PRIu16 "\n",
 		 function,
-		 attributes_leaf_block_header->values_data_offset );
+		 value_32bit );
 
-		if( io_handle->format_version == 5 )
-		{
-			value_8bit = ( (fsxfs_attributes_leaf_block_header_v3_t *) data )->block_compaction_flag;
-		}
-		else
-		{
-			value_8bit = ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->block_compaction_flag;
-		}
 		libcnotify_printf(
 		 "%s: block compaction flag\t: 0x%02" PRIx8 "\n",
 		 function,
-		 value_8bit );
+		 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->block_compaction_flag );
 
-		if( io_handle->format_version == 5 )
-		{
-			value_8bit = ( (fsxfs_attributes_leaf_block_header_v3_t *) data )->unknown2;
-		}
-		else
-		{
-			value_8bit = ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->unknown2;
-		}
 		libcnotify_printf(
 		 "%s: unknown2\t\t: 0x%02" PRIx8 "\n",
 		 function,
-		 value_8bit );
+		 ( (fsxfs_attributes_leaf_block_header_v2_t *) data )->unknown2 );
 
 		data_offset = 8;
 

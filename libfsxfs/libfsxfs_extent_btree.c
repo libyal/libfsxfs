@@ -180,7 +180,7 @@ int libfsxfs_extent_btree_get_extents_from_root_node(
 
 		return( -1 );
 	}
-	if( ( data_size == 0 )
+	if( ( data_size < 4 )
 	 || ( data_size > (size_t) SSIZE_MAX ) )
 	{
 		libcerror_error_set(

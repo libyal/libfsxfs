@@ -825,12 +825,21 @@ int libfsxfs_inode_read_data(
 
 	data_fork_size = data_size - inode_data_size;
 
-	if( inode->attributes_fork_offset != 0 )
+	if( inode->attributes_fork_offset > 0 )
 	{
-		if( inode->attributes_fork_offset < data_fork_size )
+		if( inode->attributes_fork_offset >= data_fork_size )
 		{
-			data_fork_size = (size_t) inode->attributes_fork_offset;
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: invalid attributes fork offset value out of bounds.",
+			 function );
+
+			return( -1 );
 		}
+		data_fork_size = (size_t) inode->attributes_fork_offset;
+
 		inode->attributes_fork_offset += inode_data_size;
 		inode->attributes_fork_size    = data_size - inode->attributes_fork_offset;
 	}

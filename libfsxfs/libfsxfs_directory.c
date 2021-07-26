@@ -360,7 +360,7 @@ int libfsxfs_directory_read_file_io_handle(
 
 					goto on_error;
 				}
-				if( (uint64_t) extent->logical_block_number > ( (uint64_t) INT64_MAX / io_handle->block_size ) )
+				if( extent->logical_block_number > ( (uint64_t) INT64_MAX / io_handle->block_size ) )
 				{
 					libcerror_error_set(
 					 error,

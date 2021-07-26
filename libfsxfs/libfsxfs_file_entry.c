@@ -1749,9 +1749,9 @@ int libfsxfs_internal_file_entry_get_extended_attributes(
 		goto on_error;
 	}
 	if( libfsxfs_attributes_get_from_inode(
-	     internal_file_entry->inode,
 	     internal_file_entry->io_handle,
 	     internal_file_entry->file_io_handle,
+	     internal_file_entry->inode,
 	     internal_file_entry->extended_attributes_array,
 	     error ) != 1 )
 	{

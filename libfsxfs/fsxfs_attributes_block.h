@@ -29,6 +29,56 @@
 extern "C" {
 #endif
 
+typedef struct fsxfs_attributes_branch_block_header_v2 fsxfs_attributes_branch_block_header_v2_t;
+
+struct fsxfs_attributes_branch_block_header_v2
+{
+	/* Number of entries
+	 * Consists of 2 bytes
+	 */
+	uint8_t number_of_entries[ 2 ];
+
+	/* Node level size
+	 * Consists of 2 bytes
+	 */
+	uint8_t node_level[ 2 ];
+};
+
+typedef struct fsxfs_attributes_branch_block_header_v3 fsxfs_attributes_branch_block_header_v3_t;
+
+struct fsxfs_attributes_branch_block_header_v3
+{
+	/* Number of entries
+	 * Consists of 2 bytes
+	 */
+	uint8_t number_of_entries[ 2 ];
+
+	/* Node level size
+	 * Consists of 2 bytes
+	 */
+	uint8_t node_level[ 2 ];
+
+	/* Unknown (padding)
+	 * Consists of 4 bytes
+	 */
+	uint8_t unknown1[ 4 ];
+};
+
+typedef struct fsxfs_attributes_branch_block_entry fsxfs_attributes_branch_block_entry_t;
+
+struct fsxfs_attributes_branch_block_entry
+{
+	/* Name hash
+	 * Consists of 4 bytes
+	 */
+	uint8_t name_hash[ 4 ];
+
+	/* Sub block number
+	 * Consists of 4 bytes
+	 */
+	uint8_t sub_block_number[ 4 ];
+};
+
 typedef struct fsxfs_attributes_leaf_block_header_v2 fsxfs_attributes_leaf_block_header_v2_t;
 
 struct fsxfs_attributes_leaf_block_header_v2
@@ -38,15 +88,15 @@ struct fsxfs_attributes_leaf_block_header_v2
 	 */
 	uint8_t number_of_entries[ 2 ];
 
-	/* Values data size
+	/* Used data size
 	 * Consists of 2 bytes
 	 */
-	uint8_t values_data_size[ 2 ];
+	uint8_t used_data_size[ 2 ];
 
-	/* Values data offset
+	/* Used data offset
 	 * Consists of 2 bytes
 	 */
-	uint8_t values_data_offset[ 2 ];
+	uint8_t used_data_offset[ 2 ];
 
 	/* Block compaction flag
 	 * Consists of 1 byte
@@ -73,15 +123,15 @@ struct fsxfs_attributes_leaf_block_header_v3
 	 */
 	uint8_t number_of_entries[ 2 ];
 
-	/* Values data size
+	/* Used data size
 	 * Consists of 2 bytes
 	 */
-	uint8_t values_data_size[ 2 ];
+	uint8_t used_data_size[ 2 ];
 
-	/* Values data offset
+	/* Used data offset
 	 * Consists of 2 bytes
 	 */
-	uint8_t values_data_offset[ 2 ];
+	uint8_t used_data_offset[ 2 ];
 
 	/* Block compaction flag
 	 * Consists of 1 byte
@@ -104,9 +154,9 @@ struct fsxfs_attributes_leaf_block_header_v3
 	uint8_t unknown3[ 4 ];
 };
 
-typedef struct fsxfs_attributes_block_entry fsxfs_attributes_block_entry_t;
+typedef struct fsxfs_attributes_leaf_block_entry fsxfs_attributes_leaf_block_entry_t;
 
-struct fsxfs_attributes_block_entry
+struct fsxfs_attributes_leaf_block_entry
 {
 	/* Name hash
 	 * Consists of 4 bytes
