@@ -25,12 +25,13 @@ libfsxfs_la_SOURCES = \
 	fsxfs_attributes_block.h \
 	fsxfs_block_directory.h \
 	fsxfs_btree.h \
+	fsxfs_file_system_block.h \
 	fsxfs_inode.h \
 	fsxfs_inode_information.h \
 	fsxfs_superblock.h \
 	libfsxfs.c \
-	libfsxfs_attributes_block.c libfsxfs_attributes_block.h \
-	libfsxfs_attributes_block_header.c libfsxfs_attributes_block_header.h \
+	libfsxfs_attributes.c libfsxfs_attributes.h \
+	libfsxfs_attributes_leaf_block_header.c libfsxfs_attributes_leaf_block_header.h \
 	libfsxfs_attributes_table.c libfsxfs_attributes_table.h \
 	libfsxfs_attributes_table_header.c libfsxfs_attributes_table_header.h \
 	libfsxfs_attribute_values.c libfsxfs_attribute_values.h \
@@ -57,6 +58,8 @@ libfsxfs_la_SOURCES = \
 	libfsxfs_extern.h \
 	libfsxfs_file_entry.c libfsxfs_file_entry.h \
 	libfsxfs_file_system.c libfsxfs_file_system.h \
+	libfsxfs_file_system_block.c libfsxfs_file_system_block.h \
+	libfsxfs_file_system_block_header.c libfsxfs_file_system_block_header.h \
 	libfsxfs_inode.c libfsxfs_inode.h \
 	libfsxfs_inode_btree.c libfsxfs_inode_btree.h \
 	libfsxfs_inode_btree_record.c libfsxfs_inode_btree_record.h \

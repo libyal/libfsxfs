@@ -680,7 +680,7 @@ int libfsxfs_inode_btree_get_inode_from_node(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: invalid block signature.",
+		 "%s: unsupported block signature.",
 		 function );
 
 		goto on_error;

@@ -1,5 +1,5 @@
 MSVSCPP_FILES = \
-	fsxfs_test_attributes_block_header/fsxfs_test_attributes_block_header.vcproj \
+	fsxfs_test_attributes_leaf_block_header/fsxfs_test_attributes_leaf_block_header.vcproj \
 	fsxfs_test_attributes_table/fsxfs_test_attributes_table.vcproj \
 	fsxfs_test_attributes_table_header/fsxfs_test_attributes_table_header.vcproj \
 	fsxfs_test_block_directory_footer/fsxfs_test_block_directory_footer.vcproj \
@@ -11,6 +11,7 @@ MSVSCPP_FILES = \
 	fsxfs_test_directory_table_header/fsxfs_test_directory_table_header.vcproj \
 	fsxfs_test_error/fsxfs_test_error.vcproj \
 	fsxfs_test_extent/fsxfs_test_extent.vcproj \
+	fsxfs_test_file_system_block_header/fsxfs_test_file_system_block_header.vcproj \
 	fsxfs_test_inode_btree/fsxfs_test_inode_btree.vcproj \
 	fsxfs_test_inode_btree_record/fsxfs_test_inode_btree_record.vcproj \
 	fsxfs_test_inode_information/fsxfs_test_inode_information.vcproj \

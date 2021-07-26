@@ -1,5 +1,5 @@
 /*
- * B+ tree block functions
+ * File system block header functions
  *
  * Copyright (C) 2020-2021, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,77 +19,54 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_BTREE_BLOCK_H )
-#define _LIBFSXFS_BTREE_BLOCK_H
+#if !defined( _LIBFSXFS_FILE_SYSTEM_BLOCK_HEADER_H )
+#define _LIBFSXFS_FILE_SYSTEM_BLOCK_HEADER_H
 
 #include <common.h>
 #include <types.h>
 
-#include "libfsxfs_btree_header.h"
 #include "libfsxfs_io_handle.h"
-#include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
 extern "C" {
 #endif
 
-typedef struct libfsxfs_btree_block libfsxfs_btree_block_t;
+typedef struct libfsxfs_file_system_block_header libfsxfs_file_system_block_header_t;
 
-struct libfsxfs_btree_block
+struct libfsxfs_file_system_block_header
 {
-	/* Data
+	/* Signature
 	 */
-	uint8_t *data;
+	uint16_t signature;
 
-	/* Data size
+	/* Next block number
 	 */
-	size_t data_size;
+	uint32_t next_block_number;
 
-	/* Header block number data size
+	/* Previous block number
 	 */
-	size_t block_number_data_size;
-
-	/* B+ tree header
-	 */
-	libfsxfs_btree_header_t *header;
-
-	/* Records data
-	 */
-	const uint8_t *records_data;
-
-	/* Records data size
-	 */
-	size_t records_data_size;
+	uint32_t previous_block_number;
 };
 
-int libfsxfs_btree_block_initialize(
-     libfsxfs_btree_block_t **btree_block,
-     size_t block_size,
-     size_t block_number_data_size,
+int libfsxfs_file_system_block_header_initialize(
+     libfsxfs_file_system_block_header_t **file_system_block_header,
      libcerror_error_t **error );
 
-int libfsxfs_btree_block_free(
-     libfsxfs_btree_block_t **btree_block,
+int libfsxfs_file_system_block_header_free(
+     libfsxfs_file_system_block_header_t **file_system_block_header,
      libcerror_error_t **error );
 
-int libfsxfs_btree_block_read_data(
-     libfsxfs_btree_block_t *btree_block,
+int libfsxfs_file_system_block_header_read_data(
+     libfsxfs_file_system_block_header_t *file_system_block_header,
      libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
-     libcerror_error_t **error );
-
-int libfsxfs_btree_block_read_file_io_handle(
-     libfsxfs_btree_block_t *btree_block,
-     libfsxfs_io_handle_t *io_handle,
-     libbfio_handle_t *file_io_handle,
-     off64_t file_offset,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_BTREE_BLOCK_H ) */
+#endif /* !defined( _LIBFSXFS_FILE_SYSTEM_BLOCK_HEADER_H ) */
 

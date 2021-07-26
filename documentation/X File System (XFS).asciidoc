@@ -1276,14 +1276,71 @@ the file content data has an implicit sparse extent (or hole).
 
 [yellow-background]*TODO determine if the hole can be at the start or end of the file content data.*
 
+== File system block B+ tree
+
+The file system block B+ tree is a structure used to store the directory and
+attributes B+ trees.
+
+=== [[file_system_block_header]]File system block header
+
+==== [[file_system_block_header_version_2]]File system block header version 2
+
+If the file system version <= 4 the file system block header version 2 is used.
+The file system block header version 2 (xfs_da_blkinfo_t) is 12 bytes of size
+and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | (Logical) block number of the next B+ tree block at the same level
+| 4 | 4 | | (Logical) block number of the previous B+ tree block at the same level
+| 8 | 2 | 0xfbee | Signature (XFS_ATTR_LEAF_MAGIC)
+| 10 | 2 | | [yellow-background]*Unknown (padding)*
+|===
+
+==== [[file_system_block_header_version_3]]File system block header version 3
+
+If the file system version >= 5 the file system block header version 3 is used.
+The file system block header version 3 (xfs_da3_blkinfo_t) is 56 bytes of size
+and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | (Logical) block number of the next B+ tree block at the same level
+| 4 | 4 | | (Logical) block number of the previous B+ tree block at the same level
+| 8 | 2 | 0x3bee | Signature (XFS_ATTR3_LEAF_MAGIC)
+| 10 | 2 | | [yellow-background]*Unknown (padding)*
+| 12 | 4 | | Checksum
+| 16 | 8 | | Block number
+| 24 | 8 | | Log sequence number
+| 32 | 16 | | Block type identifier +
+Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
+| 48 | 8 | | Owner inode number +
+Contains the absolute inode number the block is part of
+|===
+
+==== File system block header signatures
+
+[cols="1,1,5",options="header"]
+|===
+| Signature | Identifier | Description
+| 0x3bee | XFS_ATTR_LEAF_MAGIC | File system version 5 attributes B+ tree leaf block
+| 0x3ebe | XFS_DA3_NODE_MAGIC | File system version 5 directory or attributes B+ tree branch block
+| 0xd2f1 | XFS_DIR2_LEAF1_MAGIC |
+| 0xd2ff | XFS_DIR2_LEAFN_MAGIC |
+| 0xfbee | XFS_ATTR_LEAF_MAGIC | Attributes B+ tree leaf block
+| 0xfebe | XFS_DA_NODE_MAGIC | Directory or attributes B+ tree branch block
+|===
+
 == Extended attributes
 
 Extended attributes are stored in the attributes fork of an inode. The extended
 attributes can be stored in multiple ways:
 
 * as a short-form attributes table
-* as an extent-based attributes block (or leaf attributes)
-* as an extent-based attributes B+ tree (or node attributes)
+* as an extent-based <<attributes_block,attributes block>> (or leaf attributes)
+* as an extent-based <<attributes_btree,attributes B+ tree>> (or node attributes)
 
 The start of the attributes fork can be determined using the attributes fork
 descriptor offset.
@@ -1332,36 +1389,34 @@ Contains an ASCII string without end-of-string character
 | ... | ... | | Value data
 |===
 
-=== Attributes block
+=== [[attributes_block]]Attributes (leaf) block
 
 If the inode attributes fork type is XFS_DINODE_FMT_EXTENTS the extended
-attributes are sorted in an attributes block. The attributes fork contains
-an <<extent_list,extent list>>.
+attributes are sorted in an attributes (leaf) block. The attributes fork
+contains an <<extent_list,extent list>>.
 
-An attributes block (xfs_attr_leafblock_t or xfs_attr3_leafblock_t) consist
-of one or more blocks that consist of:
+An attributes (leaf) block (xfs_attr_leafblock_t or xfs_attr3_leafblock_t)
+consist of:
 
-* an attributes block header
+* an <<attributes_leaf_block_header,attributes (leaf) block header>>
 * array of attributes block entries
 * array of local or remote attribute block values
 
-==== Attributes block header
+If more than one block is needed to store the extended attributes an
+<<attributes_btree,attributes B+ tree>> is used.
 
-===== Attributes block header version 2
+==== [[attributes_leaf_block_header]]Attributes (leaf) block header
 
-If the file system version <=  the attributes block header version 2 is used.
-The attributes block header version 2 (xfs_attr_leaf_hdr_t) is 32 bytes of
-size and consist of:
+===== Attributes (leaf) block header version 2
+
+If the file system version <= 4 the attributes (leaf) block header version 2
+is used. The attributes (leaf) block header version 2 (xfs_attr_leaf_hdr_t) is
+32 bytes of size and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
-4+| _Block header (xfs_da_blkinfo_t)_
-| 0 | 4 | | (Logical) block number of the next B+ tree block at the same level
-| 4 | 4 | | (Logical) block number of the previous B+ tree block at the same level
-| 8 | 2 | 0xfbee | Signature (XFS_ATTR_LEAF_MAGIC)
-| 10 | 2 | | [yellow-background]*Unknown (padding)*
-4+| _End of block header_
+| 0 | 12 | | <<file_system_block_version_2,File system block header version 2>>
 | 12 | 2 | | Number of entries
 | 14 | 2 | | Values data size
 | 16 | 2 | | Values data offset
@@ -1371,28 +1426,16 @@ size and consist of:
 See section: <<block_free_region_v2,Block free region>>
 |===
 
-===== Attributes block header version 3
+===== Attributes (leaf) block header version 3
 
-If the file system version >= 5 the attributes block header version 3 is used.
-The attributes block header version 3 (xfs_attr3_leaf_hdr_t) is 80 bytes of
-size and consist of:
+If the file system version >= 5 the attributes (leaf) block header version 3
+is used. The attributes (leaf) block header version 3 (xfs_attr3_leaf_hdr_t) is
+80 bytes of size and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
-4+| _Block header (xfs_da3_blkinfo_t)_
-| 0 | 4 | | (Logical) block number of the next B+ tree block at the same level
-| 4 | 4 | | (Logical) block number of the previous B+ tree block at the same level
-| 8 | 2 | 0x3bee | Signature (XFS_ATTR3_LEAF_MAGIC)
-| 10 | 2 | | [yellow-background]*Unknown (padding)*
-| 12 | 4 | | Checksum
-| 16 | 8 | | Block number
-| 24 | 8 | | Log sequence number
-| 32 | 16 | | Block type identifier +
-Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_meta_uuid*
-| 48 | 8 | | Owner inode number +
-Contains the absolute inode number the block is part of
-4+| _End of block header_
+| 0 | 56 | | <<file_system_block_version_3,File system block header version 3>>
 | 56 | 2 | | Number of entries
 | 58 | 2 | | Values data size
 | 60 | 2 | | Values data offset
@@ -1403,10 +1446,10 @@ See section: <<block_free_region_v2,Block free region>>
 | 76 | 4 | | [yellow-background]*Unknown (padding)*
 |===
 
-==== Attributes block entry
+==== Attributes (leaf) block entry
 
-The attributes block entry (xfs_attr_leaf_entry_t) is 8 bytes of size and
-consist of:
+The attributes (leaf) block entry (xfs_attr_leaf_entry_t) is 8 bytes of size
+and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -1419,11 +1462,12 @@ Also see: <<attribute_flags,attribute flags>>
 | 7 | 1 | | [yellow-background]*Unknown (padding)*
 |===
 
-==== Attribute block values
+==== Attribute (leaf) block values
 
-If the attributes block entry flag XFS_ATTR_LOCAL is set the attribute values
-are stored as local attribute values otherwise as remote attribute values. The
-value data of remote attribute values are stored in a <<remote_attribute_value_block,remote attribute value block>>.
+If the attributes (leaf) block entry flag XFS_ATTR_LOCAL is set the attribute
+values are stored as local attribute block values otherwise as remote attribute
+block values. The value data of remote attribute values are stored in a
+<<remote_attribute_value_block,remote attribute value block>>.
 
 ===== Local attribute block values
 
@@ -1454,13 +1498,67 @@ and consist of:
 Contains an ASCII string without end-of-string character
 |===
 
-=== Extended attributes B+ tree
+=== [[attributes_btree]]Attributes B+ tree
 
 If the inode attributes fork type is XFS_DINODE_FMT_BTREE the extended
-attributes are sorted in an extended attributes block. The attributes fork
+attributes are sorted in an attributes B+ tree. The attributes fork
 contains an <<extent_btree,extent B+ tree>>.
 
-[yellow-background]*TODO describe*
+The first block in the extents is the B+ tree root block.
+
+=== Attributes B+ tree branch node block
+
+An attributes B+ tree branch node block consist of:
+
+* an <<attributes_branch_node_block_header,attributes branch node block header>>
+* array of attribute branch node entry
+
+===== [[attributes_branch_node_block_header]]Attributes branch node block header
+
+===== Attributes branch node block header version 2
+
+If the file system version <= 4 the attributes branch node block header
+version 2 is used. The attributes branch node block header version 2
+(xfs_da_blkinfo_t) is 16 bytes of size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 12 | | <<file_system_block_version_2,File system block header version 2>>
+4+| _Branch block header version 2 (xfs_da_node_hdr_t)_
+| 12 | 2 | | Number of entries
+| 14 | 2 | | Node level
+|===
+
+===== Attributes branch node block header version 3
+
+If the file system version >= 5 the attributes branch node block header
+version 3 is used. The attributes branch node block header version 3
+(xfs_da3_blkinfo_t) is 64 bytes of size and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 56 | | <<file_system_block_version_3,File system block header version 3>>
+4+| _Branch block header version 3 (xfs_da3_intnode_t)_
+| 56 | 2 | | Number of entries
+| 58 | 2 | | Node level
+| 60 | 4 | | [yellow-background]*Unknown (padding)*
+|===
+
+===== Attributes branch node block entry
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 4 | | Name hash
+| 4 | 4 | | Attributes sub block number
+|===
+
+=== Attributes B+ tree leaf node
+
+The extended attributes B+ tree leaf node is equivalent to an
+<<attributes_block,attributes block>>.
 
 === [[attribute_flags]]The attribute flags
 

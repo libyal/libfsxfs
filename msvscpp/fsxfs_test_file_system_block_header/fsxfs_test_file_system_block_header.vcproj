@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="fsxfs_test_attributes_block_header"
-	ProjectGUID="{580FD22F-5506-41F2-A2D8-D87AE0EF9BB5}"
-	RootNamespace="fsxfs_test_attributes_block_header"
+	Name="fsxfs_test_file_system_block_header"
+	ProjectGUID="{2890B3E9-74ED-4F19-9B0D-D7B665D26531}"
+	RootNamespace="fsxfs_test_file_system_block_header"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -176,7 +176,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\tests\fsxfs_test_attributes_block_header.c"
+				RelativePath="..\..\tests\fsxfs_test_file_system_block_header.c"
 				>
 			</File>
 			<File

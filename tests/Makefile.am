@@ -46,7 +46,7 @@ EXTRA_DIST = \
 	$(check_SCRIPTS)
 
 check_PROGRAMS = \
-	fsxfs_test_attributes_block_header \
+	fsxfs_test_attributes_leaf_block_header \
 	fsxfs_test_attributes_table \
 	fsxfs_test_attributes_table_header \
 	fsxfs_test_block_directory_footer \
@@ -58,6 +58,7 @@ check_PROGRAMS = \
 	fsxfs_test_directory_table_header \
 	fsxfs_test_error \
 	fsxfs_test_extent \
+	fsxfs_test_file_system_block_header \
 	fsxfs_test_inode_btree \
 	fsxfs_test_inode_btree_record \
 	fsxfs_test_inode_information \
@@ -70,15 +71,15 @@ check_PROGRAMS = \
 	fsxfs_test_tools_signal \
 	fsxfs_test_volume
 
-fsxfs_test_attributes_block_header_SOURCES = \
-	fsxfs_test_attributes_block_header.c \
+fsxfs_test_attributes_leaf_block_header_SOURCES = \
+	fsxfs_test_attributes_leaf_block_header.c \
 	fsxfs_test_libcerror.h \
 	fsxfs_test_libfsxfs.h \
 	fsxfs_test_macros.h \
 	fsxfs_test_memory.c fsxfs_test_memory.h \
 	fsxfs_test_unused.h
 
-fsxfs_test_attributes_block_header_LDADD = \
+fsxfs_test_attributes_leaf_block_header_LDADD = \
 	../libfsxfs/libfsxfs.la \
 	@LIBCERROR_LIBADD@
 
@@ -220,6 +221,18 @@ fsxfs_test_extent_SOURCES = \
 	fsxfs_test_unused.h
 
 fsxfs_test_extent_LDADD = \
+	../libfsxfs/libfsxfs.la \
+	@LIBCERROR_LIBADD@
+
+fsxfs_test_file_system_block_header_SOURCES = \
+	fsxfs_test_file_system_block_header.c \
+	fsxfs_test_libcerror.h \
+	fsxfs_test_libfsxfs.h \
+	fsxfs_test_macros.h \
+	fsxfs_test_memory.c fsxfs_test_memory.h \
+	fsxfs_test_unused.h
+
+fsxfs_test_file_system_block_header_LDADD = \
 	../libfsxfs/libfsxfs.la \
 	@LIBCERROR_LIBADD@
 

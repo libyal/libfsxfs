@@ -1,5 +1,5 @@
 /*
- * B+ tree block functions
+ * (Extended) attributes functions
  *
  * Copyright (C) 2020-2021, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,77 +19,55 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_BTREE_BLOCK_H )
-#define _LIBFSXFS_BTREE_BLOCK_H
+#if !defined( _LIBFSXFS_ATTRIBUTES_H )
+#define _LIBFSXFS_ATTRIBUTES_H
 
 #include <common.h>
 #include <types.h>
 
-#include "libfsxfs_btree_header.h"
+#include "libfsxfs_attributes_leaf_block_header.h"
+#include "libfsxfs_inode.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
+#include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
 extern "C" {
 #endif
 
-typedef struct libfsxfs_btree_block libfsxfs_btree_block_t;
-
-struct libfsxfs_btree_block
-{
-	/* Data
-	 */
-	uint8_t *data;
-
-	/* Data size
-	 */
-	size_t data_size;
-
-	/* Header block number data size
-	 */
-	size_t block_number_data_size;
-
-	/* B+ tree header
-	 */
-	libfsxfs_btree_header_t *header;
-
-	/* Records data
-	 */
-	const uint8_t *records_data;
-
-	/* Records data size
-	 */
-	size_t records_data_size;
-};
-
-int libfsxfs_btree_block_initialize(
-     libfsxfs_btree_block_t **btree_block,
-     size_t block_size,
-     size_t block_number_data_size,
-     libcerror_error_t **error );
-
-int libfsxfs_btree_block_free(
-     libfsxfs_btree_block_t **btree_block,
-     libcerror_error_t **error );
-
-int libfsxfs_btree_block_read_data(
-     libfsxfs_btree_block_t *btree_block,
+int libfsxfs_attributes_read_branch_values(
      libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
+     libcdata_array_t *extended_attributes_array,
      libcerror_error_t **error );
 
-int libfsxfs_btree_block_read_file_io_handle(
-     libfsxfs_btree_block_t *btree_block,
+int libfsxfs_attributes_read_leaf_values(
+     libfsxfs_io_handle_t *io_handle,
+     const uint8_t *data,
+     size_t data_size,
+     libcdata_array_t *extended_attributes_array,
+     libcerror_error_t **error );
+
+int libfsxfs_attributes_get_from_block(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      off64_t file_offset,
+     libcdata_array_t *extended_attributes_array,
+     int recursion_depth,
+     libcerror_error_t **error );
+
+int libfsxfs_attributes_get_from_inode(
+     libfsxfs_inode_t *inode,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     libcdata_array_t *extended_attributes_array,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_BTREE_BLOCK_H ) */
+#endif /* !defined( _LIBFSXFS_ATTRIBUTES_H ) */
 

@@ -317,9 +317,7 @@ int libfsxfs_attribute_values_set_value_data(
      size_t value_data_size,
      libcerror_error_t **error )
 {
-	static char *function     = "libfsxfs_attribute_values_set_value_data";
-	const char *name_prefix   = NULL;
-	size_t name_prefix_length = 0;
+	static char *function = "libfsxfs_attribute_values_set_value_data";
 
 	if( attribute_values == NULL )
 	{

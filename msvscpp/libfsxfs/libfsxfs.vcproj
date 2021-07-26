@@ -178,11 +178,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libfsxfs\libfsxfs_attributes_block.c"
+				RelativePath="..\..\libfsxfs\libfsxfs_attributes.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libfsxfs\libfsxfs_attributes_block_header.c"
+				RelativePath="..\..\libfsxfs\libfsxfs_attributes_leaf_block_header.c"
 				>
 			</File>
 			<File
@@ -278,6 +278,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_file_system_block.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_file_system_block_header.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_inode.c"
 				>
 			</File>
@@ -336,6 +344,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\fsxfs_file_system_block.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\fsxfs_inode.h"
 				>
 			</File>
@@ -352,11 +364,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libfsxfs\libfsxfs_attributes_block.h"
+				RelativePath="..\..\libfsxfs\libfsxfs_attributes.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libfsxfs\libfsxfs_attributes_block_header.h"
+				RelativePath="..\..\libfsxfs\libfsxfs_attributes_leaf_block_header.h"
 				>
 			</File>
 			<File
@@ -457,6 +469,14 @@
 			</File>
 			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_file_system.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_file_system_block.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_file_system_block_header.h"
 				>
 			</File>
 			<File

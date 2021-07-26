@@ -1,5 +1,5 @@
 /*
- * (Extended) attributes block functions
+ * Attributes leaf block header functions
  *
  * Copyright (C) 2020-2021, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,67 +19,54 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_ATTRIBUTES_BLOCK_H )
-#define _LIBFSXFS_ATTRIBUTES_BLOCK_H
+#if !defined( _LIBFSXFS_ATTRIBUTES_LEAF_BLOCK_HEADER_H )
+#define _LIBFSXFS_ATTRIBUTES_LEAF_BLOCK_HEADER_H
 
 #include <common.h>
 #include <types.h>
 
-#include "libfsxfs_attributes_block_header.h"
 #include "libfsxfs_io_handle.h"
-#include "libfsxfs_libbfio.h"
-#include "libfsxfs_libcdata.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
 extern "C" {
 #endif
 
-typedef struct libfsxfs_attributes_block libfsxfs_attributes_block_t;
+typedef struct libfsxfs_attributes_leaf_block_header libfsxfs_attributes_leaf_block_header_t;
 
-struct libfsxfs_attributes_block
+struct libfsxfs_attributes_leaf_block_header
 {
-	/* Data
+	/* Number of entries
 	 */
-	uint8_t *data;
+	uint16_t number_of_entries;
 
-	/* Data size
+	/* Values data size
 	 */
-	size_t data_size;
+	uint16_t values_data_size;
 
-	/* The header
+	/* Values data offset
 	 */
-	libfsxfs_attributes_block_header_t *header;
+	uint16_t values_data_offset;
 };
 
-int libfsxfs_attributes_block_initialize(
-     libfsxfs_attributes_block_t **attributes_block,
-     size_t block_size,
+int libfsxfs_attributes_leaf_block_header_initialize(
+     libfsxfs_attributes_leaf_block_header_t **attributes_leaf_block_header,
      libcerror_error_t **error );
 
-int libfsxfs_attributes_block_free(
-     libfsxfs_attributes_block_t **attributes_block,
+int libfsxfs_attributes_leaf_block_header_free(
+     libfsxfs_attributes_leaf_block_header_t **attributes_leaf_block_header,
      libcerror_error_t **error );
 
-int libfsxfs_attributes_block_read_data(
-     libfsxfs_attributes_block_t *attributes_block,
+int libfsxfs_attributes_leaf_block_header_read_data(
+     libfsxfs_attributes_leaf_block_header_t *attributes_leaf_block_header,
      libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
-     libcdata_array_t *extended_attributes_array,
-     libcerror_error_t **error );
-
-int libfsxfs_attributes_block_read_file_io_handle(
-     libfsxfs_attributes_block_t *attributes_block,
-     libfsxfs_io_handle_t *io_handle,
-     libbfio_handle_t *file_io_handle,
-     off64_t file_offset,
-     libcdata_array_t *extended_attributes_array,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_ATTRIBUTES_BLOCK_H ) */
+#endif /* !defined( _LIBFSXFS_ATTRIBUTES_LEAF_BLOCK_HEADER_H ) */
 

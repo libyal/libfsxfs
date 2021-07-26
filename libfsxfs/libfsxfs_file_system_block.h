@@ -1,5 +1,5 @@
 /*
- * (Extended) attributes block header functions
+ * File system block functions
  *
  * Copyright (C) 2020-2021, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -19,56 +19,64 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined( _LIBFSXFS_ATTRIBUTES_BLOCK_HEADER_H )
-#define _LIBFSXFS_ATTRIBUTES_BLOCK_HEADER_H
+#if !defined( _LIBFSXFS_FILE_SYSTEM_BLOCK_H )
+#define _LIBFSXFS_FILE_SYSTEM_BLOCK_H
 
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_file_system_block_header.h"
+#include "libfsxfs_io_handle.h"
+#include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
 extern "C" {
 #endif
 
-typedef struct libfsxfs_attributes_block_header libfsxfs_attributes_block_header_t;
+typedef struct libfsxfs_file_system_block libfsxfs_file_system_block_t;
 
-struct libfsxfs_attributes_block_header
+struct libfsxfs_file_system_block
 {
-	/* Format version
+	/* Data
 	 */
-	uint8_t format_version;
+	uint8_t *data;
 
-	/* Number of entries
+	/* Data size
 	 */
-	uint16_t number_of_entries;
+	size_t data_size;
 
-	/* Values data size
+	/* Header
 	 */
-	uint16_t values_data_size;
-
-	/* Values data offset
-	 */
-	uint16_t values_data_offset;
+	libfsxfs_file_system_block_header_t *header;
 };
 
-int libfsxfs_attributes_block_header_initialize(
-     libfsxfs_attributes_block_header_t **attributes_block_header,
+int libfsxfs_file_system_block_initialize(
+     libfsxfs_file_system_block_t **file_system_block,
+     size_t block_size,
      libcerror_error_t **error );
 
-int libfsxfs_attributes_block_header_free(
-     libfsxfs_attributes_block_header_t **attributes_block_header,
+int libfsxfs_file_system_block_free(
+     libfsxfs_file_system_block_t **file_system_block,
      libcerror_error_t **error );
 
-int libfsxfs_attributes_block_header_read_data(
-     libfsxfs_attributes_block_header_t *attributes_block_header,
+int libfsxfs_file_system_block_read_data(
+     libfsxfs_file_system_block_t *file_system_block,
+     libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
+     libcerror_error_t **error );
+
+int libfsxfs_file_system_block_read_file_io_handle(
+     libfsxfs_file_system_block_t *file_system_block,
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     off64_t file_offset,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
 }
 #endif
 
-#endif /* !defined( _LIBFSXFS_ATTRIBUTES_BLOCK_HEADER_H ) */
+#endif /* !defined( _LIBFSXFS_FILE_SYSTEM_BLOCK_H ) */
 
