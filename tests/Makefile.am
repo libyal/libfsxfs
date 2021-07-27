@@ -46,6 +46,7 @@ EXTRA_DIST = \
 	$(check_SCRIPTS)
 
 check_PROGRAMS = \
+	fsxfs_test_attribute_values \
 	fsxfs_test_attributes_leaf_block_header \
 	fsxfs_test_attributes_table \
 	fsxfs_test_attributes_table_header \
@@ -70,6 +71,18 @@ check_PROGRAMS = \
 	fsxfs_test_tools_output \
 	fsxfs_test_tools_signal \
 	fsxfs_test_volume
+
+fsxfs_test_attribute_values_SOURCES = \
+	fsxfs_test_attribute_values.c \
+	fsxfs_test_libcerror.h \
+	fsxfs_test_libfsxfs.h \
+	fsxfs_test_macros.h \
+	fsxfs_test_memory.c fsxfs_test_memory.h \
+	fsxfs_test_unused.h
+
+fsxfs_test_attribute_values_LDADD = \
+	../libfsxfs/libfsxfs.la \
+	@LIBCERROR_LIBADD@
 
 fsxfs_test_attributes_leaf_block_header_SOURCES = \
 	fsxfs_test_attributes_leaf_block_header.c \

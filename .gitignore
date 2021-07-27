@@ -127,6 +127,7 @@ stamp-h[1-9]
 /fsxfstools/*.exe
 /fsxfstools/fsxfsinfo
 /tests/*.exe
+/tests/fsxfs_test_attribute_values
 /tests/fsxfs_test_attributes_leaf_block_header
 /tests/fsxfs_test_attributes_table
 /tests/fsxfs_test_attributes_table_header
