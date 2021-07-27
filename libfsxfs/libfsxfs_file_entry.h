@@ -25,6 +25,7 @@
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_attribute_values.h"
 #include "libfsxfs_directory.h"
 #include "libfsxfs_directory_entry.h"
 #include "libfsxfs_extern.h"
@@ -243,6 +244,50 @@ LIBFSXFS_EXTERN \
 int libfsxfs_file_entry_get_extended_attribute_by_index(
      libfsxfs_file_entry_t *file_entry,
      int extended_attribute_index,
+     libfsxfs_extended_attribute_t **extended_attribute,
+     libcerror_error_t **error );
+
+int libfsxfs_internal_file_entry_get_attribute_values_by_utf8_name(
+     libfsxfs_internal_file_entry_t *internal_file_entry,
+     const uint8_t *utf8_string,
+     size_t utf8_string_length,
+     libfsxfs_attribute_values_t **attribute_values,
+     libcerror_error_t **error );
+
+int libfsxfs_internal_file_entry_get_attribute_values_by_utf16_name(
+     libfsxfs_internal_file_entry_t *internal_file_entry,
+     const uint16_t *utf16_string,
+     size_t utf16_string_length,
+     libfsxfs_attribute_values_t **attribute_values,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_has_extended_attribute_by_utf8_name(
+     libfsxfs_file_entry_t *file_entry,
+     const uint8_t *utf8_string,
+     size_t utf8_string_length,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_has_extended_attribute_by_utf16_name(
+     libfsxfs_file_entry_t *file_entry,
+     const uint16_t *utf16_string,
+     size_t utf16_string_length,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_extended_attribute_by_utf8_name(
+     libfsxfs_file_entry_t *file_entry,
+     const uint8_t *utf8_string,
+     size_t utf8_string_length,
+     libfsxfs_extended_attribute_t **extended_attribute,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_extended_attribute_by_utf16_name(
+     libfsxfs_file_entry_t *file_entry,
+     const uint16_t *utf16_string,
+     size_t utf16_string_length,
      libfsxfs_extended_attribute_t **extended_attribute,
      libcerror_error_t **error );
 

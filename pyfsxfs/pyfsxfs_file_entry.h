@@ -139,6 +139,16 @@ PyObject *pyfsxfs_file_entry_get_extended_attributes(
            pyfsxfs_file_entry_t *pyfsxfs_file_entry,
            PyObject *arguments );
 
+PyObject *pyfsxfs_file_entry_has_extended_attribute_by_name(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           PyObject *arguments,
+           PyObject *keywords );
+
+PyObject *pyfsxfs_file_entry_get_extended_attribute_by_name(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           PyObject *arguments,
+           PyObject *keywords );
+
 PyObject *pyfsxfs_file_entry_get_number_of_sub_file_entries(
            pyfsxfs_file_entry_t *pyfsxfs_file_entry,
            PyObject *arguments );
