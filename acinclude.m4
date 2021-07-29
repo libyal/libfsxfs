@@ -1,6 +1,6 @@
 dnl Checks for required headers and functions
 dnl
-dnl Version: 20200713
+dnl Version: 20210729
 
 dnl Function to detect if libfsxfs dependencies are available
 AC_DEFUN([AX_LIBFSXFS_CHECK_LOCAL],
@@ -19,6 +19,17 @@ AC_DEFUN([AX_FSXFSTOOLS_CHECK_LOCAL],
    [AC_MSG_FAILURE(
      [Missing function: close],
      [1])
+  ])
+
+  dnl Headers included in fsxfstools/fsxfsmount.c
+  AC_CHECK_HEADERS([errno.h])
+
+  AC_HEADER_TIME
+
+  dnl Functions included in fsxfstools/mount_file_system.c and fsxfstools/mount_file_entry.c
+  AS_IF(
+    [test "x$ac_cv_enable_winapi" = xno],
+    [AC_CHECK_FUNCS([clock_gettime getegid geteuid time])
   ])
 ])
 

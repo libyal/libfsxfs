@@ -8,10 +8,10 @@ Project information:
 Read-only supported XFS formats:
 
 * version 4 and 5
+* extended attributes
 
 Unsupported XFS format features:
 
-* extended attributes
 * XFS version 1, 2 or 3
 
 For more information see:

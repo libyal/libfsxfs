@@ -25,6 +25,7 @@ MSVSCPP_FILES = \
 	fsxfs_test_tools_signal/fsxfs_test_tools_signal.vcproj \
 	fsxfs_test_volume/fsxfs_test_volume.vcproj \
 	fsxfsinfo/fsxfsinfo.vcproj \
+	fsxfsmount/fsxfsmount.vcproj \
 	libbfio/libbfio.vcproj \
 	libcdata/libcdata.vcproj \
 	libcerror/libcerror.vcproj \
