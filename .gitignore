@@ -141,6 +141,7 @@ stamp-h[1-9]
 /tests/fsxfs_test_directory_table_header
 /tests/fsxfs_test_error
 /tests/fsxfs_test_extent
+/tests/fsxfs_test_file_entry
 /tests/fsxfs_test_file_system_block_header
 /tests/fsxfs_test_inode
 /tests/fsxfs_test_inode_btree

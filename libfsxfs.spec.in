@@ -52,8 +52,8 @@ Python 3 bindings for libfsxfs
 %package -n libfsxfs-tools
 Summary: Several tools for reading X File System (XFS) volumes
 Group: Applications/System
-Requires: libfsxfs = %{version}-%{release} @ax_libcrypto_spec_requires@ @ax_libhmac_spec_requires@
-@libfsxfs_spec_tools_build_requires@ @ax_libcrypto_spec_build_requires@ @ax_libhmac_spec_build_requires@
+Requires: libfsxfs = %{version}-%{release} @ax_libcrypto_spec_requires@ @ax_libfuse_spec_requires@ @ax_libhmac_spec_requires@
+@libfsxfs_spec_tools_build_requires@ @ax_libcrypto_spec_build_requires@ @ax_libfuse_spec_build_requires@ @ax_libhmac_spec_build_requires@
 
 %description -n libfsxfs-tools
 Several tools for reading X File System (XFS) volumes

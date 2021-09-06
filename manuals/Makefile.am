@@ -4,6 +4,7 @@ man_MANS = \
 	libfsxfs.3
 
 EXTRA_DIST = \
+	fsxfsinfo.1 \
 	fsxfsmount.1 \
 	libfsxfs.3
 
