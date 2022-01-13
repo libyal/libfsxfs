@@ -69,7 +69,6 @@ fsxfsmount_SOURCES = \
 	fsxfstools_getopt.c fsxfstools_getopt.h \
 	fsxfstools_i18n.h \
 	fsxfstools_libbfio.h \
-	fsxfstools_libcdata.h \
 	fsxfstools_libcerror.h \
 	fsxfstools_libclocale.h \
 	fsxfstools_libcnotify.h \
