@@ -194,6 +194,19 @@ PyObject *pyfsxfs_file_entry_get_size(
            pyfsxfs_file_entry_t *pyfsxfs_file_entry,
            PyObject *arguments );
 
+PyObject *pyfsxfs_file_entry_get_number_of_extents(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           PyObject *arguments );
+
+PyObject *pyfsxfs_file_entry_get_extent_by_index(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           int extent_index );
+
+PyObject *pyfsxfs_file_entry_get_extent(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           PyObject *arguments,
+           PyObject *keywords );
+
 #if defined( __cplusplus )
 }
 #endif

@@ -25,6 +25,7 @@
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_io_handle.h"
 #include "libfsxfs_libcerror.h"
 
 #if defined( __cplusplus )
@@ -64,6 +65,14 @@ int libfsxfs_extent_read_data(
      libfsxfs_extent_t *extent,
      const uint8_t *data,
      size_t data_size,
+     libcerror_error_t **error );
+
+int libfsxfs_extent_get_values(
+     libfsxfs_extent_t *extent,
+     libfsxfs_io_handle_t *io_handle,
+     off64_t *extent_offset,
+     size64_t *extent_size,
+     uint32_t *extent_flags,
      libcerror_error_t **error );
 
 #if defined( __cplusplus )
