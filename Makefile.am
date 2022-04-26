@@ -38,7 +38,6 @@ DPKG_FILES = \
 	dpkg/rules \
 	dpkg/libfsxfs.install \
 	dpkg/libfsxfs-dev.install \
-	dpkg/libfsxfs-python.install \
 	dpkg/libfsxfs-python3.install \
 	dpkg/libfsxfs-tools.install \
 	dpkg/source/format
