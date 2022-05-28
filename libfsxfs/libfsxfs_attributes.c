@@ -703,435 +703,435 @@ int libfsxfs_attributes_get_from_block(
 
 		return( -1 );
 	}
-		if( libfsxfs_inode_get_number_of_attributes_extents(
+	if( libfsxfs_inode_get_number_of_attributes_extents(
+	     inode,
+	     &number_of_extents,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve number of attributes extents.",
+		 function );
+
+		goto on_error;
+	}
+/* TODO optimize this lookup */
+
+	for( extent_index = 0;
+	     extent_index < number_of_extents;
+	     extent_index++ )
+	{
+		if( libfsxfs_inode_get_attributes_extent_by_index(
 		     inode,
-		     &number_of_extents,
+		     extent_index,
+		     &extent,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-			 "%s: unable to retrieve number of attributes extents.",
-			 function );
+			 "%s: unable to retrieve attributes extent: %d.",
+			 function,
+			 extent_index );
 
 			goto on_error;
 		}
-	/* TODO optimize this lookup */
-
-		for( extent_index = 0;
-		     extent_index < number_of_extents;
-		     extent_index++ )
-		{
-			if( libfsxfs_inode_get_attributes_extent_by_index(
-			     inode,
-			     extent_index,
-			     &extent,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-				 "%s: unable to retrieve attributes extent: %d.",
-				 function,
-				 extent_index );
-
-				goto on_error;
-			}
-			if( extent == NULL )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
-				 "%s: missing extent: %d.",
-				 function,
-				 extent_index );
-
-				goto on_error;
-			}
-			if( ( block_number >= extent->logical_block_number )
-			 && ( block_number < ( extent->logical_block_number + extent->number_of_blocks ) ) )
-			{
-				break;
-			}
-		}
-		if( extent_index >= number_of_extents )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-			 "%s: invalid block number: %" PRIu32 " value out of bounds.",
-			 function,
-			 block_number );
-
-			return( -1 );
-		}
-		allocation_group_index = (int) ( extent->physical_block_number >> io_handle->number_of_relative_block_number_bits );
-		relative_block_number  = extent->physical_block_number & ( ( 1 << io_handle->number_of_relative_block_number_bits ) - 1 );
-
-	#if defined( HAVE_DEBUG_OUTPUT )
-		if( libcnotify_verbose != 0 )
-		{
-			libcnotify_printf(
-			 "%s: extent: %d physical block number\t: %" PRIu64 "\n",
-			 function,
-			 extent_index,
-			 extent->physical_block_number );
-
-			libcnotify_printf(
-			 "%s: extent: %d allocation group index\t: %d\n",
-			 function,
-			 extent_index,
-			 allocation_group_index );
-
-			libcnotify_printf(
-			 "%s: extent: %d relative block number\t: %" PRIu64 "\n",
-			 function,
-			 extent_index,
-			 relative_block_number );
-
-			libcnotify_printf(
-			 "\n" );
-		}
-	#endif /* defined( HAVE_DEBUG_OUTPUT ) */
-
-		block_offset = ( ( (off64_t) allocation_group_index * io_handle->allocation_group_size ) + relative_block_number ) * io_handle->block_size;
-
-		if( libfsxfs_file_system_block_initialize(
-		     &file_system_block,
-		     io_handle->block_size,
-		     error ) != 1 )
+		if( extent == NULL )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-			 "%s: unable to initialize file system block.",
-			 function );
+			 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+			 "%s: missing extent: %d.",
+			 function,
+			 extent_index );
 
 			goto on_error;
 		}
-		if( libfsxfs_file_system_block_read_file_io_handle(
-		     file_system_block,
+		if( ( block_number >= extent->logical_block_number )
+		 && ( block_number < ( extent->logical_block_number + extent->number_of_blocks ) ) )
+		{
+			break;
+		}
+	}
+	if( extent_index >= number_of_extents )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid block number: %" PRIu32 " value out of bounds.",
+		 function,
+		 block_number );
+
+		return( -1 );
+	}
+	allocation_group_index = (int) ( extent->physical_block_number >> io_handle->number_of_relative_block_number_bits );
+	relative_block_number  = extent->physical_block_number & ( ( 1 << io_handle->number_of_relative_block_number_bits ) - 1 );
+
+#if defined( HAVE_DEBUG_OUTPUT )
+	if( libcnotify_verbose != 0 )
+	{
+		libcnotify_printf(
+		 "%s: extent: %d physical block number\t: %" PRIu64 "\n",
+		 function,
+		 extent_index,
+		 extent->physical_block_number );
+
+		libcnotify_printf(
+		 "%s: extent: %d allocation group index\t: %d\n",
+		 function,
+		 extent_index,
+		 allocation_group_index );
+
+		libcnotify_printf(
+		 "%s: extent: %d relative block number\t: %" PRIu64 "\n",
+		 function,
+		 extent_index,
+		 relative_block_number );
+
+		libcnotify_printf(
+		 "\n" );
+	}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+	block_offset = ( ( (off64_t) allocation_group_index * io_handle->allocation_group_size ) + relative_block_number ) * io_handle->block_size;
+
+	if( libfsxfs_file_system_block_initialize(
+	     &file_system_block,
+	     io_handle->block_size,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to initialize file system block.",
+		 function );
+
+		goto on_error;
+	}
+	if( libfsxfs_file_system_block_read_file_io_handle(
+	     file_system_block,
+	     io_handle,
+	     file_io_handle,
+	     block_offset,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_IO,
+		 LIBCERROR_IO_ERROR_READ_FAILED,
+		 "%s: unable to read block at offset: %" PRIi64 " (0x%08" PRIx64 ").",
+		 function,
+		 block_offset,
+		 block_offset );
+
+		goto on_error;
+	}
+	if( ( file_system_block->header->signature == 0x3bee )
+	 || ( file_system_block->header->signature == 0xfbee ) )
+	{
+		if( libfsxfs_attributes_read_leaf_values(
 		     io_handle,
-		     file_io_handle,
-		     block_offset,
+		     file_system_block->data,
+		     file_system_block->data_size,
+		     extended_attributes_array,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_IO,
 			 LIBCERROR_IO_ERROR_READ_FAILED,
-			 "%s: unable to read block at offset: %" PRIi64 " (0x%08" PRIx64 ").",
-			 function,
-			 block_offset,
-			 block_offset );
+			 "%s: unable to read attributes leaf values.",
+			 function );
 
 			goto on_error;
 		}
-		if( ( file_system_block->header->signature == 0x3bee )
-		 || ( file_system_block->header->signature == 0xfbee ) )
+	}
+	else if( ( file_system_block->header->signature == 0x3ebe )
+	      || ( file_system_block->header->signature == 0xfebe ) )
+	{
+		if( libfsxfs_attributes_read_branch_values(
+		     io_handle,
+		     file_io_handle,
+		     inode,
+		     file_system_block->data,
+		     file_system_block->data_size,
+		     extended_attributes_array,
+		     recursion_depth,
+		     error ) != 1 )
 		{
-			if( libfsxfs_attributes_read_leaf_values(
-			     io_handle,
-			     file_system_block->data,
-			     file_system_block->data_size,
-			     extended_attributes_array,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_IO,
-				 LIBCERROR_IO_ERROR_READ_FAILED,
-				 "%s: unable to read attributes leaf values.",
-				 function );
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read attributes branch values.",
+			 function );
 
-				goto on_error;
-			}
+			goto on_error;
 		}
-		else if( ( file_system_block->header->signature == 0x3ebe )
-		      || ( file_system_block->header->signature == 0xfebe ) )
+	}
+	else
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: unsupported block signature: 0x%04" PRIx16 ".",
+		 function,
+		 file_system_block->header->signature );
+
+		goto on_error;
+	}
+	if( libfsxfs_file_system_block_free(
+	     &file_system_block,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+		 "%s: unable to free file system block.",
+		 function );
+
+		goto on_error;
+	}
+	return( 1 );
+
+on_error:
+	if( file_system_block != NULL )
+	{
+		libfsxfs_file_system_block_free(
+		 &file_system_block,
+		 NULL );
+	}
+	libcdata_array_empty(
+	 extended_attributes_array,
+	 (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_attribute_values_free,
+	 NULL );
+
+	return( -1 );
+}
+
+/* Retrieves the extended attributes from the inode
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_attributes_get_from_inode(
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     libfsxfs_inode_t *inode,
+     libcdata_array_t *extended_attributes_array,
+     libcerror_error_t **error )
+{
+	libfsxfs_attributes_table_t *attributes_table = NULL;
+	static char *function                         = "libfsxfs_attributes_get_from_inode";
+
+	if( io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid IO handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_INLINE_DATA )
+	 && ( inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_EXTENTS )
+	 && ( inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_BTREE ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: invalid inode - unsupported attributes fork type.",
+		 function );
+
+		goto on_error;
+	}
+	if( inode->attributes_fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
+	{
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
 		{
-			if( libfsxfs_attributes_read_branch_values(
-			     io_handle,
-			     file_io_handle,
-			     inode,
-			     file_system_block->data,
-			     file_system_block->data_size,
-			     extended_attributes_array,
-			     recursion_depth,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_IO,
-				 LIBCERROR_IO_ERROR_READ_FAILED,
-				 "%s: unable to read attributes branch values.",
-				 function );
-
-				goto on_error;
-			}
+			libcnotify_printf(
+			 "%s: extended attributes data:\n",
+			 function );
+			libcnotify_print_data(
+			 inode->inline_attributes_data,
+			 inode->attributes_fork_size,
+			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
 		}
-		else
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		if( libfsxfs_attributes_table_initialize(
+		     &attributes_table,
+		     error ) != 1 )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-			 "%s: unsupported block signature: 0x%04" PRIx16 ".",
-			 function,
-			 file_system_block->header->signature );
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create attributes table.",
+			 function );
 
 			goto on_error;
 		}
-		if( libfsxfs_file_system_block_free(
-		     &file_system_block,
+		if( libfsxfs_attributes_table_read_data(
+		     attributes_table,
+		     inode->inline_attributes_data,
+		     inode->attributes_fork_size,
+		     extended_attributes_array,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read attributes table.",
+			 function );
+
+			goto on_error;
+		}
+		if( libfsxfs_attributes_table_free(
+		     &attributes_table,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 			 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
-			 "%s: unable to free file system block.",
+			 "%s: unable to free attributes table.",
 			 function );
 
 			goto on_error;
 		}
-		return( 1 );
-
-	on_error:
-		if( file_system_block != NULL )
-		{
-			libfsxfs_file_system_block_free(
-			 &file_system_block,
-			 NULL );
-		}
-		libcdata_array_empty(
-		 extended_attributes_array,
-		 (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_attribute_values_free,
-		 NULL );
-
-		return( -1 );
 	}
-
-	/* Retrieves the extended attributes from the inode
-	 * Returns 1 if successful or -1 on error
-	 */
-	int libfsxfs_attributes_get_from_inode(
-	     libfsxfs_io_handle_t *io_handle,
-	     libbfio_handle_t *file_io_handle,
-	     libfsxfs_inode_t *inode,
-	     libcdata_array_t *extended_attributes_array,
-	     libcerror_error_t **error )
+	else if( inode->attributes_extents_array != NULL )
 	{
-		libfsxfs_attributes_table_t *attributes_table = NULL;
-		static char *function                         = "libfsxfs_attributes_get_from_inode";
-
-		if( io_handle == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-			 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
-			 "%s: invalid IO handle.",
-			 function );
-
-			return( -1 );
-		}
-		if( inode == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-			 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
-			 "%s: invalid inode.",
-			 function );
-
-			return( -1 );
-		}
-		if( ( inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_INLINE_DATA )
-		 && ( inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_EXTENTS )
-		 && ( inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_BTREE ) )
+		if( libfsxfs_attributes_get_from_block(
+		     io_handle,
+		     file_io_handle,
+		     inode,
+		     0,
+		     extended_attributes_array,
+		     0,
+		     error ) != 1 )
 		{
 			libcerror_error_set(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-			 "%s: invalid inode - unsupported attributes fork type.",
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve extended attributes from attributes block: 0.",
 			 function );
 
 			goto on_error;
 		}
-		if( inode->attributes_fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
-		{
-	#if defined( HAVE_DEBUG_OUTPUT )
-			if( libcnotify_verbose != 0 )
-			{
-				libcnotify_printf(
-				 "%s: extended attributes data:\n",
-				 function );
-				libcnotify_print_data(
-				 inode->inline_attributes_data,
-				 inode->attributes_fork_size,
-				 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
-			}
-	#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+	}
+	return( 1 );
 
-			if( libfsxfs_attributes_table_initialize(
-			     &attributes_table,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-				 "%s: unable to create attributes table.",
-				 function );
+on_error:
+	if( attributes_table != NULL )
+	{
+		libfsxfs_attributes_table_free(
+		 &attributes_table,
+		 NULL );
+	}
+	return( -1 );
+}
 
-				goto on_error;
-			}
-			if( libfsxfs_attributes_table_read_data(
-			     attributes_table,
-			     inode->inline_attributes_data,
-			     inode->attributes_fork_size,
-			     extended_attributes_array,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_IO,
-				 LIBCERROR_IO_ERROR_READ_FAILED,
-				 "%s: unable to read attributes table.",
-				 function );
+/* Creates a data stream of the attribute value data
+ * Make sure the value data_stream is referencing, is set to NULL
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_attributes_get_value_data_stream(
+     libfsxfs_io_handle_t *io_handle,
+     libfsxfs_inode_t *inode,
+     libfsxfs_attribute_values_t *attribute_values,
+     libfdata_stream_t **data_stream,
+     libcerror_error_t **error )
+{
+	libfdata_stream_t *safe_data_stream = NULL;
+	libfsxfs_extent_t *extent           = NULL;
+	static char *function               = "libfsxfs_attributes_get_value_data_stream";
+	size64_t data_segment_size          = 0;
+	off64_t data_segment_offset         = 0;
+	uint64_t relative_block_number      = 0;
+	uint32_t remaining_value_data_size  = 0;
+	int allocation_group_index          = 0;
+	int extent_index                    = 0;
+	int number_of_extents               = 0;
+	int segment_index                   = 0;
 
-				goto on_error;
-			}
-			if( libfsxfs_attributes_table_free(
-			     &attributes_table,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
-				 "%s: unable to free attributes table.",
-				 function );
+	if( io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid IO handle.",
+		 function );
 
-				goto on_error;
-			}
-		}
-		else
-		{
-			if( libfsxfs_attributes_get_from_block(
-			     io_handle,
-			     file_io_handle,
-			     inode,
-			     0,
-			     extended_attributes_array,
-			     0,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-				 "%s: unable to retrieve extended attributes from attributes block: 0.",
-				 function );
-
-				goto on_error;
-			}
-		}
-		return( 1 );
-
-	on_error:
-		if( attributes_table != NULL )
-		{
-			libfsxfs_attributes_table_free(
-			 &attributes_table,
-			 NULL );
-		}
 		return( -1 );
 	}
-
-	/* Creates a data stream of the attribute value data
-	 * Make sure the value data_stream is referencing, is set to NULL
-	 * Returns 1 if successful or -1 on error
-	 */
-	int libfsxfs_attributes_get_value_data_stream(
-	     libfsxfs_io_handle_t *io_handle,
-	     libfsxfs_inode_t *inode,
-	     libfsxfs_attribute_values_t *attribute_values,
-	     libfdata_stream_t **data_stream,
-	     libcerror_error_t **error )
+	if( attribute_values == NULL )
 	{
-		libfdata_stream_t *safe_data_stream = NULL;
-		libfsxfs_extent_t *extent           = NULL;
-		static char *function               = "libfsxfs_attributes_get_value_data_stream";
-		size64_t data_segment_size          = 0;
-		off64_t data_segment_offset         = 0;
-		uint64_t relative_block_number      = 0;
-		uint32_t remaining_value_data_size  = 0;
-		int allocation_group_index          = 0;
-		int extent_index                    = 0;
-		int number_of_extents               = 0;
-		int segment_index                   = 0;
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid attribute values.",
+		 function );
 
-		if( io_handle == NULL )
+		return( -1 );
+	}
+	if( data_stream == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid data stream.",
+		 function );
+
+		return( -1 );
+	}
+	if( attribute_values->value_data_block_number == 0 )
+	{
+		if( libfsxfs_data_stream_initialize_from_data(
+		     data_stream,
+		     attribute_values->value_data,
+		     (size_t) attribute_values->value_data_size,
+		     error ) != 1 )
 		{
 			libcerror_error_set(
 			 error,
-			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-			 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
-			 "%s: invalid IO handle.",
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+			 "%s: unable to create data stream.",
 			 function );
 
-			return( -1 );
+			goto on_error;
 		}
-		if( attribute_values == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-			 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
-			 "%s: invalid attribute values.",
-			 function );
-
-			return( -1 );
-		}
-		if( data_stream == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-			 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
-			 "%s: invalid data stream.",
-			 function );
-
-			return( -1 );
-		}
-		if( attribute_values->value_data_block_number == 0 )
-		{
-			if( libfsxfs_data_stream_initialize_from_data(
-			     data_stream,
-			     attribute_values->value_data,
-			     (size_t) attribute_values->value_data_size,
-			     error ) != 1 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-				 "%s: unable to create data stream.",
-				 function );
-
-				goto on_error;
-			}
-		}
-		else
-		{
+	}
+	else
+	{
 		if( libfsxfs_inode_get_number_of_attributes_extents(
 		     inode,
 		     &number_of_extents,

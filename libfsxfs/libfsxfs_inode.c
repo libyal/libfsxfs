@@ -1135,7 +1135,8 @@ int libfsxfs_inode_read_file_io_handle(
 
 			inode->inline_attributes_data = &( inode->data[ inode->attributes_fork_offset ] );
 		}
-		else if( inode->attributes_fork_type == LIBFSXFS_FORK_TYPE_EXTENTS )
+		else if( ( inode->attributes_fork_type == LIBFSXFS_FORK_TYPE_EXTENTS )
+		      && ( inode->number_of_attributes_extents > 0 ) )
 		{
 			if( libcdata_array_initialize(
 			     &( inode->attributes_extents_array ),
