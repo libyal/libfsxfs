@@ -1143,6 +1143,8 @@ int info_handle_file_entry_value_with_name_fprint(
 	int64_t inode_change_time                         = 0;
 	int64_t modification_time                         = 0;
 	uint32_t group_identifier                         = 0;
+	uint32_t major_device_number                      = 0;
+	uint32_t minor_device_number                      = 0;
 	uint32_t number_of_links                          = 0;
 	uint32_t owner_identifier                         = 0;
 	uint16_t file_mode                                = 0;
@@ -1666,6 +1668,31 @@ int info_handle_file_entry_value_with_name_fprint(
 		 file_mode_string,
 		 file_mode );
 
+		result = libfsxfs_file_entry_get_device_number(
+		          file_entry,
+		          &major_device_number,
+		          &minor_device_number,
+		          error );
+
+		if( result == -1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve device number.",
+			 function );
+
+			goto on_error;
+		}
+		else if( result != 0 )
+		{
+			fprintf(
+			 info_handle->notify_stream,
+			 "\tDevice number\t\t: %" PRIu32 ",%" PRIu32 "\n",
+			 major_device_number,
+			 minor_device_number );
+		}
 		if( symbolic_link_target != NULL )
 		{
 			fprintf(

@@ -50,7 +50,8 @@ in the section entitled "GNU Free Documentation License".
 | 0.0.3 | J.B. Metz | April 2021 | Changes to formatting.
 | 0.0.4 | J.B. Metz | May 2021 | Clean up of some notes.
 | 0.0.5 | J.B. Metz | July 2021 | Additional information about extended attributes.
-| 0.0.5 6 J.B. Metz | May 2022 | Additional information about extended attributes.
+| 0.0.6 | J.B. Metz | May 2022 | Additional information about extended attributes.
+| 0.0.7 | J.B. Metz | July 2022 | Additional information about device information.
 |===
 
 :numbered:
@@ -623,6 +624,7 @@ file offset = allocation group file offset + ( inode number x inode size )
 The inode can be followed by:
 
 * data fork (descriptor)
+** device information (fork type is XFS_DINODE_FMT_DEV)
 ** inline data fork (fork type is XFS_DINODE_FMT_LOCAL)
 ** extent list data fork (fork type is XFS_DINODE_FMT_EXTENTS)
 ** extent B+ tree data fork (fork type is XFS_DINODE_FMT_BTREE)
@@ -837,7 +839,7 @@ _Bitmask: 0xf000 (S_IFMT)_
 [cols="1,1,5",options="header"]
 |===
 | Value | Identifier | Description
-| 0 | XFS_DINODE_FMT_DEV | [yellow-background]*Unknown (Used for character and block devices)*
+| 0 | XFS_DINODE_FMT_DEV | Device information is stored inline (in the inode)
 | 1 | XFS_DINODE_FMT_LOCAL | Data is stored inline (in the inode)
 | 2 | XFS_DINODE_FMT_EXTENTS | Data is referrenced by extents stored in an extent list +
 See section: <<extent_list,Extent list>>
@@ -1247,12 +1249,26 @@ and consists of:
 | 0 | 4 | | [yellow-background]*Unknown (bestcount)*
 |===
 
+== Device information
+
+Character and block devices numbers are stored as inline data with fork type is
+XFS_DINODE_FMT_DEV.
+
+The device information (xfs_dev_t) is 4 bytes of size and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0.0 | 18 bits | | Minor device number
+| 2.2 | 14 bits | | Major device number
+|===
+
 == File content
 
 XFS supports multiple ways to store file content:
 
 * inline data (fork type is XFS_DINODE_FMT_LOCAL)
-* extents defined by either an extent list (fork type is XFS_DINODE_FMT_EXTENTS) or an extent B+ tree (fork typeis  XFS_DINODE_FMT_BTREE)
+* extents defined by either an extent list (fork type is XFS_DINODE_FMT_EXTENTS) or an extent B+ tree (fork type is XFS_DINODE_FMT_BTREE)
 
 === Inline data
 

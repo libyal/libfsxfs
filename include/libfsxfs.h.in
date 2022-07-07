@@ -457,6 +457,17 @@ int libfsxfs_file_entry_get_group_identifier(
      uint32_t *group_identifier,
      libfsxfs_error_t **error );
 
+/* Retrieves the device number
+ * This value is retrieved from the inode
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_device_number(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *major_device_number,
+     uint32_t *minor_device_number,
+     libfsxfs_error_t **error );
+
 /* Retrieves the size of the UTF-8 encoded name
  * The returned size includes the end of string character
  * This value is retrieved from the directory entry

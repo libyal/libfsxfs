@@ -179,6 +179,13 @@ int libfsxfs_file_entry_get_group_identifier(
      libcerror_error_t **error );
 
 LIBFSXFS_EXTERN \
+int libfsxfs_file_entry_get_device_number(
+     libfsxfs_file_entry_t *file_entry,
+     uint32_t *major_device_number,
+     uint32_t *minor_device_number,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
 int libfsxfs_file_entry_get_utf8_name_size(
      libfsxfs_file_entry_t *file_entry,
      size_t *utf8_string_size,

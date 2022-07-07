@@ -114,6 +114,10 @@ PyObject *pyfsxfs_file_entry_get_group_identifier(
            pyfsxfs_file_entry_t *pyfsxfs_file_entry,
            PyObject *arguments );
 
+PyObject *pyfsxfs_file_entry_get_device_number(
+           pyfsxfs_file_entry_t *pyfsxfs_file_entry,
+           PyObject *arguments );
+
 PyObject *pyfsxfs_file_entry_get_name(
            pyfsxfs_file_entry_t *pyfsxfs_file_entry,
            PyObject *arguments );

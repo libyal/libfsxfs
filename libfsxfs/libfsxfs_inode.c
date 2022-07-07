@@ -956,7 +956,26 @@ int libfsxfs_inode_read_file_io_handle(
 	{
 		add_sparse_extents = 1;
 	}
-	if( inode->fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
+	if( inode->fork_type == LIBFSXFS_FORK_TYPE_DEVICE )
+	{
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: device information data:\n",
+			 function );
+			libcnotify_print_data(
+			 &( inode->data[ inode->data_fork_offset ] ),
+			 4,
+			 0 );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
+		byte_stream_copy_to_uint32_big_endian(
+		 &( inode->data[ inode->data_fork_offset ] ),
+		 inode->device_information );
+	}
+	else if( inode->fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
 	{
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
@@ -1600,6 +1619,60 @@ int libfsxfs_inode_get_data_size(
 	*data_size = inode->size;
 
 	return( 1 );
+}
+
+/* Retrieves the device number
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+int libfsxfs_inode_get_device_number(
+     libfsxfs_inode_t *inode,
+     uint32_t *major_device_number,
+     uint32_t *minor_device_number,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_device_number";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( major_device_number == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid major device number.",
+		 function );
+
+		return( -1 );
+	}
+	if( minor_device_number == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid minor device number.",
+		 function );
+
+		return( -1 );
+	}
+	if( inode->fork_type == LIBFSXFS_FORK_TYPE_DEVICE )
+	{
+		*major_device_number = inode->device_information >> 18;
+		*minor_device_number = inode->device_information & 0x0003ffffUL;
+
+		return( 1 );
+	}
+	return( 0 );
 }
 
 /* Retrieves the number of data extents
