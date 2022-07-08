@@ -798,7 +798,9 @@ int libfsxfs_attributes_get_from_block(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-	block_offset = ( ( (off64_t) allocation_group_index * io_handle->allocation_group_size ) + relative_block_number ) * io_handle->block_size;
+	block_offset  = ( (off64_t) allocation_group_index * io_handle->allocation_group_size ) + relative_block_number;
+	block_offset += block_number - extent->logical_block_number;
+	block_offset *= io_handle->block_size;
 
 	if( libfsxfs_file_system_block_initialize(
 	     &file_system_block,

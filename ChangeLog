@@ -1,4 +1,6 @@
 TODO:
+* add libfsxfs_volume_get_number_of_file_entries
+
 * add support for extended attributes
 ** check v1 and v2 attributes
 ** add support for reading v5 remote attribute value data blocks
