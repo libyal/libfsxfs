@@ -91,9 +91,9 @@ struct libfsxfs_inode
 	 */
 	uint8_t fork_type;
 
-	/* Device information
+	/* Device identifier
 	 */
-	uint32_t device_information;
+	uint32_t device_identifier;
 
 	/* Inline data
 	 */
@@ -205,6 +205,11 @@ int libfsxfs_inode_get_number_of_links(
 int libfsxfs_inode_get_data_size(
      libfsxfs_inode_t *inode,
      uint64_t *data_size,
+     libcerror_error_t **error );
+
+int libfsxfs_inode_get_device_identifier(
+     libfsxfs_inode_t *inode,
+     uint32_t *device_identifier,
      libcerror_error_t **error );
 
 int libfsxfs_inode_get_device_number(

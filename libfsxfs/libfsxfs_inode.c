@@ -962,7 +962,7 @@ int libfsxfs_inode_read_file_io_handle(
 		if( libcnotify_verbose != 0 )
 		{
 			libcnotify_printf(
-			 "%s: device information data:\n",
+			 "%s: device identifier data:\n",
 			 function );
 			libcnotify_print_data(
 			 &( inode->data[ inode->data_fork_offset ] ),
@@ -973,7 +973,7 @@ int libfsxfs_inode_read_file_io_handle(
 
 		byte_stream_copy_to_uint32_big_endian(
 		 &( inode->data[ inode->data_fork_offset ] ),
-		 inode->device_information );
+		 inode->device_identifier );
 	}
 	else if( inode->fork_type == LIBFSXFS_FORK_TYPE_INLINE_DATA )
 	{
@@ -1621,6 +1621,47 @@ int libfsxfs_inode_get_data_size(
 	return( 1 );
 }
 
+/* Retrieves the device identifier
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+int libfsxfs_inode_get_device_identifier(
+     libfsxfs_inode_t *inode,
+     uint32_t *device_identifier,
+     libcerror_error_t **error )
+{
+	static char *function = "libfsxfs_inode_get_device_identifier";
+
+	if( inode == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( device_identifier == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid device identifier.",
+		 function );
+
+		return( -1 );
+	}
+	if( inode->fork_type == LIBFSXFS_FORK_TYPE_DEVICE )
+	{
+		*device_identifier = inode->device_identifier;
+
+		return( 1 );
+	}
+	return( 0 );
+}
+
 /* Retrieves the device number
  * Returns 1 if successful, 0 if not available or -1 on error
  */
@@ -1667,8 +1708,8 @@ int libfsxfs_inode_get_device_number(
 	}
 	if( inode->fork_type == LIBFSXFS_FORK_TYPE_DEVICE )
 	{
-		*major_device_number = inode->device_information >> 18;
-		*minor_device_number = inode->device_information & 0x0003ffffUL;
+		*major_device_number = inode->device_identifier >> 18;
+		*minor_device_number = inode->device_identifier & 0x0003ffffUL;
 
 		return( 1 );
 	}
