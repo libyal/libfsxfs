@@ -1,5 +1,5 @@
 /*
- * Shows information obtained from an Extended File System (ext) volume
+ * Shows information obtained from a X File System (XFS) volume
  *
  * Copyright (C) 2020-2022, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -70,8 +70,7 @@ void usage_fprint(
 	{
 		return;
 	}
-	fprintf( stream, "Use fsxfsinfo to determine information about an Extended\n"
-	                 " File System (ext) volume.\n\n" );
+	fprintf( stream, "Use fsxfsinfo to determine information about a X File System (XFS) volume.\n\n" );
 
 	fprintf( stream, "Usage: fsxfsinfo [ -B bodyfile ] [ -E inode_number ] [ -F file_entry ]\n"
 	                 "                 [ -o offset ] [ -dhHvV ] source\n\n" );
@@ -79,9 +78,10 @@ void usage_fprint(
 	fprintf( stream, "\tsource: the source file or device\n\n" );
 
 	fprintf( stream, "\t-B:     output file system information as a bodyfile\n" );
-	fprintf( stream, "\t-d:     calculate a MD5 hash of a file entry to include in the bodyfile\n" );
-	fprintf( stream, "\t-E:     show information about a specific inode or \"all\".\n" );
-	fprintf( stream, "\t-F:     show information about a specific file entry path.\n" );
+	fprintf( stream, "\t-d:     calculate a MD5 hash of a file entry to include in the\n"
+	                 "\t        bodyfile\n" );
+	fprintf( stream, "\t-E:     show information about a specific inode or \"all\"\n" );
+	fprintf( stream, "\t-F:     show information about a specific file entry path\n" );
 	fprintf( stream, "\t-h:     shows this help\n" );
 	fprintf( stream, "\t-H:     shows the file system hierarchy\n" );
 	fprintf( stream, "\t-o:     specify the volume offset\n" );

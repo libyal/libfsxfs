@@ -161,6 +161,12 @@ int libfsxfs_volume_get_utf16_label(
      size_t utf16_string_size,
      libcerror_error_t **error );
 
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_root_directory(
+     libfsxfs_volume_t *volume,
+     libfsxfs_file_entry_t **file_entry,
+     libcerror_error_t **error );
+
 int libfsxfs_internal_volume_get_file_entry_by_inode(
      libfsxfs_internal_volume_t *internal_volume,
      uint64_t inode_number,
@@ -171,12 +177,6 @@ LIBFSXFS_EXTERN \
 int libfsxfs_volume_get_file_entry_by_inode(
      libfsxfs_volume_t *volume,
      uint64_t inode_number,
-     libfsxfs_file_entry_t **file_entry,
-     libcerror_error_t **error );
-
-LIBFSXFS_EXTERN \
-int libfsxfs_volume_get_root_directory(
-     libfsxfs_volume_t *volume,
      libfsxfs_file_entry_t **file_entry,
      libcerror_error_t **error );
 

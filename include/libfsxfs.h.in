@@ -311,6 +311,15 @@ int libfsxfs_volume_get_utf16_label(
      size_t utf16_string_size,
      libfsxfs_error_t **error );
 
+/* Retrieves the root directory file entry
+ * Returns 1 if successful or -1 on error
+ */
+LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_root_directory(
+     libfsxfs_volume_t *volume,
+     libfsxfs_file_entry_t **file_entry,
+     libfsxfs_error_t **error );
+
 /* Retrieves the file entry of a specific inode number
  * Returns 1 if successful or -1 on error
  */
@@ -318,15 +327,6 @@ LIBFSXFS_EXTERN \
 int libfsxfs_volume_get_file_entry_by_inode(
      libfsxfs_volume_t *volume,
      uint64_t inode_number,
-     libfsxfs_file_entry_t **file_entry,
-     libfsxfs_error_t **error );
-
-/* Retrieves the root directory file entry
- * Returns 1 if successful or -1 on error
- */
-LIBFSXFS_EXTERN \
-int libfsxfs_volume_get_root_directory(
-     libfsxfs_volume_t *volume,
      libfsxfs_file_entry_t **file_entry,
      libfsxfs_error_t **error );
 

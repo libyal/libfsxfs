@@ -1602,6 +1602,143 @@ int libfsxfs_volume_get_utf16_label(
 	return( result );
 }
 
+/* Retrieves the root directory file entry
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_volume_get_root_directory(
+     libfsxfs_volume_t *volume,
+     libfsxfs_file_entry_t **file_entry,
+     libcerror_error_t **error )
+{
+	libfsxfs_inode_t *inode                     = NULL;
+	libfsxfs_internal_volume_t *internal_volume = NULL;
+	static char *function                       = "libfsxfs_volume_get_root_directory";
+	int result                                  = 1;
+
+	if( volume == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid volume.",
+		 function );
+
+		return( -1 );
+	}
+	internal_volume = (libfsxfs_internal_volume_t *) volume;
+
+	if( internal_volume->superblock == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+		 "%s: invalid internal volume - missing superblock.",
+		 function );
+
+		return( -1 );
+	}
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	if( *file_entry != NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid file entry value already set.",
+		 function );
+
+		return( -1 );
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_write(
+	     internal_volume->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( libfsxfs_file_system_get_inode_by_number(
+	     internal_volume->file_system,
+	     internal_volume->io_handle,
+	     internal_volume->file_io_handle,
+	     internal_volume->superblock->root_directory_inode_number,
+	     &inode,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve inode: %" PRIu64 ".",
+		 function,
+		 internal_volume->superblock->root_directory_inode_number );
+
+		result = -1;
+	}
+	else if( libfsxfs_file_entry_initialize(
+	          file_entry,
+	          internal_volume->io_handle,
+	          internal_volume->file_io_handle,
+	          internal_volume->file_system,
+	          internal_volume->superblock->root_directory_inode_number,
+	          inode,
+	          NULL,
+	          error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create file entry.",
+		 function );
+
+		libfsxfs_inode_free(
+		 &inode,
+		 NULL );
+
+		result = -1;
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_write(
+	     internal_volume->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for writing.",
+		 function );
+
+		libfsxfs_file_entry_free(
+		 file_entry,
+		 NULL );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
 /* Retrieves the file entry of a specific inode
  * Returns 1 if successful or -1 on error
  */
@@ -1778,143 +1915,6 @@ int libfsxfs_volume_get_file_entry_by_inode(
 		result = -1;
 	}
 #if defined( HAVE_LIBFSEXT_MULTI_THREAD_SUPPORT )
-	if( libcthreads_read_write_lock_release_for_write(
-	     internal_volume->read_write_lock,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
-		 "%s: unable to release read/write lock for writing.",
-		 function );
-
-		libfsxfs_file_entry_free(
-		 file_entry,
-		 NULL );
-
-		return( -1 );
-	}
-#endif
-	return( result );
-}
-
-/* Retrieves the root directory file entry
- * Returns 1 if successful or -1 on error
- */
-int libfsxfs_volume_get_root_directory(
-     libfsxfs_volume_t *volume,
-     libfsxfs_file_entry_t **file_entry,
-     libcerror_error_t **error )
-{
-	libfsxfs_inode_t *inode                     = NULL;
-	libfsxfs_internal_volume_t *internal_volume = NULL;
-	static char *function                       = "libfsxfs_volume_get_root_directory";
-	int result                                  = 1;
-
-	if( volume == NULL )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
-		 "%s: invalid volume.",
-		 function );
-
-		return( -1 );
-	}
-	internal_volume = (libfsxfs_internal_volume_t *) volume;
-
-	if( internal_volume->superblock == NULL )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
-		 "%s: invalid internal volume - missing superblock.",
-		 function );
-
-		return( -1 );
-	}
-	if( file_entry == NULL )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
-		 "%s: invalid file entry.",
-		 function );
-
-		return( -1 );
-	}
-	if( *file_entry != NULL )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
-		 "%s: invalid file entry value already set.",
-		 function );
-
-		return( -1 );
-	}
-#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
-	if( libcthreads_read_write_lock_grab_for_write(
-	     internal_volume->read_write_lock,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
-		 "%s: unable to grab read/write lock for writing.",
-		 function );
-
-		return( -1 );
-	}
-#endif
-	if( libfsxfs_file_system_get_inode_by_number(
-	     internal_volume->file_system,
-	     internal_volume->io_handle,
-	     internal_volume->file_io_handle,
-	     internal_volume->superblock->root_directory_inode_number,
-	     &inode,
-	     error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-		 "%s: unable to retrieve inode: %" PRIu64 ".",
-		 function,
-		 internal_volume->superblock->root_directory_inode_number );
-
-		result = -1;
-	}
-	else if( libfsxfs_file_entry_initialize(
-	          file_entry,
-	          internal_volume->io_handle,
-	          internal_volume->file_io_handle,
-	          internal_volume->file_system,
-	          internal_volume->superblock->root_directory_inode_number,
-	          inode,
-	          NULL,
-	          error ) != 1 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-		 "%s: unable to create file entry.",
-		 function );
-
-		libfsxfs_inode_free(
-		 &inode,
-		 NULL );
-
-		result = -1;
-	}
-#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
 	if( libcthreads_read_write_lock_release_for_write(
 	     internal_volume->read_write_lock,
 	     error ) != 1 )

@@ -1,4 +1,4 @@
-.Dd July 12, 2022
+.Dd July 28, 2022
 .Dt libfsxfs 3
 .Os libfsxfs
 .Sh NAME
@@ -71,9 +71,9 @@ Volume functions
 .Ft int
 .Fn libfsxfs_volume_get_utf16_label "libfsxfs_volume_t *volume" "uint16_t *utf16_string" "size_t utf16_string_size" "libfsxfs_error_t **error"
 .Ft int
-.Fn libfsxfs_volume_get_file_entry_by_inode "libfsxfs_volume_t *volume" "uint64_t inode_number" "libfsxfs_file_entry_t **file_entry" "libfsxfs_error_t **error"
-.Ft int
 .Fn libfsxfs_volume_get_root_directory "libfsxfs_volume_t *volume" "libfsxfs_file_entry_t **file_entry" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_volume_get_file_entry_by_inode "libfsxfs_volume_t *volume" "uint64_t inode_number" "libfsxfs_file_entry_t **file_entry" "libfsxfs_error_t **error"
 .Ft int
 .Fn libfsxfs_volume_get_file_entry_by_utf8_path "libfsxfs_volume_t *volume" "const uint8_t *utf8_string" "size_t utf8_string_length" "libfsxfs_file_entry_t **file_entry" "libfsxfs_error_t **error"
 .Ft int
