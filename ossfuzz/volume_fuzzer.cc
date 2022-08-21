@@ -47,8 +47,13 @@ int LLVMFuzzerTestOneInput(
      const uint8_t *data,
      size_t size )
 {
+	uint8_t string_value[ 64 ];
+
 	libbfio_handle_t *file_io_handle = NULL;
 	libfsxfs_volume_t *volume        = NULL;
+	size_t string_size               = 0;
+	uint8_t format_version           = 0;
+	int result                       = 0;
 
 	if( libbfio_memory_range_initialize(
 	     &file_io_handle,
@@ -70,19 +75,34 @@ int LLVMFuzzerTestOneInput(
 	{
 		goto on_error_libbfio;
 	}
-	if( libfsxfs_volume_open_file_io_handle(
-	     volume,
-	     file_io_handle,
-	     LIBFSXFS_OPEN_READ,
-	     NULL ) != 1 )
-	{
-		goto on_error_libfsxfs;
-	}
-	libfsxfs_volume_close(
-	 volume,
-	 NULL );
+	result = libfsxfs_volume_open_file_io_handle(
+	          volume,
+	          file_io_handle,
+	          LIBFSXFS_OPEN_READ,
+	          NULL );
 
-on_error_libfsxfs:
+	if( result != -1 )
+	{
+		libfsxfs_volume_get_format_version(
+		 volume,
+		 &format_version,
+		 NULL );
+
+		libfsxfs_volume_get_utf8_label_size(
+		 volume,
+		 &string_size,
+		 NULL );
+
+		libfsxfs_volume_get_utf8_label(
+		 volume,
+		 string_value,
+		 64,
+		 NULL );
+
+		libfsxfs_volume_close(
+		 volume,
+		 NULL );
+	}
 	libfsxfs_volume_free(
 	 &volume,
 	 NULL );
