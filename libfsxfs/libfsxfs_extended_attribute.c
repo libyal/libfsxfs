@@ -26,6 +26,7 @@
 #include "libfsxfs_attribute_values.h"
 #include "libfsxfs_attributes.h"
 #include "libfsxfs_extended_attribute.h"
+#include "libfsxfs_extent.h"
 #include "libfsxfs_file_system.h"
 #include "libfsxfs_inode.h"
 #include "libfsxfs_io_handle.h"
@@ -1009,5 +1010,176 @@ int libfsxfs_extended_attribute_get_size(
 	}
 #endif
 	return( 1 );
+}
+
+/* Retrieves the number of extents
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_extended_attribute_get_number_of_extents(
+     libfsxfs_extended_attribute_t *extended_attribute,
+     int *number_of_extents,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_extended_attribute_t *internal_extended_attribute = NULL;
+	static char *function                                               = "libfsxfs_extended_attribute_get_number_of_extents";
+	int result                                                          = 1;
+
+	if( extended_attribute == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid extended attribute.",
+		 function );
+
+		return( -1 );
+	}
+	internal_extended_attribute = (libfsxfs_internal_extended_attribute_t *) extended_attribute;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_write(
+	     internal_extended_attribute->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( libfsxfs_inode_get_number_of_attributes_extents(
+	     internal_extended_attribute->inode,
+	     number_of_extents,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve number of attribute extents.",
+		 function );
+
+		result = -1;
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_write(
+	     internal_extended_attribute->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves a specific extent
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_extended_attribute_get_extent_by_index(
+     libfsxfs_extended_attribute_t *extended_attribute,
+     int extent_index,
+     off64_t *extent_offset,
+     size64_t *extent_size,
+     uint32_t *extent_flags,
+     libcerror_error_t **error )
+{
+	libfsxfs_extent_t *extent                                           = NULL;
+	libfsxfs_internal_extended_attribute_t *internal_extended_attribute = NULL;
+	static char *function                                               = "libfsxfs_extended_attribute_get_extent_by_index";
+	int result                                                          = 1;
+
+	if( extended_attribute == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid extended attribute.",
+		 function );
+
+		return( -1 );
+	}
+	internal_extended_attribute = (libfsxfs_internal_extended_attribute_t *) extended_attribute;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_write(
+	     internal_extended_attribute->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( libfsxfs_inode_get_attributes_extent_by_index(
+	     internal_extended_attribute->inode,
+	     extent_index,
+	     &extent,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve attribute extent: %d.",
+		 function,
+		 extent_index );
+
+		result = -1;
+	}
+	if( result == 1 )
+	{
+		if( libfsxfs_extent_get_values(
+		     extent,
+		     internal_extended_attribute->io_handle,
+		     extent_offset,
+		     extent_size,
+		     extent_flags,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve extent: %d values.",
+			 function,
+			 extent_index );
+
+			result = -1;
+		}
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_write(
+	     internal_extended_attribute->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
 }
 
