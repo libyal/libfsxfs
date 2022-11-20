@@ -35,6 +35,7 @@ TESTS = \
 
 check_SCRIPTS = \
 	pyfsxfs_test_support.py \
+	pyfsxfs_test_volume.py \
 	test_fsxfsinfo.sh \
 	test_library.sh \
 	test_manpage.sh \
