@@ -1,7 +1,7 @@
 /*
  * Library btree_header type test program
  *
- * Copyright (C) 2020-2022, Joachim Metz <joachim.metz@gmail.com>
+ * Copyright (C) 2020-2023, Joachim Metz <joachim.metz@gmail.com>
  *
  * Refer to AUTHORS for acknowledgements.
  *

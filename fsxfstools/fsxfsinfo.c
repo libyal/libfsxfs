@@ -1,7 +1,7 @@
 /*
  * Shows information obtained from a X File System (XFS) volume
  *
- * Copyright (C) 2020-2022, Joachim Metz <joachim.metz@gmail.com>
+ * Copyright (C) 2020-2023, Joachim Metz <joachim.metz@gmail.com>
  *
  * Refer to AUTHORS for acknowledgements.
  *
