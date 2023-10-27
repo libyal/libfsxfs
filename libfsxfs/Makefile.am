@@ -111,11 +111,13 @@ MAINTAINERCLEANFILES = \
 	Makefile.in
 
 distclean: clean
-	/bin/rm -f libfsxfs_definitions.h
-	/bin/rm -f libfsxfs.rc
-	/bin/rm -f Makefile
+	-rm -f libfsxfs_definitions.h
+	-rm -f libfsxfs.rc
+	-rm -f Makefile
 
-splint:
+sources-local: $(BUILT_SOURCES)
+
+splint-local:
 	@echo "Running splint on libfsxfs ..."
 	-splint -preproc -redef $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(libfsxfs_la_SOURCES)
 

@@ -19,9 +19,9 @@ MAINTAINERCLEANFILES = \
 	Makefile.in
 
 distclean: clean
-	/bin/rm -f libfsxfs.h
-	/bin/rm -f libfsxfs/definitions.h
-	/bin/rm -f libfsxfs/features.h
-	/bin/rm -f libfsxfs/types.h
-	/bin/rm -f Makefile
+	-rm -f libfsxfs.h
+	-rm -f libfsxfs/definitions.h
+	-rm -f libfsxfs/features.h
+	-rm -f libfsxfs/types.h
+	-rm -f Makefile
 
