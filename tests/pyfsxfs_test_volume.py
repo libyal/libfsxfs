@@ -157,11 +157,12 @@ class VolumeTypeTests(unittest.TestCase):
 
   def test_open(self):
     """Tests the open function."""
-    test_source = unittest.source
+    test_source = getattr(unittest, "source", None)
     if not test_source:
       raise unittest.SkipTest("missing source")
 
-    if unittest.offset:
+    test_offset = getattr(unittest, "offset", None)
+    if test_offset:
       raise unittest.SkipTest("source defines offset")
 
     fsxfs_volume = pyfsxfs.volume()
@@ -181,7 +182,7 @@ class VolumeTypeTests(unittest.TestCase):
 
   def test_open_file_object(self):
     """Tests the open_file_object function."""
-    test_source = unittest.source
+    test_source = getattr(unittest, "source", None)
     if not test_source:
       raise unittest.SkipTest("missing source")
 
@@ -190,8 +191,10 @@ class VolumeTypeTests(unittest.TestCase):
 
     fsxfs_volume = pyfsxfs.volume()
 
+    test_offset = getattr(unittest, "offset", None)
+
     with DataRangeFileObject(
-        test_source, unittest.offset or 0, None) as file_object:
+        test_source, test_offset or 0, None) as file_object:
 
       fsxfs_volume.open_file_object(file_object)
 
@@ -208,7 +211,7 @@ class VolumeTypeTests(unittest.TestCase):
 
   def test_close(self):
     """Tests the close function."""
-    test_source = unittest.source
+    test_source = getattr(unittest, "source", None)
     if not test_source:
       raise unittest.SkipTest("missing source")
 
@@ -219,11 +222,12 @@ class VolumeTypeTests(unittest.TestCase):
 
   def test_open_close(self):
     """Tests the open and close functions."""
-    test_source = unittest.source
+    test_source = getattr(unittest, "source", None)
     if not test_source:
       return
 
-    if unittest.offset:
+    test_offset = getattr(unittest, "offset", None)
+    if test_offset:
       raise unittest.SkipTest("source defines offset")
 
     fsxfs_volume = pyfsxfs.volume()
@@ -254,14 +258,16 @@ class VolumeTypeTests(unittest.TestCase):
 
   def test_get_label(self):
     """Tests the get_label function and label property."""
-    test_source = unittest.source
+    test_source = getattr(unittest, "source", None)
     if not test_source:
       raise unittest.SkipTest("missing source")
 
     fsxfs_volume = pyfsxfs.volume()
 
+    test_offset = getattr(unittest, "offset", None)
+
     with DataRangeFileObject(
-        test_source, unittest.offset or 0, None) as file_object:
+        test_source, test_offset or 0, None) as file_object:
 
       fsxfs_volume = pyfsxfs.volume()
       fsxfs_volume.open_file_object(file_object)
