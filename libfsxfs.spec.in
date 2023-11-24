@@ -32,7 +32,7 @@ Header files and libraries for developing applications for libfsxfs.
 Summary: Python 3 bindings for libfsxfs
 Group: System Environment/Libraries
 Requires: libfsxfs = %{version}-%{release} python3
-BuildRequires: python3-devel
+BuildRequires: python3-devel python3-setuptools
 
 %description -n libfsxfs-python3
 Python 3 bindings for libfsxfs
@@ -50,7 +50,7 @@ Several tools for reading X File System (XFS) volumes
 %setup -q
 
 %build
-%configure --prefix=/usr --libdir=%{_libdir} --mandir=%{_mandir} --enable-python3
+%configure --prefix=/usr --libdir=%{_libdir} --mandir=%{_mandir} --enable-python
 make %{?_smp_mflags}
 
 %install

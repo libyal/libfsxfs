@@ -40,7 +40,7 @@ void (*fsxfstools_signal_signal_handler)( fsxfstools_signal_t ) = NULL;
 /* Signal handler for Ctrl+C or Ctrl+Break signals
  */
 BOOL WINAPI fsxfstools_signal_handler(
-             unsigned long signal )
+             fsxfstools_signal_t signal )
 {
 	static char *function = "fsxfstools_signal_handler";
 
@@ -112,7 +112,7 @@ int fsxfstools_signal_attach(
 	fsxfstools_signal_signal_handler = signal_handler;
 
 	if( SetConsoleCtrlHandler(
-	     fsxfstools_signal_handler,
+	     (PHANDLER_ROUTINE) fsxfstools_signal_handler,
 	     TRUE ) == 0 )
 	{
 		libcerror_error_set(
@@ -179,7 +179,7 @@ int fsxfstools_signal_detach(
 	static char *function = "fsxfstools_signal_detach";
 
 	if( SetConsoleCtrlHandler(
-	     fsxfstools_signal_handler,
+	     (PHANDLER_ROUTINE) fsxfstools_signal_handler,
 	     FALSE ) == 0 )
 	{
 		libcerror_error_set(
