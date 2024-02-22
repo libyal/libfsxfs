@@ -1,7 +1,7 @@
 /*
  * Common output functions for the fsxfstools
  *
- * Copyright (C) 2020-2023, Joachim Metz <joachim.metz@gmail.com>
+ * Copyright (C) 2020-2024, Joachim Metz <joachim.metz@gmail.com>
  *
  * Refer to AUTHORS for acknowledgements.
  *
@@ -106,7 +106,7 @@ void fsxfstools_output_copyright_fprint(
 	 */
 	fprintf(
 	 stream,
-	 _( "Copyright (C) 2020-2023, %s.\n" ),
+	 _( "Copyright (C) 2020-2024, %s.\n" ),
 	 _( "Joachim Metz" ) );
 
 	fprintf(
