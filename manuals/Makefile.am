@@ -8,9 +8,7 @@ EXTRA_DIST = \
 	fsxfsmount.1 \
 	libfsxfs.3
 
-MAINTAINERCLEANFILES = \
+DISTCLEANFILES = \
+	Makefile \
 	Makefile.in
-
-distclean: clean
-	-rm -f Makefile
 

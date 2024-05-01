@@ -1,6 +1,6 @@
 AM_CPPFLAGS = \
-	-I$(top_srcdir)/include \
-	-I$(top_srcdir)/common \
+	-I../include -I$(top_srcdir)/include \
+	-I../common -I$(top_srcdir)/common \
 	@LIBCERROR_CPPFLAGS@ \
 	@LIBCTHREADS_CPPFLAGS@ \
 	@LIBCDATA_CPPFLAGS@ \
@@ -107,13 +107,11 @@ EXTRA_DIST = \
 	libfsxfs.rc \
 	libfsxfs.rc.in
 
-MAINTAINERCLEANFILES = \
+DISTCLEANFILES = \
+	libfsxfs_definitions.h \
+	libfsxfs.rc \
+	Makefile \
 	Makefile.in
-
-distclean: clean
-	-rm -f libfsxfs_definitions.h
-	-rm -f libfsxfs.rc
-	-rm -f Makefile
 
 sources-local: $(BUILT_SOURCES)
 
