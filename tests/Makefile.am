@@ -69,6 +69,7 @@ check_PROGRAMS = \
 	fsxfs_test_superblock \
 	fsxfs_test_support \
 	fsxfs_test_tools_info_handle \
+	fsxfs_test_tools_mount_path_string \
 	fsxfs_test_tools_output \
 	fsxfs_test_tools_signal \
 	fsxfs_test_volume
@@ -392,6 +393,19 @@ fsxfs_test_tools_info_handle_LDADD = \
 	@LIBCERROR_LIBADD@ \
 	@LIBCRYPTO_LIBADD@ \
 	@LIBDL_LIBADD@
+
+fsxfs_test_tools_mount_path_string_SOURCES = \
+	../fsxfstools/mount_path_string.c ../fsxfstools/mount_path_string.h \
+	fsxfs_test_libcerror.h \
+	fsxfs_test_libcpath.h \
+	fsxfs_test_macros.h \
+	fsxfs_test_tools_mount_path_string.c \
+	fsxfs_test_unused.h
+
+fsxfs_test_tools_mount_path_string_LDADD = \
+	@LIBUNA_LIBADD@ \
+	../libfsxfs/libfsxfs.la \
+	@LIBCERROR_LIBADD@
 
 fsxfs_test_tools_output_SOURCES = \
 	../fsxfstools/fsxfstools_output.c ../fsxfstools/fsxfstools_output.h \

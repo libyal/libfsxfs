@@ -1,5 +1,5 @@
 /*
- * Shows information obtained from a X File System (XFS) volume
+ * Shows information obtained from a X File System (XFS) volume.
  *
  * Copyright (C) 2020-2024, Joachim Metz <joachim.metz@gmail.com>
  *
@@ -61,7 +61,7 @@ enum FSXFSINFO_MODES
 info_handle_t *fsxfsinfo_info_handle = NULL;
 int fsxfsinfo_abort                  = 0;
 
-/* Prints the executable usage information
+/* Prints usage information
  */
 void usage_fprint(
       FILE *stream )
@@ -162,7 +162,7 @@ int main( int argc, char * const argv[] )
 	 1 );
 
 	if( libclocale_initialize(
-             "fsxfstools",
+	     "fsxfstools",
 	     &error ) != 1 )
 	{
 		fprintf(
@@ -171,9 +171,9 @@ int main( int argc, char * const argv[] )
 
 		goto on_error;
 	}
-        if( fsxfstools_output_initialize(
-             _IONBF,
-             &error ) != 1 )
+	if( fsxfstools_output_initialize(
+	     _IONBF,
+	     &error ) != 1 )
 	{
 		fprintf(
 		 stderr,
