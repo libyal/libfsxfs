@@ -634,6 +634,7 @@ int libfsxfs_superblock_read_data(
 	supported_feature_flags = 0x0010
 	                        | 0x0020
 	                        | 0x0080
+	                        | 0x0100
 	                        | 0x0400
 	                        | 0x0800
 	                        | 0x1000
