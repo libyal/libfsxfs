@@ -90,6 +90,10 @@ struct libfsxfs_superblock
 	 */
 	uint32_t secondary_feature_flags;
 
+	/* Incompatible feature flags (v5 only)
+	 */
+	uint32_t features_incompat;
+
 	/* Number of bits used for the relative block number
 	 */
 	uint8_t number_of_relative_block_number_bits;
