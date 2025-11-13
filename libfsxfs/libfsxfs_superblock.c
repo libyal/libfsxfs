@@ -281,6 +281,12 @@ int libfsxfs_superblock_read_data(
 	 ( (fsxfs_superblock_t *) data )->secondary_feature_flags,
 	 superblock->secondary_feature_flags );
 
+	if( superblock->format_version == 5 )
+	{
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_superblock_v5_t *) data )->features_incompat,
+		 superblock->features_incompat );
+	}
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
 	{
