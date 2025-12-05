@@ -1,7 +1,7 @@
 /*
  * Mounts a X File System (XFS) volume.
  *
- * Copyright (C) 2020-2024, Joachim Metz <joachim.metz@gmail.com>
+ * Copyright (C) 2020-2025, Joachim Metz <joachim.metz@gmail.com>
  *
  * Refer to AUTHORS for acknowledgements.
  *
@@ -66,8 +66,8 @@ void usage_fprint(
 	}
 	fprintf( stream, "Use fsxfsmount to mount a X File System (XFS) volume\n\n" );
 
-	fprintf( stream, "Usage: fsxfsmount [ -o offset ] [ -X extended_options ]\n"
-	                 "                  [ -hvV ] volume mount_point\n\n" );
+	fprintf( stream, "Usage: fsxfsmount [ -o offset ] [ -X extended_options ] [ -hvV ] volume\n"
+	                 "                  mount_point\n\n" );
 
 	fprintf( stream, "\tvolume:      a X File System (XFS) volume\n\n" );
 	fprintf( stream, "\tmount_point: the directory to serve as mount point\n\n" );
@@ -311,6 +311,11 @@ int main( int argc, char * const argv[] )
 #if defined( HAVE_LIBFUSE ) || defined( HAVE_LIBFUSE3 ) || defined( HAVE_LIBOSXFUSE )
 	if( option_extended_options != NULL )
 	{
+#if defined( HAVE_LIBFUSE3 )
+		// fuse_opt_add_arg: Assertion `!args->argv || args->allocated' failed.
+		fsxfsmount_fuse_arguments.argc = 0;
+		fsxfsmount_fuse_arguments.argv = NULL;
+#endif
 		/* This argument is required but ignored
 		 */
 		if( fuse_opt_add_arg(
