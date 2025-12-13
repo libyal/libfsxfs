@@ -151,6 +151,7 @@ int libfsxfs_inode_free(
 
 int libfsxfs_inode_read_data(
      libfsxfs_inode_t *inode,
+     libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
      libcerror_error_t **error );

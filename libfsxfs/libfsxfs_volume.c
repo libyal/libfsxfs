@@ -1056,6 +1056,7 @@ int libfsxfs_internal_volume_open_read(
 			internal_volume->superblock                                      = superblock;
 			internal_volume->io_handle->format_version                       = superblock->format_version;
 			internal_volume->io_handle->secondary_feature_flags              = superblock->secondary_feature_flags;
+			internal_volume->io_handle->features_incompat                    = superblock->features_incompat;
 			internal_volume->io_handle->block_size                           = superblock->block_size;
 			internal_volume->io_handle->allocation_group_size                = superblock->allocation_group_size;
 			internal_volume->io_handle->inode_size                           = superblock->inode_size;

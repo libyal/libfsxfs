@@ -44,6 +44,10 @@ struct libfsxfs_io_handle
 	 */
 	uint32_t secondary_feature_flags;
 
+	/* Incompatible feature flags (v5 only)
+	 */
+	uint32_t features_incompat;
+
 	/* The block size
 	 */
 	uint32_t block_size;
