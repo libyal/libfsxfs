@@ -91,6 +91,46 @@ The `fsxfsmount` project (`vs2022\fsxfsmount\fsxfsmount.vcxproj`) is pre-configu
 - **Linker:** `dokan2.lib` is added to `AdditionalDependencies` (x86 uses `x86\lib\dokan2.lib`, x64 uses `lib\dokan2.lib`).
 - **Runtime DLL:** At runtime, `fsxfsmount.exe` requires `dokan2.dll` to be on the system `PATH` (the Dokan installer handles this).
 
+## Step 6: Build fsxfsextract
+
+`fsxfsextract` is a standalone tool that orchestrates the full extraction workflow: it launches `fsxfsmount.exe` in the background, copies all content to an output directory, then terminates the mount process and cleans up.
+
+The project is already included in `msvcpp\libfsxfs.sln` and depends on the `fsxfsmount` project, so **Steps 3 and 4 must be completed first**.
+
+### Build inside Visual Studio
+
+1. Open `vs2022\libfsxfs.sln` in Visual Studio 2022.
+2. In **Solution Explorer**, right-click **fsxfsextract** and choose **Build**.
+3. The output is placed alongside the other tools:
+   
+```
+vs2022\Release\x64\fsxfsextract.exe
+```
+
+### Verify the build output
+
+```powershell
+.\vs2022\Release\x64\vslvmextract.exe -h
+```
+
+### Usage
+
+```
+fsxfsextract [-v] <xfs_image> <output_dir> [path_to_fsxfsmount.exe]
+```
+
+Example:
+
+```powershell
+.\vs2022\Release\x64\fsxfsextract.exe `
+    C:\images\disk.xfs `
+    C:\output\extracted
+```
+
+`fsxfsextract.exe` expects `fsxfsmount.exe` to be in the same directory by default. If it is located elsewhere, pass the full path as the third argument.
+
+> **Note:** `fsxfsextract.exe` does **not** require Dokan headers or libraries at compile time. It only requires `fsxfsmount.exe` (and by extension the Dokan driver) to be present at **runtime**.
+
 ## Troubleshooting
 
 | Problem | Solution |
