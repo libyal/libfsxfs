@@ -170,16 +170,12 @@ int mount_dokan_filldir(
      mount_file_entry_t *file_entry,
      libcerror_error_t **error )
 {
-	wchar_t truncated_name[ 260 ];
-
 	static char *function      = "mount_dokan_filldir";
 	size64_t file_size         = 0;
 	uint64_t access_time       = 0;
 	uint64_t creation_time     = 0;
 	uint64_t modification_time = 0;
 	uint16_t file_mode         = 0;
-	size_t copy_size           = 0;
-	int use_truncated_name     = 0;
 
 	if( fill_find_data == NULL )
 	{
@@ -203,95 +199,16 @@ int mount_dokan_filldir(
 
 		return( -1 );
 	}
-	/* Validate against DOKAN_MAX_PATH for long path support */
 	if( name_size > (size_t) DOKAN_MAX_PATH )
 	{
 		libcerror_error_set(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-		 "%s: name size: %" PRIzd " exceeds DOKAN_MAX_PATH limit of %d characters.",
-		 function,
-		 name_size,
-		 DOKAN_MAX_PATH );
-
-		return( -1 );
-	}
-	if( name_size == 0 )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
-		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
-		 "%s: invalid name size value is zero.",
+		 "%s: invalid name size value out of bounds.",
 		 function );
 
 		return( -1 );
-	}
-	/* Handle long filenames that exceed WIN32_FIND_DATAW buffer limits.
-	 * WIN32_FIND_DATAW.cFileName can only hold 260 wchar_t characters.
-	 * For longer names, we truncate with an indicator.
-	 */
-	if( name_size > 260 )
-	{
-		use_truncated_name = 1;
-		
-		/* Create truncated name: "first_part...~hash" format
-		 * Reserve space for "...~" (4 chars) + 8-char hex hash + null terminator
-		 */
-		copy_size = 260 - 13;  /* 247 chars + "...~" + 8 hex chars + null */
-		
-		if( wide_string_copy(
-		     truncated_name,
-		     name,
-		     copy_size ) == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_MEMORY,
-			 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
-			 "%s: unable to copy truncated filename prefix.",
-			 function );
-
-			return( -1 );
-		}
-		/* Calculate simple hash of the full name for uniqueness */
-		{
-			size_t hash_index    = 0;
-			uint32_t hash_value  = 0;
-			
-			for( hash_index = 0; hash_index < name_size - 1; hash_index++ )
-			{
-				hash_value = ( hash_value * 31 ) + (uint32_t) name[ hash_index ];
-			}
-			/* Append truncation indicator and hash */
-			if( wide_string_snwprintf(
-			     &( truncated_name[ copy_size ] ),
-			     13,
-			     L"...~%08X",
-			     hash_value ) < 0 )
-			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
-				 "%s: unable to format truncated filename.",
-				 function );
-
-				return( -1 );
-			}
-		}
-		truncated_name[ 259 ] = L'\0';
-
-#if defined( HAVE_DEBUG_OUTPUT )
-		if( libcnotify_verbose != 0 )
-		{
-			libcnotify_printf(
-			 "%s: truncating long filename (%" PRIzd " chars) to 260 chars.\n",
-			 function,
-			 name_size );
-		}
-#endif
 	}
 	if( file_entry != NULL )
 	{
@@ -380,44 +297,21 @@ int mount_dokan_filldir(
 
 		return( -1 );
 	}
-	/* Use truncated name if necessary, otherwise use original name */
-	if( use_truncated_name != 0 )
+	if( wide_string_copy(
+	     find_data->cFileName,
+	     name,
+	     wcslen(name) ) == NULL )
 	{
-		if( wide_string_copy(
-		     find_data->cFileName,
-		     truncated_name,
-		     260 ) == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_MEMORY,
-			 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
-			 "%s: unable to copy truncated filename.",
-			 function );
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
+		 "%s: unable to copy filename.",
+		 function );
 
-			return( -1 );
-		}
+		return( -1 );
 	}
-	else
-	{
-		/* Safe to copy - name_size is <= 260 */
-		if( wide_string_copy(
-		     find_data->cFileName,
-		     name,
-		     name_size ) == NULL )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_MEMORY,
-			 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
-			 "%s: unable to copy filename.",
-			 function );
-
-			return( -1 );
-		}
-	}
-	/* cAlternateFileName can only hold 14 wchar_t (including null terminator) */
-	if( name_size <= 14 )
+	if( name_size <= (size_t) 14 )
 	{
 		if( wide_string_copy(
 		     find_data->cAlternateFileName,

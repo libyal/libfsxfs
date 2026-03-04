@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <tchar.h>
 
 /* -------------------------------------------------------------------------
  * Logging
@@ -32,7 +33,7 @@ static void fsxfsextract_log_open(
     void )
 {
     wchar_t log_path[ MAX_PATH ];
-    DWORD len = GetModuleFileNameW( NULL, log_path, MAX_PATH );
+    DWORD len = GetModuleFileName( NULL, log_path, MAX_PATH );
     if( len == 0 )
     {
         return;
@@ -43,7 +44,7 @@ static void fsxfsextract_log_open(
         *( last_slash + 1 ) = L'\0';
     }
     wcsncat( log_path, L"log.txt", MAX_PATH - (DWORD)wcslen( log_path ) - 1 );
-    _wfopen_s( &g_log, log_path, L"a" );
+    _tfopen_s( &g_log, log_path, L"a" );
 }
 
 static void fsxfsextract_log_close(
@@ -65,14 +66,14 @@ static void fsxfsextract_log(
     }
     SYSTEMTIME st;
     GetLocalTime( &st );
-    fwprintf( g_log, L"[%04d-%02d-%02d %02d:%02d:%02d] ",
-              st.wYear, st.wMonth, st.wDay,
-              st.wHour, st.wMinute, st.wSecond );
+    _ftprintf( g_log, L"[%04d-%02d-%02d %02d:%02d:%02d] ",
+               st.wYear, st.wMonth, st.wDay,
+               st.wHour, st.wMinute, st.wSecond );
     va_list args;
     va_start( args, fmt );
-    vfwprintf( g_log, fmt, args );
+    _vftprintf( g_log, fmt, args );
     va_end( args );
-    fwprintf( g_log, L"\n" );
+    _ftprintf( g_log, L"\n" );
     fflush( g_log );
 }
 
@@ -83,7 +84,7 @@ static void fsxfsextract_log(
 static int fsxfsextract_ensure_directory(
     const wchar_t *path )
 {
-    if( CreateDirectoryW( path, NULL ) )
+    if( CreateDirectory( path, NULL ) )
     {
         return( 0 );
     }
@@ -102,7 +103,7 @@ static int fsxfsextract_copy_directory(
     wchar_t search_path[ MAX_PATH ];
     wchar_t src_path[ MAX_PATH ];
     wchar_t dst_path[ MAX_PATH ];
-    WIN32_FIND_DATAW fd;
+    WIN32_FIND_DATA fd;
     HANDLE hFind;
     int result = 0;
 
@@ -111,8 +112,8 @@ static int fsxfsextract_copy_directory(
         return( -1 );
     }
 
-    _snwprintf( search_path, MAX_PATH, L"%s\\*", src_dir );
-    hFind = FindFirstFileW( search_path, &fd );
+    _sntprintf( search_path, MAX_PATH, L"%s\\*", src_dir );
+    hFind = FindFirstFile( search_path, &fd );
     if( hFind == INVALID_HANDLE_VALUE )
     {
         /* Empty or inaccessible directory – not a fatal error. */
@@ -127,8 +128,8 @@ static int fsxfsextract_copy_directory(
             continue;
         }
 
-        _snwprintf( src_path, MAX_PATH, L"%s\\%s", src_dir, fd.cFileName );
-        _snwprintf( dst_path, MAX_PATH, L"%s\\%s", dst_dir, fd.cFileName );
+        _sntprintf( src_path, MAX_PATH, L"%s\\%s", src_dir, fd.cFileName );
+        _sntprintf( dst_path, MAX_PATH, L"%s\\%s", dst_dir, fd.cFileName );
 
         if( fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
         {
@@ -139,13 +140,13 @@ static int fsxfsextract_copy_directory(
         }
         else
         {
-            if( !CopyFileW( src_path, dst_path, FALSE ) )
+            if( !CopyFile( src_path, dst_path, FALSE ) )
             {
                 result = -1;
             }
         }
     }
-    while( FindNextFileW( hFind, &fd ) );
+    while( FindNextFile( hFind, &fd ) );
 
     FindClose( hFind );
     return( result );
@@ -157,11 +158,11 @@ static void fsxfsextract_remove_directory(
 {
     wchar_t search_path[ MAX_PATH ];
     wchar_t child_path[ MAX_PATH ];
-    WIN32_FIND_DATAW fd;
+    WIN32_FIND_DATA fd;
     HANDLE hFind;
 
-    _snwprintf( search_path, MAX_PATH, L"%s\\*", path );
-    hFind = FindFirstFileW( search_path, &fd );
+    _sntprintf( search_path, MAX_PATH, L"%s\\*", path );
+    hFind = FindFirstFile( search_path, &fd );
     if( hFind != INVALID_HANDLE_VALUE )
     {
         do
@@ -172,7 +173,7 @@ static void fsxfsextract_remove_directory(
                 continue;
             }
 
-            _snwprintf( child_path, MAX_PATH, L"%s\\%s", path, fd.cFileName );
+            _sntprintf( child_path, MAX_PATH, L"%s\\%s", path, fd.cFileName );
 
             if( fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             {
@@ -180,16 +181,16 @@ static void fsxfsextract_remove_directory(
             }
             else
             {
-                SetFileAttributesW( child_path, FILE_ATTRIBUTE_NORMAL );
-                DeleteFileW( child_path );
+                SetFileAttributes( child_path, FILE_ATTRIBUTE_NORMAL );
+                DeleteFile( child_path );
             }
         }
-        while( FindNextFileW( hFind, &fd ) );
+        while( FindNextFile( hFind, &fd ) );
 
         FindClose( hFind );
     }
 
-    RemoveDirectoryW( path );
+    RemoveDirectory( path );
 }
 
 /* -------------------------------------------------------------------------
@@ -204,7 +205,7 @@ int wmain(
     wchar_t mount_point[ MAX_PATH ];
     wchar_t temp_dir[ MAX_PATH ];
     wchar_t cmdline[ 32768 ];
-    STARTUPINFOW si;
+    STARTUPINFO si;
     PROCESS_INFORMATION pi;
     int result  = 0;
     int verbose = 0;
@@ -222,7 +223,7 @@ int wmain(
         else if( wcscmp( argv[ first_pos ], L"-h" ) == 0
               || wcscmp( argv[ first_pos ], L"--help" ) == 0 )
         {
-            wprintf(
+            _tprintf(
                 L"Usage: fsxfsextract [-v] <xfs_image> <output_dir>"
                 L" [path_to_fsxfsmount.exe]\n"
                 L"\n"
@@ -248,9 +249,9 @@ int wmain(
 
     if( pos_argc < 2 )
     {
-        fwprintf( stderr,
-                  L"Error: insufficient arguments.\n"
-                  L"Run with -h for help.\n" );
+        _ftprintf( stderr,
+                   L"Error: insufficient arguments.\n"
+                   L"Run with -h for help.\n" );
         return( 1 );
     }
 
@@ -270,15 +271,15 @@ int wmain(
     /* ------------------------------------------------------------------ */
     if( pos_argc >= 3 )
     {
-        _snwprintf( mount_exe, MAX_PATH, L"%s", pos_argv[ 2 ] );
+        _sntprintf( mount_exe, MAX_PATH, L"%s", pos_argv[ 2 ] );
     }
     else
     {
         /* Default: same directory as this executable. */
-        DWORD len = GetModuleFileNameW( NULL, mount_exe, MAX_PATH );
+        DWORD len = GetModuleFileName( NULL, mount_exe, MAX_PATH );
         if( len == 0 )
         {
-            fsxfsextract_log( L"Error: GetModuleFileNameW failed (%u)", GetLastError() );
+            fsxfsextract_log( L"Error: GetModuleFileName failed (%u)", GetLastError() );
             fsxfsextract_log_close();
             return( 1 );
         }
@@ -297,17 +298,17 @@ int wmain(
     /* ------------------------------------------------------------------ */
     /* Create a unique temporary mount point                               */
     /* ------------------------------------------------------------------ */
-    if( GetTempPathW( MAX_PATH, temp_dir ) == 0 )
+    if( GetTempPath( MAX_PATH, temp_dir ) == 0 )
     {
-        fsxfsextract_log( L"Error: GetTempPathW failed (%u)", GetLastError() );
+        fsxfsextract_log( L"Error: GetTempPath failed (%u)", GetLastError() );
         fsxfsextract_log_close();
         return( 1 );
     }
 
-    _snwprintf( mount_point, MAX_PATH, L"%sfsxfs_mount_%u_%u",
+    _sntprintf( mount_point, MAX_PATH, L"%sfsxfs_mount_%u_%u",
                 temp_dir, GetCurrentProcessId(), GetTickCount() );
 
-    if( !CreateDirectoryW( mount_point, NULL ) )
+    if( !CreateDirectory( mount_point, NULL ) )
     {
         fsxfsextract_log( L"Error: cannot create mount point: %s (%u)", mount_point, GetLastError() );
         fsxfsextract_log_close();
@@ -319,7 +320,7 @@ int wmain(
     /* ------------------------------------------------------------------ */
     /* Launch fsxfsmount in the background                                 */
     /* ------------------------------------------------------------------ */
-    _snwprintf( cmdline, 32768, L"\"%s\" \"%s\" \"%s\"",
+    _sntprintf( cmdline, 32768, L"\"%s\" \"%s\" \"%s\"",
                 mount_exe, xfs_image, mount_point );
 
     ZeroMemory( &si, sizeof( si ) );
@@ -329,12 +330,12 @@ int wmain(
     si.dwFlags    |= STARTF_USESHOWWINDOW;
     si.wShowWindow = SW_HIDE;
 
-    if( !CreateProcessW( NULL, cmdline,
-                         NULL, NULL,
-                         FALSE,
-                         CREATE_NO_WINDOW,
-                         NULL, NULL,
-                         &si, &pi ) )
+    if( !CreateProcess( NULL, cmdline,
+                       NULL, NULL,
+                       FALSE,
+                       CREATE_NO_WINDOW,
+                       NULL, NULL,
+                       &si, &pi ) )
     {
         fsxfsextract_log( L"Error: failed to launch fsxfsmount (%u)", GetLastError() );
         fsxfsextract_remove_directory( mount_point );
@@ -364,7 +365,7 @@ int wmain(
     CloseHandle( pi.hProcess );
 
     /* Brief pause to allow the driver to release the mount point. */
-    Sleep( 1000 );
+    Sleep( 2000 );
 
     /* ------------------------------------------------------------------ */
     /* Clean up temporary mount point                                      */
