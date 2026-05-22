@@ -1,9 +1,9 @@
-libfsxfs is a library to access the SGI X File System (XFS)
+libfsxfs is a library to access the X File System (XFS) format.
 
 Project information:
 
 * Status: experimental
-* Licence: LGPLv3+
+* Licence: LGPL-3.0-or-later
 
 Read-only supported XFS formats:
 

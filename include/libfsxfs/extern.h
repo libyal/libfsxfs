@@ -4,7 +4,7 @@
  * This header should be included in header files that export or import
  * library functions
  *
- * Copyright (C) 2020-2025, Joachim Metz <joachim.metz@gmail.com>
+ * Copyright (C) 2020-2026, Joachim Metz <joachim.metz@gmail.com>
  *
  * Refer to AUTHORS for acknowledgements.
  *
@@ -31,14 +31,17 @@
  */
 #if defined( LIBFSXFS_DLL_EXPORT )
 #define LIBFSXFS_EXTERN __declspec(dllexport)
+#define LIBFSXFS_EXTERN_VARIABLE extern __declspec(dllexport)
 
 #elif defined( LIBFSXFS_DLL_IMPORT )
-#define LIBFSXFS_EXTERN extern __declspec(dllimport)
+#define LIBFSXFS_EXTERN __declspec(dllimport)
+#define LIBFSXFS_EXTERN_VARIABLE extern __declspec(dllimport)
 
 #else
 #define LIBFSXFS_EXTERN extern
+#define LIBFSXFS_EXTERN_VARIABLE extern
 
-#endif
+#endif /* defined( LIBFSXFS_DLL_EXPORT ) */
 
 #endif /* !defined( _LIBFSXFS_EXTERN_H ) */
 
