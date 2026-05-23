@@ -860,8 +860,11 @@ int libfsxfs_superblock_read_data(
 			 "\n" );
 		}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
+
 		supported_feature_flags = 0x00000001UL
-		                        | 0x00000002UL;
+		                        | 0x00000002UL
+		                        | 0x00000008UL
+		                        | 0x00000020UL;
 
 		if( ( superblock->incompatible_features_flags & ~( supported_feature_flags ) ) != 0 )
 		{
@@ -872,6 +875,20 @@ int libfsxfs_superblock_read_data(
 			 "%s: unsupported incompatible features flags: 0x%08" PRIx32 ".",
 			 function,
 			 superblock->incompatible_features_flags );
+
+			return( -1 );
+		}
+		supported_feature_flags = 0x00000000UL;
+
+		if( ( superblock->journal_incompatible_features_flags & ~( supported_feature_flags ) ) != 0 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+			 "%s: unsupported journal incompatible features flags: 0x%08" PRIx32 ".",
+			 function,
+			 superblock->journal_incompatible_features_flags );
 
 			return( -1 );
 		}

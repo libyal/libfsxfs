@@ -66,7 +66,7 @@ a placeholder for a name that never given.
 |===
 | Characteristics | Description
 | Byte order | big-endian
-| Date and time values | number of seconds since January 1, 1970 00:00:00 UTC (POSIX epoch) and fraction of second in number of nanoseconds
+| Date and time values | number of seconds since January 1, 1970 00:00:00 UTC (POSIX epoch) and fraction of second in number of nanoseconds, or in bigtime (number of nanoseconds since December 13, 1901 20:45:52 UTC)
 | Character strings |
 |===
 
@@ -317,9 +317,9 @@ Current no compatible feature flags are defined
 | 0x00000001 | XFS_SB_FEAT_INCOMPAT_FTYPE | Has filetype in dirent
 | 0x00000002 | XFS_SB_FEAT_INCOMPAT_SPINODES | Has sparse inode chunks
 | 0x00000004 | XFS_SB_FEAT_INCOMPAT_META_UUID | Use a metadata identifier
-| 0x00000008 | XFS_SB_FEAT_INCOMPAT_BIGTIME | Has bigtime (large timestamps)
+| 0x00000008 | XFS_SB_FEAT_INCOMPAT_BIGTIME | Inode (v3) contains bigtime timestamps
 | 0x00000010 | XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR | Needs repair
-| 0x00000020 | XFS_SB_FEAT_INCOMPAT_NREXT64 | Has large extent counters
+| 0x00000020 | XFS_SB_FEAT_INCOMPAT_NREXT64 | Inode (v3) contains a 64-bit number of data extents and 32-bit number of (extended) attribute extent values
 | 0x00000040 | XFS_SB_FEAT_INCOMPAT_EXCHRANGE | Has exchangerange
 | 0x00000080 | XFS_SB_FEAT_INCOMPAT_PARENT | Has parent pointers
 | 0x00000100 | XFS_SB_FEAT_INCOMPAT_METADIR | Has metadata directory (tree)
@@ -666,15 +666,15 @@ Contains a value that is incremented on flush
 | 32 | 4 | | (last) access time +
 Contains a POSIX timestamp in seconds
 | 36 | 4 | | (last) access time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
 | 40 | 4 | | (last) modification time +
 Contains a POSIX timestamp in seconds
 | 44 | 4 | | (last) modification time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
 | 48 | 4 | | (last) inode change time +
 Contains a POSIX timestamp in seconds
 | 52 | 4 | | (last) inode change time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
 | 56 | 8 | | (Data) size
 | 64 | 8 | | Number of (data) blocks
 | 72 | 4 | | Extent size
@@ -715,15 +715,15 @@ Contains a value that is incremented on flush
 | 32 | 4 | | (last) access time +
 Contains a POSIX timestamp in seconds
 | 36 | 4 | | (last) access time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
 | 40 | 4 | | (last) modification time +
 Contains a POSIX timestamp in seconds
 | 44 | 4 | | (last) modification time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
 | 48 | 4 | | (last) inode change time +
 Contains a POSIX timestamp in seconds
 | 52 | 4 | | (last) inode change time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
 | 56 | 8 | | (Data) size
 | 64 | 8 | | Number of (data) blocks
 | 72 | 4 | | Extent size
@@ -759,28 +759,46 @@ See section: <<fork_type,Fork type>>
 | 8 | 4 | | Owner (or user) identifier (UID)
 | 12 | 4 | | Group identifier (GID)
 | 16 | 4 | | Number of links
-| 20 | 2 | | Project identifier
-| 22 | 8 | 0 | [yellow-background]*Unknown (padding)*
-| 30 | 2 | | Flush counter +
-Contains a value that is incremented on flush
+| 20 | 2 | | Project identifier lower 16-bit
+| 22 | 2 | | Project identifier upper 16-bit
+4+| _If incompatible feature flag XFS_SB_FEAT_INCOMPAT_NREXT64 not is set_
+| 24 | 8 | 0 | [yellow-background]*Unknown (padding)*
+4+| _If incompatible feature flag XFS_SB_FEAT_INCOMPAT_NREXT64 is set_
+| 24 | 8 | | Number of data extents (64-bit)
+4+| _Common_
+4+| _If incompatible feature flag XFS_SB_FEAT_INCOMPAT_BIGTIME not is set_
 | 32 | 4 | | (last) access time +
 Contains a POSIX timestamp in seconds
 | 36 | 4 | | (last) access time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
 | 40 | 4 | | (last) modification time +
 Contains a POSIX timestamp in seconds
 | 44 | 4 | | (last) modification time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
 | 48 | 4 | | (last) inode change time +
 Contains a POSIX timestamp in seconds
 | 52 | 4 | | (last) inode change time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
+4+| _If incompatible feature flag XFS_SB_FEAT_INCOMPAT_BIGTIME is set_
+| 32 | 8 | | (last) access time +
+Contains a bigtime timestamp
+| 40 | 8 | | (last) modification time +
+Contains a bigtime timestamp
+| 48 | 8 | | (last) inode change time +
+Contains a bigtime timestamp
+4+| _Common_
 | 56 | 8 | | (Data) size
 | 64 | 8 | | Number of (data) blocks
 | 72 | 4 | | Extent size
+4+| _If incompatible feature flag XFS_SB_FEAT_INCOMPAT_NREXT64 not is set_
 | 76 | 4 | | Number of data extents
 | 80 | 2 | | Number of (extended) attributes extents +
 Can contain 0 if an attributes fork of type XFS_DINODE_FMT_EXTENTS is empty
+4+| _If incompatible feature flag XFS_SB_FEAT_INCOMPAT_NREXT64 is set_
+| 76 | 4 | | Number of (extended) attributes extents (32-bit) +
+Can contain 0 if an attributes fork of type XFS_DINODE_FMT_EXTENTS is empty
+| 80 | 2 | | [yellow-background]*Unknown (padding)*
+4+| _Common_
 | 82 | 1 | | (Extended) attributes fork descriptor offset +
 Contains an offset (value x 8) relative to the end of the inode
 | 83 | 1 | | (Extended) attributes fork type
@@ -799,10 +817,15 @@ Contains the number of changes made to the inode
 | 120 | 8 | | Extended inode flags
 | 128 | 4 | | Copy-on-write (COW) extent size
 | 132 | 12 | | [yellow-background]*Unknown (padding)*
+4+| _If incompatible feature flag XFS_SB_FEAT_INCOMPAT_BIGTIME not is set_
 | 144 | 4 | | Creation time +
 Contains a POSIX timestamp in seconds
 | 148 | 4 | | Creation time fraction of second +
-Contains number of nano seconds
+Contains number of nanoseconds
+4+| _If incompatible feature flag XFS_SB_FEAT_INCOMPAT_BIGTIME is set_
+| 144 | 8 | | Creation time +
+Contains a bigtime timestamp
+4+| _Common_
 | 152 | 8 | | Inode number +
 Contains an absolute inode number
 | 160 | 16 | | Inode type identifier +

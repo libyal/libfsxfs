@@ -223,19 +223,23 @@ int libfsxfs_inode_free(
  */
 int libfsxfs_inode_read_data(
      libfsxfs_inode_t *inode,
+     libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
      libcerror_error_t **error )
 {
-	static char *function  = "libfsxfs_inode_read_data";
-	size_t data_fork_size  = 0;
-	size_t inode_data_size = 0;
-	uint32_t value_32bit   = 0;
-	uint8_t format_version = 0;
+	static char *function      = "libfsxfs_inode_read_data";
+	size_t data_fork_size      = 0;
+	size_t inode_data_size     = 0;
+	uint64_t bigtime_timestamp = 0;
+	uint64_t posix_nanoseconds = 0;
+	uint64_t posix_seconds     = 0;
+	uint32_t value_32bit       = 0;
+	uint8_t format_version     = 0;
 
 #if defined( HAVE_DEBUG_OUTPUT )
-	uint64_t value_64bit   = 0;
-	uint16_t value_16bit   = 0;
+	uint64_t value_64bit       = 0;
+	uint16_t value_16bit       = 0;
 #endif
 
 	if( inode == NULL )
@@ -245,6 +249,17 @@ int libfsxfs_inode_read_data(
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
 		 "%s: invalid inode.",
+		 function );
+
+		return( -1 );
+	}
+	if( io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid IO handle.",
 		 function );
 
 		return( -1 );
@@ -348,72 +363,118 @@ int libfsxfs_inode_read_data(
 		 ( (fsxfs_inode_v2_t *) data )->number_of_links,
 		 inode->number_of_links );
 	}
-	byte_stream_copy_to_uint32_big_endian(
-	 ( (fsxfs_inode_v1_t *) data )->access_time,
-	 value_32bit );
-
-	inode->access_time = (int32_t) value_32bit * (int64_t) 1000000000;
-
-	byte_stream_copy_to_uint32_big_endian(
-	 ( (fsxfs_inode_v1_t *) data )->access_time_nano_seconds,
-	 value_32bit );
-
-	if( inode->access_time > 0 )
+	if( ( format_version == 3 )
+	 && ( ( io_handle->incompatible_features_flags & LIBFSXFS_INCOMPATIBLE_FEATURES_FLAG_HAS_BIGTIME ) != 0 ) )
 	{
-		inode->access_time += value_32bit;
+		byte_stream_copy_to_uint64_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->access_time,
+		 bigtime_timestamp );
+
+		posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
+		posix_nanoseconds = bigtime_timestamp % 1000000000;
+
+		inode->access_time = ( (int64_t) posix_seconds * 1000000000) + (int64_t) posix_nanoseconds;
+
+		byte_stream_copy_to_uint64_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->modification_time,
+		 bigtime_timestamp );
+
+		posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
+		posix_nanoseconds = bigtime_timestamp % 1000000000;
+
+		inode->modification_time = ( (int64_t) posix_seconds * 1000000000) + (int64_t) posix_nanoseconds;
+
+		byte_stream_copy_to_uint64_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->inode_change_time,
+		 bigtime_timestamp );
+
+		posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
+		posix_nanoseconds = bigtime_timestamp % 1000000000;
+
+		inode->inode_change_time = ( (int64_t) posix_seconds * 1000000000) + (int64_t) posix_nanoseconds;
 	}
 	else
 	{
-		inode->access_time -= value_32bit;
-	}
-	byte_stream_copy_to_uint32_big_endian(
-	 ( (fsxfs_inode_v1_t *) data )->modification_time,
-	 value_32bit );
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->access_time,
+		 value_32bit );
 
-	inode->modification_time = (int32_t) value_32bit * (int64_t) 1000000000;
+		inode->access_time = (int32_t) value_32bit * (int64_t) 1000000000;
 
-	byte_stream_copy_to_uint32_big_endian(
-	 ( (fsxfs_inode_v1_t *) data )->modification_time_nano_seconds,
-	 value_32bit );
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->access_time_nano_seconds,
+		 value_32bit );
 
-	if( inode->modification_time > 0 )
-	{
-		inode->modification_time += value_32bit;
-	}
-	else
-	{
-		inode->modification_time -= value_32bit;
-	}
-	byte_stream_copy_to_uint32_big_endian(
-	 ( (fsxfs_inode_v1_t *) data )->inode_change_time,
-	 value_32bit );
+		if( inode->access_time > 0 )
+		{
+			inode->access_time += value_32bit;
+		}
+		else
+		{
+			inode->access_time -= value_32bit;
+		}
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->modification_time,
+		 value_32bit );
 
-	inode->inode_change_time = (int32_t) value_32bit * (int64_t) 1000000000;
+		inode->modification_time = (int32_t) value_32bit * (int64_t) 1000000000;
 
-	byte_stream_copy_to_uint32_big_endian(
-	 ( (fsxfs_inode_v1_t *) data )->inode_change_time_nano_seconds,
-	 value_32bit );
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->modification_time_nano_seconds,
+		 value_32bit );
 
-	if( inode->inode_change_time > 0 )
-	{
-		inode->inode_change_time += value_32bit;
-	}
-	else
-	{
-		inode->inode_change_time -= value_32bit;
+		if( inode->modification_time > 0 )
+		{
+			inode->modification_time += value_32bit;
+		}
+		else
+		{
+			inode->modification_time -= value_32bit;
+		}
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->inode_change_time,
+		 value_32bit );
+
+		inode->inode_change_time = (int32_t) value_32bit * (int64_t) 1000000000;
+
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->inode_change_time_nano_seconds,
+		 value_32bit );
+
+		if( inode->inode_change_time > 0 )
+		{
+			inode->inode_change_time += value_32bit;
+		}
+		else
+		{
+			inode->inode_change_time -= value_32bit;
+		}
 	}
 	byte_stream_copy_to_uint64_big_endian(
 	 ( (fsxfs_inode_v1_t *) data )->data_size,
 	 inode->size );
 
-	byte_stream_copy_to_uint32_big_endian(
-	 ( (fsxfs_inode_v1_t *) data )->number_of_data_extents,
-	 inode->number_of_data_extents );
+	if( ( format_version == 3 )
+	 && ( ( io_handle->incompatible_features_flags & LIBFSXFS_INCOMPATIBLE_FEATURES_FLAG_HAS_64BIT_EXTENT_COUNTERS ) != 0 ) )
+	{
+		byte_stream_copy_to_uint64_big_endian(
+		 ( (fsxfs_inode_v3_t *) data )->number_of_data_extents_64bit,
+		 inode->number_of_data_extents );
 
-	byte_stream_copy_to_uint16_big_endian(
-	 ( (fsxfs_inode_v1_t *) data )->number_of_attributes_extents,
-	 inode->number_of_attributes_extents );
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v3_t *) data )->number_of_attributes_extents_32bit,
+		 inode->number_of_attributes_extents );
+	}
+	else
+	{
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->number_of_data_extents,
+		 inode->number_of_data_extents );
 
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_inode_v1_t *) data )->number_of_attributes_extents,
+		 inode->number_of_attributes_extents );
+	}
 	inode->attributes_fork_offset = (uint16_t) ( (fsxfs_inode_v1_t *) data )->attributes_fork_offset * 8;
 
 	inode->attributes_fork_type = ( (fsxfs_inode_v1_t *) data )->attributes_fork_type;
@@ -483,6 +544,14 @@ int libfsxfs_inode_read_data(
 			 ( (fsxfs_inode_v1_t *) data )->unknown2,
 			 14,
 			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+
+			byte_stream_copy_to_uint16_big_endian(
+			 ( (fsxfs_inode_v1_t *) data )->flush_counter,
+			 value_16bit );
+			libcnotify_printf(
+			 "%s: flush counter\t\t\t\t\t: %" PRIu16 "\n",
+			 function,
+			 value_16bit );
 		}
 		else
 		{
@@ -494,108 +563,185 @@ int libfsxfs_inode_read_data(
 			byte_stream_copy_to_uint16_big_endian(
 			 ( (fsxfs_inode_v2_t *) data )->project_identifier,
 			 value_16bit );
+
+			if( format_version == 2 )
+			{
+				libcnotify_printf(
+				 "%s: project identifier\t\t\t\t: %" PRIu16 "\n",
+				 function,
+				 value_16bit );
+
+				libcnotify_printf(
+				 "%s: unknown2:\n",
+				 function );
+				libcnotify_print_data(
+				 ( (fsxfs_inode_v2_t *) data )->unknown2,
+				 8,
+				 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+
+				byte_stream_copy_to_uint16_big_endian(
+				 ( (fsxfs_inode_v1_t *) data )->flush_counter,
+				 value_16bit );
+				libcnotify_printf(
+				 "%s: flush counter\t\t\t\t\t: %" PRIu16 "\n",
+				 function,
+				 value_16bit );
+			}
+			else if( format_version == 3 )
+			{
+				libcnotify_printf(
+				 "%s: project identifier (lower 16-bit)\t\t: %" PRIu16 "\n",
+				 function,
+				 value_16bit );
+
+				byte_stream_copy_to_uint16_big_endian(
+				 ( (fsxfs_inode_v3_t *) data )->project_identifier_upper,
+				 value_16bit );
+				libcnotify_printf(
+				 "%s: project identifier (upper 16-bit)\t\t: %" PRIu16 "\n",
+				 function,
+				 value_16bit );
+
+				if( ( io_handle->incompatible_features_flags & LIBFSXFS_INCOMPATIBLE_FEATURES_FLAG_HAS_64BIT_EXTENT_COUNTERS ) != 0 )
+				{
+					libcnotify_printf(
+					 "%s: number of data extents (64-bit)\t\t: %" PRIu64 "\n",
+					 function,
+					 inode->number_of_data_extents );
+				}
+				else
+				{
+					libcnotify_printf(
+					 "%s: unknown2:\n",
+					 function );
+					libcnotify_print_data(
+					 ( (fsxfs_inode_v3_t *) data )->unknown2,
+					 8,
+					 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+				}
+			}
+		}
+		if( ( format_version == 1 )
+		 || ( format_version == 2 ) )
+		{
+			byte_stream_copy_to_uint16_big_endian(
+			 ( (fsxfs_inode_v1_t *) data )->flush_counter,
+			 value_16bit );
 			libcnotify_printf(
-			 "%s: project identifier\t\t\t\t: %" PRIu16 "\n",
+			 "%s: flush counter\t\t\t\t\t: %" PRIu16 "\n",
 			 function,
 			 value_16bit );
-
+		}
+		if( ( format_version == 3 )
+		 && ( ( io_handle->incompatible_features_flags & LIBFSXFS_INCOMPATIBLE_FEATURES_FLAG_HAS_BIGTIME ) != 0 ) )
+		{
 			byte_stream_copy_to_uint64_big_endian(
-			 ( (fsxfs_inode_v2_t *) data )->unknown2,
+			 ( (fsxfs_inode_v1_t *) data )->access_time,
 			 value_64bit );
 			libcnotify_printf(
-			 "%s: unknown2\t\t\t\t\t: 0x%08" PRIx64 "\n",
+			 "%s: access time (bigtime)\t\t\t\t: %" PRIu64 "\n",
+			 function,
+			 value_64bit );
+
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_inode_v1_t *) data )->modification_time,
+			 value_64bit );
+			libcnotify_printf(
+			 "%s: modification time (bigtime)\t\t\t: %" PRIu64 "\n",
+			 function,
+			 value_64bit );
+
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_inode_v1_t *) data )->inode_change_time,
+			 value_64bit );
+			libcnotify_printf(
+			 "%s: inode change time (bigtime)\t\t\t: %" PRIu64 "\n",
 			 function,
 			 value_64bit );
 		}
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->flush_counter,
-		 value_16bit );
-		libcnotify_printf(
-		 "%s: flush counter\t\t\t\t\t: %" PRIu16 "\n",
-		 function,
-		 value_16bit );
-
-		if( libfsxfs_debug_print_posix_time_value(
-		     function,
-		     "access time (seconds)\t\t\t\t",
-		     ( (fsxfs_inode_v1_t *) data )->access_time,
-		     4,
-		     LIBFDATETIME_ENDIAN_BIG,
-		     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
-		     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
-		     error ) != 1 )
+		else
 		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
-			 "%s: unable to print POSIX time value.",
-			 function );
+			if( libfsxfs_debug_print_posix_time_value(
+			     function,
+			     "access time (seconds)\t\t\t\t",
+			     ( (fsxfs_inode_v1_t *) data )->access_time,
+			     4,
+			     LIBFDATETIME_ENDIAN_BIG,
+			     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
+			     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+				 "%s: unable to print POSIX time value.",
+				 function );
 
-			return( -1 );
+				return( -1 );
+			}
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_inode_v1_t *) data )->access_time_nano_seconds,
+			 value_32bit );
+			libcnotify_printf(
+			 "%s: access time nanoseconds\t\t\t: %" PRIu32 "\n",
+			 function,
+			 value_32bit );
+
+			if( libfsxfs_debug_print_posix_time_value(
+			     function,
+			     "modification time (seconds)\t\t\t",
+			     ( (fsxfs_inode_v1_t *) data )->modification_time,
+			     4,
+			     LIBFDATETIME_ENDIAN_BIG,
+			     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
+			     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+				 "%s: unable to print POSIX time value.",
+				 function );
+
+				return( -1 );
+			}
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_inode_v1_t *) data )->modification_time_nano_seconds,
+			 value_32bit );
+			libcnotify_printf(
+			 "%s: modification time nanoseconds\t\t: %" PRIu32 "\n",
+			 function,
+			 value_32bit );
+
+			if( libfsxfs_debug_print_posix_time_value(
+			     function,
+			     "inode change time (seconds)\t\t\t",
+			     ( (fsxfs_inode_v1_t *) data )->inode_change_time,
+			     4,
+			     LIBFDATETIME_ENDIAN_BIG,
+			     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
+			     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+				 "%s: unable to print POSIX time value.",
+				 function );
+
+				return( -1 );
+			}
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_inode_v1_t *) data )->inode_change_time_nano_seconds,
+			 value_32bit );
+			libcnotify_printf(
+			 "%s: inode change time nanoseconds\t\t: %" PRIu32 "\n",
+			 function,
+			 value_32bit );
 		}
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->access_time_nano_seconds,
-		 value_32bit );
-		libcnotify_printf(
-		 "%s: access time nano seconds\t\t\t: %" PRIu32 "\n",
-		 function,
-		 value_32bit );
-
-		if( libfsxfs_debug_print_posix_time_value(
-		     function,
-		     "modification time (seconds)\t\t\t",
-		     ( (fsxfs_inode_v1_t *) data )->modification_time,
-		     4,
-		     LIBFDATETIME_ENDIAN_BIG,
-		     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
-		     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
-		     error ) != 1 )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
-			 "%s: unable to print POSIX time value.",
-			 function );
-
-			return( -1 );
-		}
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->modification_time_nano_seconds,
-		 value_32bit );
-		libcnotify_printf(
-		 "%s: modification time nano seconds\t\t: %" PRIu32 "\n",
-		 function,
-		 value_32bit );
-
-		if( libfsxfs_debug_print_posix_time_value(
-		     function,
-		     "inode change time (seconds)\t\t\t",
-		     ( (fsxfs_inode_v1_t *) data )->inode_change_time,
-		     4,
-		     LIBFDATETIME_ENDIAN_BIG,
-		     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
-		     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
-		     error ) != 1 )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
-			 "%s: unable to print POSIX time value.",
-			 function );
-
-			return( -1 );
-		}
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_v1_t *) data )->inode_change_time_nano_seconds,
-		 value_32bit );
-		libcnotify_printf(
-		 "%s: inode change time nano seconds\t\t: %" PRIu32 "\n",
-		 function,
-		 value_32bit );
-
 		libcnotify_printf(
 		 "%s: data size\t\t\t\t\t: %" PRIu64 "\n",
 		 function,
@@ -609,16 +755,34 @@ int libfsxfs_inode_read_data(
 		 function,
 		 value_32bit );
 
-		libcnotify_printf(
-		 "%s: number of data extents\t\t\t: %" PRIu32 "\n",
-		 function,
-		 inode->number_of_data_extents );
+		if( ( format_version == 3 )
+		 && ( ( io_handle->incompatible_features_flags & LIBFSXFS_INCOMPATIBLE_FEATURES_FLAG_HAS_64BIT_EXTENT_COUNTERS ) != 0 ) )
+		{
+			libcnotify_printf(
+			 "%s: number of attributes extents (32-bit)\t\t: %" PRIu32 "\n",
+			 function,
+			 inode->number_of_attributes_extents );
 
-		libcnotify_printf(
-		 "%s: number of attributes extents\t\t\t: %" PRIu16 "\n",
-		 function,
-		 inode->number_of_attributes_extents );
+			byte_stream_copy_to_uint16_big_endian(
+			 ( (fsxfs_inode_v3_t *) data )->unknown4b,
+			 value_16bit );
+			libcnotify_printf(
+			 "%s: unknown4b\t\t\t\t\t: 0x%04" PRIx16 "\n",
+			 function,
+			 value_16bit );
+		}
+		else
+		{
+			libcnotify_printf(
+			 "%s: number of data extents\t\t\t: %" PRIu64 "\n",
+			 function,
+			 inode->number_of_data_extents );
 
+			libcnotify_printf(
+			 "%s: number of attributes extents\t\t\t: %" PRIu32 "\n",
+			 function,
+			 inode->number_of_attributes_extents );
+		}
 		libcnotify_printf(
 		 "%s: attributes fork offset\t\t\t: %" PRIu8 " (%" PRIu16 ")\n",
 		 function,
@@ -690,23 +854,37 @@ int libfsxfs_inode_read_data(
 	}
 	if( format_version == 3 )
 	{
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_v3_t *) data )->creation_time,
-		 value_32bit );
-
-		inode->creation_time = (int32_t) value_32bit * (int64_t) 1000000000;
-
-		byte_stream_copy_to_uint32_big_endian(
-		 ( (fsxfs_inode_v3_t *) data )->creation_time_nano_seconds,
-		 value_32bit );
-
-		if( inode->creation_time > 0 )
+		if( ( io_handle->incompatible_features_flags & LIBFSXFS_INCOMPATIBLE_FEATURES_FLAG_HAS_BIGTIME ) != 0 )
 		{
-			inode->creation_time += value_32bit;
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_inode_v3_t *) data )->creation_time,
+			 bigtime_timestamp );
+
+			posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
+			posix_nanoseconds = bigtime_timestamp % 1000000000;
+
+			inode->creation_time = ( (int64_t) posix_seconds * 1000000000) + (int64_t) posix_nanoseconds;
 		}
 		else
 		{
-			inode->creation_time -= value_32bit;
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_inode_v3_t *) data )->creation_time,
+			 value_32bit );
+
+			inode->creation_time = (int32_t) value_32bit * (int64_t) 1000000000;
+
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_inode_v3_t *) data )->creation_time_nano_seconds,
+			 value_32bit );
+
+			if( inode->creation_time > 0 )
+			{
+				inode->creation_time += value_32bit;
+			}
+			else
+			{
+				inode->creation_time -= value_32bit;
+			}
 		}
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
@@ -759,33 +937,45 @@ int libfsxfs_inode_read_data(
 			 12,
 			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
 
-			if( libfsxfs_debug_print_posix_time_value(
-			     function,
-			     "creation time (seconds)\t\t\t",
-			     ( (fsxfs_inode_v3_t *) data )->creation_time,
-			     4,
-			     LIBFDATETIME_ENDIAN_BIG,
-			     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
-			     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
-			     error ) != 1 )
+			if( ( io_handle->incompatible_features_flags & LIBFSXFS_INCOMPATIBLE_FEATURES_FLAG_HAS_BIGTIME ) != 0 )
 			{
-				libcerror_error_set(
-				 error,
-				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
-				 "%s: unable to print POSIX time value.",
-				 function );
-
-				return( -1 );
+				byte_stream_copy_to_uint64_big_endian(
+				 ( (fsxfs_inode_v3_t *) data )->creation_time,
+				 value_64bit );
+				libcnotify_printf(
+				 "%s: creation time (bigtime)\t\t\t\t: %" PRIu64 "\n",
+				 function,
+				 value_64bit );
 			}
-			byte_stream_copy_to_uint32_big_endian(
-			 ( (fsxfs_inode_v3_t *) data )->creation_time_nano_seconds,
-			 value_32bit );
-			libcnotify_printf(
-			 "%s: creation time nano seconds\t\t\t: %" PRIu32 "\n",
-			 function,
-			 value_32bit );
+			else
+			{
+				if( libfsxfs_debug_print_posix_time_value(
+				     function,
+				     "creation time (seconds)\t\t\t",
+				     ( (fsxfs_inode_v3_t *) data )->creation_time,
+				     4,
+				     LIBFDATETIME_ENDIAN_BIG,
+				     LIBFDATETIME_POSIX_TIME_VALUE_TYPE_SECONDS_32BIT_SIGNED,
+				     LIBFDATETIME_STRING_FORMAT_TYPE_CTIME | LIBFDATETIME_STRING_FORMAT_FLAG_DATE_TIME,
+				     error ) != 1 )
+				{
+					libcerror_error_set(
+					 error,
+					 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+					 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+					 "%s: unable to print POSIX time value.",
+					 function );
 
+					return( -1 );
+				}
+				byte_stream_copy_to_uint32_big_endian(
+				 ( (fsxfs_inode_v3_t *) data )->creation_time_nano_seconds,
+				 value_32bit );
+				libcnotify_printf(
+				 "%s: creation time nanoseconds\t\t\t: %" PRIu32 "\n",
+				 function,
+				 value_32bit );
+			}
 			byte_stream_copy_to_uint64_big_endian(
 			 ( (fsxfs_inode_v3_t *) data )->inode_number,
 			 value_64bit );
@@ -888,6 +1078,17 @@ int libfsxfs_inode_read_file_io_handle(
 
 		return( -1 );
 	}
+	if( io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid IO handle.",
+		 function );
+
+		return( -1 );
+	}
 	if( io_handle->block_size == 0 )
 	{
 		libcerror_error_set(
@@ -931,6 +1132,7 @@ int libfsxfs_inode_read_file_io_handle(
 	}
 	if( libfsxfs_inode_read_data(
 	     inode,
+	     io_handle,
 	     inode->data,
 	     inode->data_size,
 	     error ) != 1 )
@@ -1281,7 +1483,7 @@ on_error:
 }
 
 /* Retrieves the creation time
- * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nanoseconds
  * Returns 1 if successful, 0 if not available or -1 on error
  */
 int libfsxfs_inode_get_creation_time(
@@ -1323,7 +1525,7 @@ int libfsxfs_inode_get_creation_time(
 }
 
 /* Retrieves the modification time
- * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nanoseconds
  * Returns 1 if successful or -1 on error
  */
 int libfsxfs_inode_get_modification_time(
@@ -1361,7 +1563,7 @@ int libfsxfs_inode_get_modification_time(
 }
 
 /* Retrieves the access time
- * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nanoseconds
  * Returns 1 if successful or -1 on error
  */
 int libfsxfs_inode_get_access_time(
@@ -1399,7 +1601,7 @@ int libfsxfs_inode_get_access_time(
 }
 
 /* Retrieves the inode change time
- * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nanoseconds
  * Returns 1 if successful or -1 on error
  */
 int libfsxfs_inode_get_inode_change_time(

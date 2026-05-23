@@ -94,7 +94,7 @@ int libfsxfs_extents_get_last_extent(
  */
 int libfsxfs_extents_read_data(
      libcdata_array_t *extents_array,
-     uint32_t number_of_extents,
+     uint64_t number_of_extents,
      const uint8_t *data,
      size_t data_size,
      uint8_t add_sparse_extents,
@@ -106,7 +106,7 @@ int libfsxfs_extents_read_data(
 	static char *function            = "libfsxfs_extents_read_data";
 	size_t data_offset               = 0;
 	uint64_t logical_block_number    = 0;
-	uint32_t extent_index            = 0;
+	uint64_t extent_index            = 0;
 	int entry_index                  = 0;
 
 	if( data == NULL )
@@ -132,7 +132,7 @@ int libfsxfs_extents_read_data(
 
 		return( -1 );
 	}
-	if( (size_t) number_of_extents > ( data_size / 16 ) )
+	if( number_of_extents > ( (uint64_t) data_size / 16 ) )
 	{
 		libcerror_error_set(
 		 error,
@@ -209,7 +209,7 @@ int libfsxfs_extents_read_data(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 			 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
-			 "%s: unable to create extent: %" PRIu32 ".",
+			 "%s: unable to create extent: %" PRIu64 ".",
 			 function,
 			 extent_index );
 
@@ -225,7 +225,7 @@ int libfsxfs_extents_read_data(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_IO,
 			 LIBCERROR_IO_ERROR_READ_FAILED,
-			 "%s: unable to read extent: %" PRIu32 ".",
+			 "%s: unable to read extent: %" PRIu64 ".",
 			 function,
 			 extent_index );
 
@@ -282,7 +282,7 @@ int libfsxfs_extents_read_data(
 			 error,
 			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 			 LIBCERROR_RUNTIME_ERROR_APPEND_FAILED,
-			 "%s: unable to append extent: %" PRIu32 " to extents array.",
+			 "%s: unable to append extent: %" PRIu64 " to extents array.",
 			 function,
 			 extent_index );
 

@@ -298,7 +298,7 @@ PyObject *pyfsxfs_datetime_new_from_filetime(
 	uint8_t minutes           = 0;
 	uint8_t seconds           = 0;
 
-	/* The timestamp is in units of 100 nano seconds correct the value to seconds
+	/* The timestamp is in units of 100 nanoseconds correct the value to seconds
 	 */
 	micro_seconds = (uint32_t) ( filetime % 10000000 ) / 10;
 	filetime      /= 10000000;

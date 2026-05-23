@@ -602,7 +602,7 @@ int libfsxfs_file_entry_get_inode_number(
 }
 
 /* Retrieves the creation date and time
- * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nanoseconds
  * This value is retrieved from the inode
  * Returns 1 if successful, 0 if not available or -1 on error
  */
@@ -678,7 +678,7 @@ int libfsxfs_file_entry_get_creation_time(
 }
 
 /* Retrieves the modification date and time
- * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nanoseconds
  * This value is retrieved from the inode
  * Returns 1 if successful or -1 on error
  */
@@ -752,7 +752,7 @@ int libfsxfs_file_entry_get_modification_time(
 }
 
 /* Retrieves the access date and time
- * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nanoseconds
  * This value is retrieved from the inode
  * Returns 1 if successful or -1 on error
  */
@@ -826,7 +826,7 @@ int libfsxfs_file_entry_get_access_time(
 }
 
 /* Retrieves the inode change date and time
- * The timestamp is a signed 64-bit POSIX date and time value in number of nano seconds
+ * The timestamp is a signed 64-bit POSIX date and time value in number of nanoseconds
  * This value is retrieved from the inode
  * Returns 1 if successful or -1 on error
  */

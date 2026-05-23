@@ -101,7 +101,7 @@ struct libfsxfs_inode
 
 	/* Number of data extents
 	 */
-	uint32_t number_of_data_extents;
+	uint64_t number_of_data_extents;
 
 	/* Data extents array
 	 */
@@ -151,6 +151,7 @@ int libfsxfs_inode_free(
 
 int libfsxfs_inode_read_data(
      libfsxfs_inode_t *inode,
+     libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
      libcerror_error_t **error );
