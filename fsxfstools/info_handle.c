@@ -36,6 +36,7 @@
 #include "fsxfstools_libfsxfs.h"
 #include "fsxfstools_libhmac.h"
 #include "fsxfstools_libuna.h"
+#include "fsxfstools_unused.h"
 #include "info_handle.h"
 
 #if !defined( LIBFSXFS_HAVE_BFIO )
@@ -1109,6 +1110,126 @@ on_error:
 		 NULL );
 	}
 	return( -1 );
+}
+
+/* Prints the compatible features flags to the notify stream
+ */
+void info_handle_compatible_features_flags_fprint(
+      uint32_t compatible_features_flags FSXFSTOOLS_ATTRIBUTE_UNUSED,
+      FILE *notify_stream FSXFSTOOLS_ATTRIBUTE_UNUSED )
+{
+	FSXFSTOOLS_UNREFERENCED_PARAMETER( compatible_features_flags )
+	FSXFSTOOLS_UNREFERENCED_PARAMETER( notify_stream )
+}
+
+/* Prints the read-only compatible features flags to the notify stream
+ */
+void info_handle_read_only_compatible_features_flags_fprint(
+      uint32_t read_only_compatible_features_flags,
+      FILE *notify_stream )
+{
+	if( ( read_only_compatible_features_flags & 0x00000001UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_RO_COMPAT_FINOBT)\n" );
+	}
+	if( ( read_only_compatible_features_flags & 0x00000002UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_RO_COMPAT_RMAPBT)\n" );
+	}
+	if( ( read_only_compatible_features_flags & 0x00000004UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_RO_COMPAT_REFLINK)\n" );
+	}
+	if( ( read_only_compatible_features_flags & 0x00000008UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_RO_COMPAT_INOBTCNT)\n" );
+	}
+}
+
+/* Prints the incompatible features flags to the notify stream
+ */
+void info_handle_incompatible_features_flags_fprint(
+      uint32_t incompatible_features_flags,
+      FILE *notify_stream )
+{
+	if( ( incompatible_features_flags & 0x00000001UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_FTYPE)\n" );
+	}
+	if( ( incompatible_features_flags & 0x00000002UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_SPINODES)\n" );
+	}
+	if( ( incompatible_features_flags & 0x00000004UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_META_UUID)\n" );
+	}
+	if( ( incompatible_features_flags & 0x00000008UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_BIGTIME)\n" );
+	}
+	if( ( incompatible_features_flags & 0x00000010UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR)\n" );
+	}
+	if( ( incompatible_features_flags & 0x00000020UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_NREXT64)\n" );
+	}
+	if( ( incompatible_features_flags & 0x00000040UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_EXCHRANGE)\n" );
+	}
+	if( ( incompatible_features_flags & 0x00000080UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_PARENT)\n" );
+	}
+	if( ( incompatible_features_flags & 0x00000100UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_METADIR)\n" );
+	}
+	if( ( incompatible_features_flags & 0x00000200UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_ZONED)\n" );
+	}
+}
+
+/* Prints the journal incompatible features flags to the notify stream
+ */
+void info_handle_journal_incompatible_features_flags_fprint(
+      uint32_t journal_incompatible_features_flags FSXFSTOOLS_ATTRIBUTE_UNUSED,
+      FILE *notify_stream FSXFSTOOLS_ATTRIBUTE_UNUSED )
+{
+	FSXFSTOOLS_UNREFERENCED_PARAMETER( journal_incompatible_features_flags )
+	FSXFSTOOLS_UNREFERENCED_PARAMETER( notify_stream )
 }
 
 /* Prints a file entry value with name
@@ -2646,11 +2767,15 @@ int info_handle_volume_fprint(
      info_handle_t *info_handle,
      libcerror_error_t **error )
 {
-	system_character_t *value_string = NULL;
-	static char *function            = "info_handle_volume_fprint";
-	size_t value_string_size         = 0;
-	uint8_t format_version           = 0;
-	int result                       = 0;
+	system_character_t *value_string             = NULL;
+	static char *function                        = "info_handle_volume_fprint";
+	size_t value_string_size                     = 0;
+	uint32_t compatible_features_flags           = 0;
+	uint32_t incompatible_features_flags         = 0;
+	uint32_t journal_incompatible_features_flags = 0;
+	uint32_t read_only_compatible_features_flags = 0;
+	uint8_t format_version                       = 0;
+	int result                                   = 0;
 
 	if( info_handle == NULL )
 	{
@@ -2770,6 +2895,61 @@ int info_handle_volume_fprint(
 	 info_handle->notify_stream,
 	 "\n" );
 
+	if( format_version == 5 )
+	{
+		if( libfsxfs_volume_get_features_flags(
+		     info_handle->input_volume,
+		     &compatible_features_flags,
+		     &read_only_compatible_features_flags,
+		     &incompatible_features_flags,
+		     &journal_incompatible_features_flags,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve feature flags.",
+			 function );
+
+			goto on_error;
+		}
+		fprintf(
+		 info_handle->notify_stream,
+		 "\tCompatible features\t\t: 0x%08" PRIx32 "\n",
+		 compatible_features_flags );
+
+		info_handle_compatible_features_flags_fprint(
+		 compatible_features_flags,
+		 info_handle->notify_stream );
+
+		fprintf(
+		 info_handle->notify_stream,
+		 "\tRead-only compatible features\t: 0x%08" PRIx32 "\n",
+		 read_only_compatible_features_flags );
+
+		info_handle_read_only_compatible_features_flags_fprint(
+		 read_only_compatible_features_flags,
+		 info_handle->notify_stream );
+
+		fprintf(
+		 info_handle->notify_stream,
+		 "\tIncompatible features\t\t: 0x%08" PRIx32 "\n",
+		 incompatible_features_flags );
+
+		info_handle_incompatible_features_flags_fprint(
+		 incompatible_features_flags,
+		 info_handle->notify_stream );
+
+		fprintf(
+		 info_handle->notify_stream,
+		 "\tJournal incompatible features\t: 0x%08" PRIx32 "\n",
+		 journal_incompatible_features_flags );
+
+		info_handle_journal_incompatible_features_flags_fprint(
+		 journal_incompatible_features_flags,
+		 info_handle->notify_stream );
+	}
 /* TODO print more info */
 
 	fprintf(

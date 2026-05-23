@@ -1855,6 +1855,198 @@ int libfsxfs_file_entry_get_utf8_symbolic_link_target(
 	return( result );
 }
 
+/* Retrieves the size of the UTF-16 encoded symbolic link target
+ * The size should include the end of string character
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+int libfsxfs_file_entry_get_utf16_symbolic_link_target_size(
+     libfsxfs_file_entry_t *file_entry,
+     size_t *utf16_string_size,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_utf16_symbolic_link_target_size";
+	int result                                          = 0;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_write(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( internal_file_entry->symbolic_link_data == NULL )
+	{
+		if( libfsxfs_internal_file_entry_get_symbolic_link_data(
+		     internal_file_entry,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to determine symbolic link data.",
+			 function );
+
+			result = -1;
+		}
+	}
+	if( internal_file_entry->symbolic_link_data != NULL )
+	{
+		result = libuna_utf16_string_size_from_utf8_stream(
+		          internal_file_entry->symbolic_link_data,
+		          internal_file_entry->symbolic_link_data_size,
+		          utf16_string_size,
+		          error );
+
+		if( result != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve UTF-16 string size.",
+			 function );
+
+			result = -1;
+		}
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_write(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
+/* Retrieves the UTF-16 encoded symbolic link target
+ * The size should include the end of string character
+ * Returns 1 if successful, 0 if not available or -1 on error
+ */
+int libfsxfs_file_entry_get_utf16_symbolic_link_target(
+     libfsxfs_file_entry_t *file_entry,
+     uint16_t *utf16_string,
+     size_t utf16_string_size,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
+	static char *function                               = "libfsxfs_file_entry_get_utf16_symbolic_link_target";
+	int result                                          = 0;
+
+	if( file_entry == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid file entry.",
+		 function );
+
+		return( -1 );
+	}
+	internal_file_entry = (libfsxfs_internal_file_entry_t *) file_entry;
+
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_write(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	if( internal_file_entry->symbolic_link_data == NULL )
+	{
+		if( libfsxfs_internal_file_entry_get_symbolic_link_data(
+		     internal_file_entry,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to determine symbolic link data.",
+			 function );
+
+			result = -1;
+		}
+	}
+	if( internal_file_entry->symbolic_link_data != NULL )
+	{
+		result = libuna_utf16_string_copy_from_utf8_stream(
+		          utf16_string,
+		          utf16_string_size,
+		          internal_file_entry->symbolic_link_data,
+		          internal_file_entry->symbolic_link_data_size,
+		          error );
+
+		if( result != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve UTF-16 string.",
+			 function );
+
+			result = -1;
+		}
+	}
+#if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_write(
+	     internal_file_entry->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for writing.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( result );
+}
+
 /* Determines the extended attributes
  * Returns 1 if successful or -1 on error
  */
@@ -2805,7 +2997,7 @@ int libfsxfs_file_entry_get_number_of_sub_file_entries(
 		return( -1 );
 	}
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
-	if( libcthreads_read_write_lock_grab_for_read(
+	if( libcthreads_read_write_lock_grab_for_write(
 	     internal_file_entry->read_write_lock,
 	     error ) != 1 )
 	{
@@ -2813,7 +3005,7 @@ int libfsxfs_file_entry_get_number_of_sub_file_entries(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
-		 "%s: unable to grab read/write lock for reading.",
+		 "%s: unable to grab read/write lock for writing.",
 		 function );
 
 		return( -1 );
@@ -2854,7 +3046,7 @@ int libfsxfs_file_entry_get_number_of_sub_file_entries(
 		}
 	}
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
-	if( libcthreads_read_write_lock_release_for_read(
+	if( libcthreads_read_write_lock_release_for_write(
 	     internal_file_entry->read_write_lock,
 	     error ) != 1 )
 	{
@@ -2862,7 +3054,7 @@ int libfsxfs_file_entry_get_number_of_sub_file_entries(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
-		 "%s: unable to release read/write lock for reading.",
+		 "%s: unable to release read/write lock for writing.",
 		 function );
 
 		return( -1 );
@@ -3068,6 +3260,7 @@ int libfsxfs_file_entry_get_sub_file_entry_by_utf8_name(
      libfsxfs_file_entry_t **sub_file_entry,
      libcerror_error_t **error )
 {
+	libfsxfs_directory_entry_t *directory_entry         = NULL;
 	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
 	static char *function                               = "libfsxfs_file_entry_get_sub_file_entry_by_utf8_name";
 	int result                                          = 1;
@@ -3108,7 +3301,7 @@ int libfsxfs_file_entry_get_sub_file_entry_by_utf8_name(
 		return( -1 );
 	}
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
-	if( libcthreads_read_write_lock_grab_for_read(
+	if( libcthreads_read_write_lock_grab_for_write(
 	     internal_file_entry->read_write_lock,
 	     error ) != 1 )
 	{
@@ -3116,17 +3309,57 @@ int libfsxfs_file_entry_get_sub_file_entry_by_utf8_name(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
-		 "%s: unable to grab read/write lock for reading.",
+		 "%s: unable to grab read/write lock for writing.",
 		 function );
 
 		return( -1 );
 	}
 #endif
-	/* TODO implement */
-	result = -1;
+	if( internal_file_entry->directory == NULL )
+	{
+		if( libfsxfs_internal_file_entry_get_directory(
+		     internal_file_entry,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve directory for inode: %" PRIu32 ".",
+			 function,
+			 internal_file_entry->inode_number );
 
+			result = -1;
+		}
+	}
+	if( internal_file_entry->directory != NULL )
+	{
+		result = libfsxfs_directory_get_entry_by_utf8_name(
+		          internal_file_entry->directory,
+		          utf8_string,
+		          utf8_string_length,
+		          &directory_entry,
+		          error );
+
+		if( result == -1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve directory entry by UTF-8 name.",
+			 function );
+
+			result = -1;
+		}
+		else if( result != 0 )
+		{
+			/* TODO */
+			result = -1;
+		}
+	}
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
-	if( libcthreads_read_write_lock_release_for_read(
+	if( libcthreads_read_write_lock_release_for_write(
 	     internal_file_entry->read_write_lock,
 	     error ) != 1 )
 	{
@@ -3134,7 +3367,7 @@ int libfsxfs_file_entry_get_sub_file_entry_by_utf8_name(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
-		 "%s: unable to release read/write lock for reading.",
+		 "%s: unable to release read/write lock for writing.",
 		 function );
 
 		return( -1 );
@@ -3153,6 +3386,7 @@ int libfsxfs_file_entry_get_sub_file_entry_by_utf16_name(
      libfsxfs_file_entry_t **sub_file_entry,
      libcerror_error_t **error )
 {
+	libfsxfs_directory_entry_t *directory_entry         = NULL;
 	libfsxfs_internal_file_entry_t *internal_file_entry = NULL;
 	static char *function                               = "libfsxfs_file_entry_get_sub_file_entry_by_utf16_name";
 	int result                                          = 1;
@@ -3193,7 +3427,7 @@ int libfsxfs_file_entry_get_sub_file_entry_by_utf16_name(
 		return( -1 );
 	}
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
-	if( libcthreads_read_write_lock_grab_for_read(
+	if( libcthreads_read_write_lock_grab_for_write(
 	     internal_file_entry->read_write_lock,
 	     error ) != 1 )
 	{
@@ -3201,17 +3435,57 @@ int libfsxfs_file_entry_get_sub_file_entry_by_utf16_name(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
-		 "%s: unable to grab read/write lock for reading.",
+		 "%s: unable to grab read/write lock for writing.",
 		 function );
 
 		return( -1 );
 	}
 #endif
-	/* TODO implement */
-	result = -1;
+	if( internal_file_entry->directory == NULL )
+	{
+		if( libfsxfs_internal_file_entry_get_directory(
+		     internal_file_entry,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve directory for inode: %" PRIu32 ".",
+			 function,
+			 internal_file_entry->inode_number );
 
+			result = -1;
+		}
+	}
+	if( internal_file_entry->directory != NULL )
+	{
+		result = libfsxfs_directory_get_entry_by_utf16_name(
+		          internal_file_entry->directory,
+		          utf16_string,
+		          utf16_string_length,
+		          &directory_entry,
+		          error );
+
+		if( result == -1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve directory entry by UTF-16 name.",
+			 function );
+
+			result = -1;
+		}
+		else if( result != 0 )
+		{
+			/* TODO */
+			result = -1;
+		}
+	}
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
-	if( libcthreads_read_write_lock_release_for_read(
+	if( libcthreads_read_write_lock_release_for_write(
 	     internal_file_entry->read_write_lock,
 	     error ) != 1 )
 	{
@@ -3219,7 +3493,7 @@ int libfsxfs_file_entry_get_sub_file_entry_by_utf16_name(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
-		 "%s: unable to release read/write lock for reading.",
+		 "%s: unable to release read/write lock for writing.",
 		 function );
 
 		return( -1 );

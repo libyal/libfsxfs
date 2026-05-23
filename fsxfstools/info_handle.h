@@ -124,6 +124,22 @@ int info_handle_posix_time_in_nano_seconds_value_fprint(
      int64_t value_64bit,
      libcerror_error_t **error );
 
+void info_handle_compatible_features_flags_fprint(
+      uint32_t compatible_features_flags,
+      FILE *notify_stream );
+
+void info_handle_read_only_compatible_features_flags_fprint(
+      uint32_t read_only_compatible_features_flags,
+      FILE *notify_stream );
+
+void info_handle_incompatible_features_flags_fprint(
+      uint32_t incompatible_features_flags,
+      FILE *notify_stream );
+
+void info_handle_journal_incompatible_features_flags_fprint(
+      uint32_t journal_incompatible_features_flags,
+      FILE *notify_stream );
+
 int info_handle_file_entry_value_with_name_fprint(
      info_handle_t *info_handle,
      libfsxfs_file_entry_t *file_entry,

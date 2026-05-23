@@ -1,4 +1,4 @@
-.Dd August 29, 2022
+.Dd May 23, 2026
 .Dt libfsxfs 3
 .Os libfsxfs
 .Sh NAME
@@ -62,6 +62,8 @@ Volume functions
 .Fn libfsxfs_volume_close "libfsxfs_volume_t *volume" "libfsxfs_error_t **error"
 .Ft int
 .Fn libfsxfs_volume_get_format_version "libfsxfs_volume_t *volume" "uint8_t *format_version" "libfsxfs_error_t **error"
+.Ft int
+.Fn libfsxfs_volume_get_features_flags "libfsxfs_volume_t *volume" "uint32_t *compatible_features_flags" "uint32_t *read_only_compatible_features_flags" "uint32_t *incompatible_features_flags" "uint32_t *journal_incompatible_features_flags" "libfsxfs_error_t **error"
 .Ft int
 .Fn libfsxfs_volume_get_utf8_label_size "libfsxfs_volume_t *volume" "size_t *utf8_string_size" "libfsxfs_error_t **error"
 .Ft int

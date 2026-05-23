@@ -43,6 +43,12 @@ void libfsxfs_debug_print_feature_flags(
 void libfsxfs_debug_print_secondary_feature_flags(
       uint32_t secondary_feature_flags );
 
+void libfsxfs_debug_print_read_only_compatible_features_flags(
+      uint32_t read_only_compatible_features_flags );
+
+void libfsxfs_debug_print_incompatible_features_flags(
+      uint32_t incompatible_features_flags );
+
 const char *libfsxfs_debug_print_fork_type(
              uint8_t fork_type );
 

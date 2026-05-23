@@ -136,6 +136,15 @@ int libfsxfs_volume_get_format_version(
      libcerror_error_t **error );
 
 LIBFSXFS_EXTERN \
+int libfsxfs_volume_get_features_flags(
+     libfsxfs_volume_t *volume,
+     uint32_t *compatible_features_flags,
+     uint32_t *read_only_compatible_features_flags,
+     uint32_t *incompatible_features_flags,
+     uint32_t *journal_incompatible_features_flags,
+     libcerror_error_t **error );
+
+LIBFSXFS_EXTERN \
 int libfsxfs_volume_get_utf8_label_size(
      libfsxfs_volume_t *volume,
      size_t *utf8_string_size,

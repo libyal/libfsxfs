@@ -1234,6 +1234,694 @@ on_error:
 	return( 0 );
 }
 
+/* Tests the libfsxfs_volume_get_format_version function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_volume_get_format_version(
+     libfsxfs_volume_t *volume )
+{
+	libcerror_error_t *error = NULL;
+	uint8_t format_version   = 0;
+	int result               = 0;
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_volume_get_format_version(
+	          volume,
+	          &format_version,
+	          &error );
+
+	FSXFS_TEST_ASSERT_NOT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_volume_get_format_version(
+	          NULL,
+	          &format_version,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_format_version(
+		  volume,
+		  NULL,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_volume_get_features_flags function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_volume_get_features_flags(
+     libfsxfs_volume_t *volume )
+{
+	libcerror_error_t *error                     = NULL;
+	uint32_t compatible_features_flags           = 0;
+	uint32_t incompatible_features_flags         = 0;
+	uint32_t journal_incompatible_features_flags = 0;
+	uint32_t read_only_compatible_features_flags = 0;
+	int result                                   = 0;
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_volume_get_features_flags(
+	          volume,
+	          &compatible_features_flags,
+	          &read_only_compatible_features_flags,
+	          &incompatible_features_flags,
+	          &journal_incompatible_features_flags,
+	          &error );
+
+	FSXFS_TEST_ASSERT_NOT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_volume_get_features_flags(
+	          NULL,
+	          &compatible_features_flags,
+	          &read_only_compatible_features_flags,
+	          &incompatible_features_flags,
+	          &journal_incompatible_features_flags,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_features_flags(
+		  volume,
+		  NULL,
+	          &read_only_compatible_features_flags,
+	          &incompatible_features_flags,
+	          &journal_incompatible_features_flags,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_features_flags(
+		  volume,
+	          &compatible_features_flags,
+		  NULL,
+	          &incompatible_features_flags,
+	          &journal_incompatible_features_flags,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_features_flags(
+		  volume,
+	          &compatible_features_flags,
+	          &read_only_compatible_features_flags,
+		  NULL,
+	          &journal_incompatible_features_flags,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_features_flags(
+		  volume,
+	          &compatible_features_flags,
+	          &read_only_compatible_features_flags,
+	          &incompatible_features_flags,
+		  NULL,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_volume_get_utf8_label_size function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_volume_get_utf8_label_size(
+     libfsxfs_volume_t *volume )
+{
+	libcerror_error_t *error = NULL;
+	size_t utf8_label_size   = 0;
+	int result               = 0;
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_volume_get_utf8_label_size(
+	          volume,
+	          &utf8_label_size,
+	          &error );
+
+	FSXFS_TEST_ASSERT_NOT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_volume_get_utf8_label_size(
+	          NULL,
+	          &utf8_label_size,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_utf8_label_size(
+		  volume,
+		  NULL,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_volume_get_utf8_label function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_volume_get_utf8_label(
+     libfsxfs_volume_t *volume )
+{
+	uint8_t utf8_label[ 512 ];
+
+	libcerror_error_t *error = NULL;
+	int result               = 0;
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_volume_get_utf8_label(
+	          volume,
+	          utf8_label,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_NOT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_volume_get_utf8_label(
+	          NULL,
+	          utf8_label,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_utf8_label(
+		  volume,
+		  NULL,
+		  512,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_utf8_label(
+		  volume,
+		  utf8_label,
+		  0,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_utf8_label(
+		  volume,
+		  utf8_label,
+		  (size_t) SSIZE_MAX + 1,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_volume_get_utf16_label_size function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_volume_get_utf16_label_size(
+     libfsxfs_volume_t *volume )
+{
+	libcerror_error_t *error = NULL;
+	size_t utf16_label_size  = 0;
+	int result               = 0;
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_volume_get_utf16_label_size(
+	          volume,
+	          &utf16_label_size,
+	          &error );
+
+	FSXFS_TEST_ASSERT_NOT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_volume_get_utf16_label_size(
+	          NULL,
+	          &utf16_label_size,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_utf16_label_size(
+		  volume,
+		  NULL,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_volume_get_utf16_label function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_volume_get_utf16_label(
+     libfsxfs_volume_t *volume )
+{
+	uint16_t utf16_label[ 512 ];
+
+	libcerror_error_t *error = NULL;
+	int result               = 0;
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_volume_get_utf16_label(
+	          volume,
+	          utf16_label,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_NOT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_volume_get_utf16_label(
+	          NULL,
+	          utf16_label,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_utf16_label(
+		  volume,
+		  NULL,
+		  512,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_utf16_label(
+		  volume,
+		  utf16_label,
+		  0,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_utf16_label(
+		  volume,
+		  utf16_label,
+		  (size_t) SSIZE_MAX + 1,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_volume_get_root_directory function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_volume_get_root_directory(
+     libfsxfs_volume_t *volume )
+{
+	libcerror_error_t *error              = NULL;
+	libfsxfs_file_entry_t *root_directory = 0;
+	int result                            = 0;
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_volume_get_root_directory(
+	          volume,
+	          &root_directory,
+	          &error );
+
+	FSXFS_TEST_ASSERT_NOT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "root_directory",
+	 root_directory );
+
+	result = libfsxfs_file_entry_free(
+		  &root_directory,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_volume_get_root_directory(
+	          NULL,
+	          &root_directory,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "root_directory",
+	 root_directory );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_volume_get_root_directory(
+		  volume,
+		  NULL,
+		  &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "root_directory",
+	 root_directory );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
 /* The main program
  */
 #if defined( HAVE_WIDE_SYSTEM_CHARACTER )
@@ -1457,12 +2145,64 @@ int main(
 
 #endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
 
-/* TODO implement
+		FSXFS_TEST_RUN_WITH_ARGS(
+		 "libfsxfs_volume_get_format_version",
+		 fsxfs_test_volume_get_format_version,
+		 volume );
+
+		FSXFS_TEST_RUN_WITH_ARGS(
+		 "libfsxfs_volume_get_features_flags",
+		 fsxfs_test_volume_get_features_flags,
+		 volume );
+
 		FSXFS_TEST_RUN_WITH_ARGS(
 		 "libfsxfs_volume_get_utf8_label_size",
 		 fsxfs_test_volume_get_utf8_label_size,
 		 volume );
-*/
+
+		FSXFS_TEST_RUN_WITH_ARGS(
+		 "libfsxfs_volume_get_utf8_label",
+		 fsxfs_test_volume_get_utf8_label,
+		 volume );
+
+		FSXFS_TEST_RUN_WITH_ARGS(
+		 "libfsxfs_volume_get_utf16_label_size",
+		 fsxfs_test_volume_get_utf16_label_size,
+		 volume );
+
+		FSXFS_TEST_RUN_WITH_ARGS(
+		 "libfsxfs_volume_get_utf16_label",
+		 fsxfs_test_volume_get_utf16_label,
+		 volume );
+
+		FSXFS_TEST_RUN_WITH_ARGS(
+		 "libfsxfs_volume_get_root_directory",
+		 fsxfs_test_volume_get_root_directory,
+		 volume );
+
+#if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
+
+		/* TODO: add tests for libfsxfs_internal_volume_get_file_entry_by_inode */
+
+#endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
+
+		/* TODO: add tests for libfsxfs_volume_get_file_entry_by_inode */
+
+#if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
+
+		/* TODO: add tests for libfsxfs_internal_volume_get_file_entry_by_utf8_path */
+
+#endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
+
+		/* TODO: add tests for libfsxfs_volume_get_file_entry_by_utf8_path */
+
+#if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
+
+		/* TODO: add tests for libfsxfs_internal_volume_get_file_entry_by_utf16_path */
+
+#endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
+
+		/* TODO: add tests for libfsxfs_volume_get_file_entry_by_utf16_path */
 
 		/* Clean up
 		 */

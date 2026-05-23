@@ -634,6 +634,7 @@ int libfsxfs_superblock_read_data(
 	supported_feature_flags = 0x0010
 	                        | 0x0020
 	                        | 0x0080
+	                        | 0x0100
 	                        | 0x0400
 	                        | 0x0800
 	                        | 0x1000
@@ -793,8 +794,88 @@ int libfsxfs_superblock_read_data(
 
 		return( -1 );
 	}
+	if( superblock->format_version == 5 )
+	{
+		if( data_size < sizeof( fsxfs_superblock_v5_t ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+			 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: invalid data size value out of bounds.",
+			 function );
+
+			return( -1 );
+		}
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_superblock_v5_t *) data )->compatible_features_flags,
+		 superblock->compatible_features_flags );
+
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_superblock_v5_t *) data )->read_only_compatible_features_flags,
+		 superblock->read_only_compatible_features_flags );
+
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_superblock_v5_t *) data )->incompatible_features_flags,
+		 superblock->incompatible_features_flags );
+
+		byte_stream_copy_to_uint32_big_endian(
+		 ( (fsxfs_superblock_v5_t *) data )->journal_incompatible_features_flags,
+		 superblock->journal_incompatible_features_flags );
+
 /* TODO read version 5 additional values */
 
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: compatible features flags\t\t: 0x%08" PRIx32 "\n",
+			 function,
+			 superblock->compatible_features_flags );
+
+			libcnotify_printf(
+			 "%s: read-only compatible features flags\t: 0x%08" PRIx32 "\n",
+			 function,
+			 superblock->read_only_compatible_features_flags );
+			libfsxfs_debug_print_read_only_compatible_features_flags(
+			 superblock->read_only_compatible_features_flags );
+			libcnotify_printf(
+			 "\n" );
+
+			libcnotify_printf(
+			 "%s: incompatible features flags\t\t: 0x%08" PRIx32 "\n",
+			 function,
+			 superblock->incompatible_features_flags );
+			libfsxfs_debug_print_incompatible_features_flags(
+			 superblock->incompatible_features_flags );
+			libcnotify_printf(
+			 "\n" );
+
+			libcnotify_printf(
+			 "%s: journal incompatible features flags\t: 0x%08" PRIx32 "\n",
+			 function,
+			 superblock->journal_incompatible_features_flags );
+
+			libcnotify_printf(
+			 "\n" );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+		supported_feature_flags = 0x00000001UL
+		                        | 0x00000002UL;
+
+		if( ( superblock->incompatible_features_flags & ~( supported_feature_flags ) ) != 0 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+			 "%s: unsupported incompatible features flags: 0x%08" PRIx32 ".",
+			 function,
+			 superblock->incompatible_features_flags );
+
+			return( -1 );
+		}
+	}
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
 	{

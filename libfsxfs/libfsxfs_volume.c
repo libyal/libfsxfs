@@ -1056,6 +1056,8 @@ int libfsxfs_internal_volume_open_read(
 			internal_volume->superblock                                      = superblock;
 			internal_volume->io_handle->format_version                       = superblock->format_version;
 			internal_volume->io_handle->secondary_feature_flags              = superblock->secondary_feature_flags;
+			internal_volume->io_handle->read_only_compatible_features_flags  = superblock->read_only_compatible_features_flags;
+			internal_volume->io_handle->incompatible_features_flags          = superblock->incompatible_features_flags;
 			internal_volume->io_handle->block_size                           = superblock->block_size;
 			internal_volume->io_handle->allocation_group_size                = superblock->allocation_group_size;
 			internal_volume->io_handle->inode_size                           = superblock->inode_size;
@@ -1245,6 +1247,126 @@ int libfsxfs_volume_get_format_version(
 	*format_version = internal_volume->io_handle->format_version;
 
 #if defined( HAVE_LIBFSXFS_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_release_for_read(
+	     internal_volume->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to release read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	return( 1 );
+}
+
+/* Retrieves the feature flags
+ * Returns 1 if successful or -1 on error
+ */
+int libfsxfs_volume_get_features_flags(
+     libfsxfs_volume_t *volume,
+     uint32_t *compatible_features_flags,
+     uint32_t *read_only_compatible_features_flags,
+     uint32_t *incompatible_features_flags,
+     uint32_t *journal_incompatible_features_flags,
+     libcerror_error_t **error )
+{
+	libfsxfs_internal_volume_t *internal_volume = NULL;
+	static char *function                       = "libfsxfs_volume_get_features_flags";
+
+	if( volume == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid volume.",
+		 function );
+
+		return( -1 );
+	}
+	internal_volume = (libfsxfs_internal_volume_t *) volume;
+
+	if( internal_volume->superblock == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+		 "%s: invalid volume - missing superblock.",
+		 function );
+
+		return( -1 );
+	}
+	if( compatible_features_flags == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid compatible features flags.",
+		 function );
+
+		return( -1 );
+	}
+	if( read_only_compatible_features_flags == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid read-only compatible features flags.",
+		 function );
+
+		return( -1 );
+	}
+	if( incompatible_features_flags == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid incompatible features flags.",
+		 function );
+
+		return( -1 );
+	}
+	if( journal_incompatible_features_flags == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid journal incompatible features flags.",
+		 function );
+
+		return( -1 );
+	}
+#if defined( HAVE_LIBFSEXT_MULTI_THREAD_SUPPORT )
+	if( libcthreads_read_write_lock_grab_for_read(
+	     internal_volume->read_write_lock,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_SET_FAILED,
+		 "%s: unable to grab read/write lock for reading.",
+		 function );
+
+		return( -1 );
+	}
+#endif
+	*compatible_features_flags           = internal_volume->superblock->compatible_features_flags;
+	*read_only_compatible_features_flags = internal_volume->superblock->read_only_compatible_features_flags;
+	*incompatible_features_flags         = internal_volume->superblock->incompatible_features_flags;
+	*journal_incompatible_features_flags = internal_volume->superblock->journal_incompatible_features_flags;
+
+#if defined( HAVE_LIBFSEXT_MULTI_THREAD_SUPPORT )
 	if( libcthreads_read_write_lock_release_for_read(
 	     internal_volume->read_write_lock,
 	     error ) != 1 )

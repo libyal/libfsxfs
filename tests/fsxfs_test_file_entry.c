@@ -128,6 +128,14 @@ int main(
 
 	/* TODO: add tests for libfsxfs_file_entry_get_utf16_name */
 
+	/* TODO: add tests for libfsxfs_file_entry_get_utf8_symbolic_link_target_size */
+
+	/* TODO: add tests for libfsxfs_file_entry_get_utf8_symbolic_link_target */
+
+	/* TODO: add tests for libfsxfs_file_entry_get_utf16_symbolic_link_target_size */
+
+	/* TODO: add tests for libfsxfs_file_entry_get_utf16_symbolic_link_target */
+
 	/* TODO: add tests for libfsxfs_file_entry_get_number_of_sub_file_entries */
 
 	/* TODO: add tests for libfsxfs_file_entry_get_sub_file_entry_by_index */

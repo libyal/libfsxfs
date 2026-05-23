@@ -497,6 +497,26 @@ struct fsxfs_superblock_v5
 	 * Consists of 4 bytes
 	 */
 	uint8_t secondary_feature_flags_copy[ 4 ];
+
+	/* Compatible features flags
+	 * Consists of 4 bytes
+	 */
+	uint8_t compatible_features_flags[ 4 ];
+
+	/* Read only compatible features flags
+	 * Consists of 4 bytes
+	 */
+	uint8_t read_only_compatible_features_flags[ 4 ];
+
+	/* Incompatible features flags
+	 * Consists of 4 bytes
+	 */
+	uint8_t incompatible_features_flags[ 4 ];
+
+	/* Journal incompatible features flags
+	 * Consists of 4 bytes
+	 */
+	uint8_t journal_incompatible_features_flags[ 4 ];
 };
 
 #if defined( __cplusplus )
