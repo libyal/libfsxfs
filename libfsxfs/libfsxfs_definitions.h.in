@@ -91,6 +91,13 @@ enum LIBFSXFS_EXTENT_FLAGS
 
 #endif /* !defined( HAVE_LOCAL_LIBFSXFS ) */
 
+/* The feature flags
+ */
+enum LIBFSXFS_FEATURE_FLAGS
+{
+	LIBFSXFS_FEATURE_FLAG_DIRECTORY_V2				= 0x2000
+};
+
 /* The secondary feature flags
  */
 enum LIBFSXFS_SECONDARY_FEATURE_FLAGS

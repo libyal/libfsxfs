@@ -29,6 +29,21 @@
 extern "C" {
 #endif
 
+typedef struct fsxfs_timestamp fsxfs_timestamp_t;
+
+struct fsxfs_timestamp
+{
+	/* Seconds
+	 * Consists of 4 bytes
+	 */
+	uint8_t seconds[ 4 ];
+
+	/* Nanoseconds
+	 * Consists of 4 bytes
+	 */
+	uint8_t nanoseconds[ 4 ];
+};
+
 typedef struct fsxfs_inode_v1 fsxfs_inode_v1_t;
 
 struct fsxfs_inode_v1
@@ -79,34 +94,19 @@ struct fsxfs_inode_v1
 	uint8_t flush_counter[ 2 ];
 
 	/* Access time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t access_time[ 4 ];
-
-	/* Access time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t access_time_nano_seconds[ 4 ];
+	uint8_t access_time[ 8 ];
 
 	/* Modification time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t modification_time[ 4 ];
-
-	/* Modification time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t modification_time_nano_seconds[ 4 ];
+	uint8_t modification_time[ 8 ];
 
 	/* Inode change time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t inode_change_time[ 4 ];
-
-	/* Inode change time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t inode_change_time_nano_seconds[ 4 ];
+	uint8_t inode_change_time[ 8 ];
 
 	/* Data size
 	 * Consists of 8 bytes
@@ -163,7 +163,6 @@ struct fsxfs_inode_v1
 	 */
 	uint8_t generation_number[ 4 ];
 
-/* TODO verify if this value exists */
 	/* Unknown
 	 * Consists of 4 bytes
 	 */
@@ -230,34 +229,19 @@ struct fsxfs_inode_v2
 	uint8_t flush_counter[ 2 ];
 
 	/* Access time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t access_time[ 4 ];
-
-	/* Access time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t access_time_nano_seconds[ 4 ];
+	uint8_t access_time[ 8 ];
 
 	/* Modification time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t modification_time[ 4 ];
-
-	/* Modification time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t modification_time_nano_seconds[ 4 ];
+	uint8_t modification_time[ 8 ];
 
 	/* Inode change time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t inode_change_time[ 4 ];
-
-	/* Inode change time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t inode_change_time_nano_seconds[ 4 ];
+	uint8_t inode_change_time[ 8 ];
 
 	/* Data size
 	 * Consists of 8 bytes
@@ -387,34 +371,19 @@ struct fsxfs_inode_v3
 		uint8_t number_of_data_extents_64bit[ 8 ];
 	};
 	/* Access time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t access_time[ 4 ];
-
-	/* Access time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t access_time_nano_seconds[ 4 ];
+	uint8_t access_time[ 8 ];
 
 	/* Modification time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t modification_time[ 4 ];
-
-	/* Modification time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t modification_time_nano_seconds[ 4 ];
+	uint8_t modification_time[ 8 ];
 
 	/* Inode change time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t inode_change_time[ 4 ];
-
-	/* Inode change time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t inode_change_time_nano_seconds[ 4 ];
+	uint8_t inode_change_time[ 8 ];
 
 	/* Data size
 	 * Consists of 8 bytes
@@ -521,14 +490,9 @@ struct fsxfs_inode_v3
 	uint8_t unknown8[ 12 ];
 
 	/* Creation time
-	 * Consists of 4 bytes
+	 * Consists of 8 bytes
 	 */
-	uint8_t creation_time[ 4 ];
-
-	/* Creation time nanoseconds
-	 * Consists of 4 bytes
-	 */
-	uint8_t creation_time_nano_seconds[ 4 ];
+	uint8_t creation_time[ 8 ];
 
 	/* Inode number
 	 * Consists of 8 bytes

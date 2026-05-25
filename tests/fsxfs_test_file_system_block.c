@@ -1,0 +1,894 @@
+/*
+ * Library file_system_block type test program
+ *
+ * Copyright (C) 2020-2026, Joachim Metz <joachim.metz@gmail.com>
+ *
+ * Refer to AUTHORS for acknowledgements.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include <common.h>
+#include <file_stream.h>
+#include <types.h>
+
+#if defined( HAVE_STDLIB_H ) || defined( WINAPI )
+#include <stdlib.h>
+#endif
+
+#include "fsxfs_test_functions.h"
+#include "fsxfs_test_libbfio.h"
+#include "fsxfs_test_libcerror.h"
+#include "fsxfs_test_libfsxfs.h"
+#include "fsxfs_test_macros.h"
+#include "fsxfs_test_memory.h"
+#include "fsxfs_test_unused.h"
+
+#include "../libfsxfs/libfsxfs_file_system_block.h"
+#include "../libfsxfs/libfsxfs_io_handle.h"
+
+uint8_t fsxfs_test_file_system_block_data1[ 512 ] = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfe, 0xbe, 0x00, 0x00, 0x00, 0x10, 0x00, 0x01,
+	0x1e, 0x46, 0xde, 0xf5, 0x00, 0x00, 0x00, 0x01, 0x23, 0x6f, 0x78, 0x3b, 0x00, 0x00, 0x00, 0x02,
+	0x23, 0x6f, 0x78, 0xb7, 0x00, 0x00, 0x00, 0x0c, 0x23, 0x6f, 0x78, 0xbc, 0x00, 0x00, 0x00, 0x0e,
+	0x23, 0x6f, 0x79, 0x37, 0x00, 0x00, 0x00, 0x0d, 0x23, 0x6f, 0x79, 0x3d, 0x00, 0x00, 0x00, 0x0b,
+	0x23, 0x6f, 0x79, 0xb9, 0x00, 0x00, 0x00, 0x08, 0x23, 0x6f, 0x79, 0xbe, 0x00, 0x00, 0x00, 0x0a,
+	0x23, 0x6f, 0x7a, 0x39, 0x00, 0x00, 0x00, 0x09, 0x23, 0x6f, 0x7a, 0x3f, 0x00, 0x00, 0x00, 0x05,
+	0x23, 0x6f, 0x7a, 0xbb, 0x00, 0x00, 0x00, 0x04, 0x23, 0x6f, 0x7b, 0xb6, 0x00, 0x00, 0x00, 0x07,
+	0x23, 0x6f, 0x7b, 0xbb, 0x00, 0x00, 0x00, 0x06, 0x23, 0x6f, 0x7f, 0x3b, 0x00, 0x00, 0x00, 0x03,
+	0x23, 0x6f, 0x7f, 0xbb, 0x00, 0x00, 0x00, 0x0f, 0xcd, 0x3a, 0x75, 0xd6, 0x00, 0x00, 0x00, 0x10,
+	0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x31, 0x30, 0x45, 0x78, 0x74, 0x65, 0x6e, 0x64, 0x65, 0x64,
+	0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x31, 0x30, 0x00, 0x00,
+	0x00, 0x15, 0x08, 0x6d, 0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x39, 0x45, 0x78, 0x74, 0x65, 0x6e,
+	0x64, 0x65, 0x64, 0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x39,
+	0x00, 0x15, 0x08, 0x6d, 0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x38, 0x45, 0x78, 0x74, 0x65, 0x6e,
+	0x64, 0x65, 0x64, 0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x38,
+	0x00, 0x15, 0x08, 0x6d, 0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x37, 0x45, 0x78, 0x74, 0x65, 0x6e,
+	0x64, 0x65, 0x64, 0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x37,
+	0x00, 0x15, 0x08, 0x6d, 0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x36, 0x45, 0x78, 0x74, 0x65, 0x6e,
+	0x64, 0x65, 0x64, 0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x36,
+	0x00, 0x15, 0x08, 0x6d, 0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x35, 0x45, 0x78, 0x74, 0x65, 0x6e,
+	0x64, 0x65, 0x64, 0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x35,
+	0x00, 0x15, 0x08, 0x6d, 0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x34, 0x45, 0x78, 0x74, 0x65, 0x6e,
+	0x64, 0x65, 0x64, 0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x34,
+	0x00, 0x15, 0x08, 0x6d, 0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x33, 0x45, 0x78, 0x74, 0x65, 0x6e,
+	0x64, 0x65, 0x64, 0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x33,
+	0x00, 0x15, 0x08, 0x6d, 0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x32, 0x45, 0x78, 0x74, 0x65, 0x6e,
+	0x64, 0x65, 0x64, 0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x32,
+	0x00, 0x15, 0x08, 0x6d, 0x79, 0x78, 0x61, 0x74, 0x74, 0x72, 0x31, 0x45, 0x78, 0x74, 0x65, 0x6e,
+	0x64, 0x65, 0x64, 0x20, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x3a, 0x20, 0x31,
+	0x00, 0x25, 0x07, 0x73, 0x65, 0x6c, 0x69, 0x6e, 0x75, 0x78, 0x75, 0x6e, 0x63, 0x6f, 0x6e, 0x66,
+	0x69, 0x6e, 0x65, 0x64, 0x5f, 0x75, 0x3a, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x5f, 0x72, 0x3a,
+	0x75, 0x6e, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x65, 0x64, 0x5f, 0x74, 0x3a, 0x73, 0x30, 0x00, 0x00 };
+
+#if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
+
+/* Tests the libfsxfs_file_system_block_initialize function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_file_system_block_initialize(
+     void )
+{
+	libcerror_error_t *error                        = NULL;
+	libfsxfs_file_system_block_t *file_system_block = NULL;
+	int result                                      = 0;
+
+#if defined( HAVE_FSXFS_TEST_MEMORY )
+	int number_of_malloc_fail_tests                 = 1;
+	int number_of_memset_fail_tests                 = 1;
+	int test_number                                 = 0;
+#endif
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_file_system_block_initialize(
+	          &file_system_block,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "file_system_block",
+	 file_system_block );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_file_system_block_free(
+	          &file_system_block,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "file_system_block",
+	 file_system_block );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_file_system_block_initialize(
+	          NULL,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	file_system_block = (libfsxfs_file_system_block_t *) 0x12345678UL;
+
+	result = libfsxfs_file_system_block_initialize(
+	          &file_system_block,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	file_system_block = NULL;
+
+#if defined( HAVE_FSXFS_TEST_MEMORY )
+
+	for( test_number = 0;
+	     test_number < number_of_malloc_fail_tests;
+	     test_number++ )
+	{
+		/* Test libfsxfs_file_system_block_initialize with malloc failing
+		 */
+		fsxfs_test_malloc_attempts_before_fail = test_number;
+
+		result = libfsxfs_file_system_block_initialize(
+		          &file_system_block,
+		          512,
+		          &error );
+
+		if( fsxfs_test_malloc_attempts_before_fail != -1 )
+		{
+			fsxfs_test_malloc_attempts_before_fail = -1;
+
+			if( file_system_block != NULL )
+			{
+				libfsxfs_file_system_block_free(
+				 &file_system_block,
+				 NULL );
+			}
+		}
+		else
+		{
+			FSXFS_TEST_ASSERT_EQUAL_INT(
+			 "result",
+			 result,
+			 -1 );
+
+			FSXFS_TEST_ASSERT_IS_NULL(
+			 "file_system_block",
+			 file_system_block );
+
+			FSXFS_TEST_ASSERT_IS_NOT_NULL(
+			 "error",
+			 error );
+
+			libcerror_error_free(
+			 &error );
+		}
+	}
+	for( test_number = 0;
+	     test_number < number_of_memset_fail_tests;
+	     test_number++ )
+	{
+		/* Test libfsxfs_file_system_block_initialize with memset failing
+		 */
+		fsxfs_test_memset_attempts_before_fail = test_number;
+
+		result = libfsxfs_file_system_block_initialize(
+		          &file_system_block,
+		          512,
+		          &error );
+
+		if( fsxfs_test_memset_attempts_before_fail != -1 )
+		{
+			fsxfs_test_memset_attempts_before_fail = -1;
+
+			if( file_system_block != NULL )
+			{
+				libfsxfs_file_system_block_free(
+				 &file_system_block,
+				 NULL );
+			}
+		}
+		else
+		{
+			FSXFS_TEST_ASSERT_EQUAL_INT(
+			 "result",
+			 result,
+			 -1 );
+
+			FSXFS_TEST_ASSERT_IS_NULL(
+			 "file_system_block",
+			 file_system_block );
+
+			FSXFS_TEST_ASSERT_IS_NOT_NULL(
+			 "error",
+			 error );
+
+			libcerror_error_free(
+			 &error );
+		}
+	}
+#endif /* defined( HAVE_FSXFS_TEST_MEMORY ) */
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	if( file_system_block != NULL )
+	{
+		libfsxfs_file_system_block_free(
+		 &file_system_block,
+		 NULL );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_file_system_block_free function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_file_system_block_free(
+     void )
+{
+	libcerror_error_t *error = NULL;
+	int result               = 0;
+
+	/* Test error cases
+	 */
+	result = libfsxfs_file_system_block_free(
+	          NULL,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_file_system_block_read_data function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_file_system_block_read_data(
+     void )
+{
+	libcerror_error_t *error                        = NULL;
+	libfsxfs_file_system_block_t *file_system_block = NULL;
+	libfsxfs_io_handle_t *io_handle                 = NULL;
+	int result                                      = 0;
+
+	/* Initialize test
+	 */
+	result = libfsxfs_io_handle_initialize(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	io_handle->format_version = 5;
+	io_handle->block_size     = 1024;
+	io_handle->inode_size     = 128;
+
+	result = libfsxfs_file_system_block_initialize(
+	          &file_system_block,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "file_system_block",
+	 file_system_block );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_file_system_block_read_data(
+	          file_system_block,
+	          io_handle,
+	          fsxfs_test_file_system_block_data1,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_file_system_block_read_data(
+	          NULL,
+	          io_handle,
+	          fsxfs_test_file_system_block_data1,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_file_system_block_read_data(
+	          file_system_block,
+	          NULL,
+	          fsxfs_test_file_system_block_data1,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_file_system_block_read_data(
+	          file_system_block,
+	          io_handle,
+	          NULL,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_file_system_block_read_data(
+	          file_system_block,
+	          io_handle,
+	          fsxfs_test_file_system_block_data1,
+	          (size_t) SSIZE_MAX + 1,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_file_system_block_read_data(
+	          file_system_block,
+	          io_handle,
+	          fsxfs_test_file_system_block_data1,
+	          0,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	/* Clean up
+	 */
+	result = libfsxfs_file_system_block_free(
+	          &file_system_block,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "file_system_block",
+	 file_system_block );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_io_handle_free(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	if( file_system_block != NULL )
+	{
+		libfsxfs_file_system_block_free(
+		 &file_system_block,
+		 NULL );
+	}
+	if( io_handle != NULL )
+	{
+		libfsxfs_io_handle_free(
+		 &io_handle,
+		 NULL );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_file_system_block_read_file_io_handle function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_file_system_block_read_file_io_handle(
+     void )
+{
+	libbfio_handle_t *file_io_handle                = NULL;
+	libcerror_error_t *error                        = NULL;
+	libfsxfs_file_system_block_t *file_system_block = NULL;
+	libfsxfs_io_handle_t *io_handle                 = NULL;
+	int result                                      = 0;
+
+	/* Initialize test
+	 */
+	result = libfsxfs_io_handle_initialize(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	io_handle->format_version = 5;
+	io_handle->block_size     = 1024;
+	io_handle->inode_size     = 128;
+
+	result = libfsxfs_file_system_block_initialize(
+	          &file_system_block,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "file_system_block",
+	 file_system_block );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Initialize file IO handle
+	 */
+	result = fsxfs_test_open_file_io_handle(
+	          &file_io_handle,
+	          fsxfs_test_file_system_block_data1,
+	          512,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "file_io_handle",
+	 file_io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_file_system_block_read_file_io_handle(
+	          file_system_block,
+	          io_handle,
+	          file_io_handle,
+	          0,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_file_system_block_read_file_io_handle(
+	          NULL,
+	          io_handle,
+	          file_io_handle,
+	          0,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_file_system_block_read_file_io_handle(
+	          file_system_block,
+	          NULL,
+	          file_io_handle,
+	          0,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_file_system_block_read_file_io_handle(
+	          file_system_block,
+	          io_handle,
+	          NULL,
+	          0,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_file_system_block_read_file_io_handle(
+	          file_system_block,
+	          io_handle,
+	          file_io_handle,
+	          -1,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	/* Clean up file IO handle
+	 */
+	result = fsxfs_test_close_file_io_handle(
+	          &file_io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 0 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test data too small
+	 */
+	result = fsxfs_test_open_file_io_handle(
+	          &file_io_handle,
+	          fsxfs_test_file_system_block_data1,
+	          8,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "file_io_handle",
+	 file_io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_file_system_block_read_file_io_handle(
+	          file_system_block,
+	          io_handle,
+	          file_io_handle,
+	          0,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = fsxfs_test_close_file_io_handle(
+	          &file_io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 0 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test data invalid
+	 */
+/* TODO implement */
+
+	/* Clean up
+	 */
+	result = libfsxfs_file_system_block_free(
+	          &file_system_block,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "file_system_block",
+	 file_system_block );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_io_handle_free(
+	          &io_handle,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "io_handle",
+	 io_handle );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	if( file_io_handle != NULL )
+	{
+		libbfio_handle_free(
+		 &file_io_handle,
+		 NULL );
+	}
+	if( file_system_block != NULL )
+	{
+		libfsxfs_file_system_block_free(
+		 &file_system_block,
+		 NULL );
+	}
+	if( io_handle != NULL )
+	{
+		libfsxfs_io_handle_free(
+		 &io_handle,
+		 NULL );
+	}
+	return( 0 );
+}
+
+#endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
+
+/* The main program
+ */
+#if defined( HAVE_WIDE_SYSTEM_CHARACTER )
+int wmain(
+     int argc FSXFS_TEST_ATTRIBUTE_UNUSED,
+     wchar_t * const argv[] FSXFS_TEST_ATTRIBUTE_UNUSED )
+#else
+int main(
+     int argc FSXFS_TEST_ATTRIBUTE_UNUSED,
+     char * const argv[] FSXFS_TEST_ATTRIBUTE_UNUSED )
+#endif
+{
+	FSXFS_TEST_UNREFERENCED_PARAMETER( argc )
+	FSXFS_TEST_UNREFERENCED_PARAMETER( argv )
+
+#if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
+
+	FSXFS_TEST_RUN(
+	 "libfsxfs_file_system_block_initialize",
+	 fsxfs_test_file_system_block_initialize );
+
+	FSXFS_TEST_RUN(
+	 "libfsxfs_file_system_block_free",
+	 fsxfs_test_file_system_block_free );
+
+	FSXFS_TEST_RUN(
+	 "libfsxfs_file_system_block_read_data",
+	 fsxfs_test_file_system_block_read_data );
+
+	FSXFS_TEST_RUN(
+	 "libfsxfs_file_system_block_read_file_io_handle",
+	 fsxfs_test_file_system_block_read_file_io_handle );
+
+#endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
+
+	return( EXIT_SUCCESS );
+
+#if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
+
+on_error:
+	return( EXIT_FAILURE );
+
+#endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
+}
+

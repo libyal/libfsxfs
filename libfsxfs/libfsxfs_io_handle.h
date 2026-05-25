@@ -40,6 +40,10 @@ struct libfsxfs_io_handle
 	 */
 	int format_version;
 
+	/* Feature flags
+	 */
+	uint16_t feature_flags;
+
 	/* Secondary feature flags
 	 */
 	uint32_t secondary_feature_flags;

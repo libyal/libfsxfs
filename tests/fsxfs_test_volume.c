@@ -2175,6 +2175,12 @@ int main(
 		 fsxfs_test_volume_get_utf16_label,
 		 volume );
 
+#if defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT )
+
+		/* TODO: add tests for libfsxfs_internal_volume_get_root_directory */
+
+#endif /* defined( __GNUC__ ) && !defined( LIBFSXFS_DLL_IMPORT ) */
+
 		FSXFS_TEST_RUN_WITH_ARGS(
 		 "libfsxfs_volume_get_root_directory",
 		 fsxfs_test_volume_get_root_directory,

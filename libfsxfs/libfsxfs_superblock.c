@@ -618,8 +618,14 @@ int libfsxfs_superblock_read_data(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
+#if defined( HAVE_DEBUG_OUTPUT )
+	/* TODO allow versions 1 to 5 for format analysis when debug output is enabled */
+	if( ( superblock->format_version < 1 )
+	 || ( superblock->format_version > 5 ) )
+#else
 	if( ( superblock->format_version != 4 )
 	 && ( superblock->format_version != 5 ) )
+#endif
 	{
 		libcerror_error_set(
 		 error,

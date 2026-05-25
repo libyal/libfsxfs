@@ -138,9 +138,12 @@ Contains an UUID
 | 48 | 8 | | Journal block number +
 Contains a file system block number or 0 if the journal is stored on a separate device +
 See section: <<file_system_block_number,File system block number>>
-| 56 | 8 | | Root directory inode number
-| 64 | 8 | | Real-time bitmap extents inode number
-| 72 | 8 | | Real-time bitmap summary inode number
+| 56 | 8 | | Root directory inode number +
+Contains -1 (0xffffffffffffffff) if not set
+| 64 | 8 | | Real-time bitmap extents inode number +
+Contains -1 (0xffffffffffffffff) if not set
+| 72 | 8 | | Real-time bitmap summary inode number +
+Contains -1 (0xffffffffffffffff) if not set
 | 80 | 4 | | Real-time extent size +
 Contains number of blocks
 | 84 | 4 | | Allocation group size +
@@ -150,8 +153,7 @@ Contains number of blocks
 Contains number of blocks
 | 96 | 4 | | Journal size +
 Contains number of blocks
-| 100 | 2 | | Version and feature flags +
-The 4 LSB contain the version the remaining bits are used to store the <<feature_flags,feature flags>>
+| 100 | 2 | | <<version_and_feature_flags,Version and feature flags>>
 | 102 | 2 | | Sector size (in bytes)
 | 104 | 2 | | Inode size (in bytes) +
 Supported range 256 - 2048
@@ -230,7 +232,25 @@ Contains an UUID
 Allocation group size and allocation group size in log2 are not necessarily
 equivalent.
 
-=== [[feature_flags]]Feature flags
+[NOTE]
+Is superblock format XFS version 1 152 bytes in size?
+
+=== [[version_and_feature_flags]]Version and feature flags
+
+The 4 LSB contain the version the remaining bits are used to store feature flags.
+
+[cols="1,5",options="header"]
+|===
+| Version | Introduced in
+2+| _First generation_
+| 1 | Used by IRIX 5.3
+| 2 | [yellow-background]*Unknown (Used by IRIX 6.5?)*
+| 3 | [yellow-background]*Unknown*
+2+| _Second generation_
+| 4 | Linux port
+2+| _Third generation_
+| 5 | Seen on modern Linux
+|===
 
 [cols="1,1,5",options="header"]
 |===
@@ -425,7 +445,7 @@ Contains a block number relative to the start of the allocation group
 | 28 | 4 | | Number of unused (free) inodes in the allocation group
 | 32 | 4 | | First inode number of the last allocated inode chunk +
 Contains an inode number relative to the allocation group
-| 36 | 4 | -1 (0xffffffff) | [yellow-background]*Unknown (deprecated)*
+| 36 | 4 | -1 (0xffffffff) | [yellow-background]*Unknown*
 | 40 | 64 x 4 | | Hash table of unlinked (deleted) inodes that are still being referenced +
 Contains -1 (0xffffffff) if not set
 4+| _If file system version >= 5_
@@ -645,7 +665,7 @@ The inode can be followed by:
 
 === Inode version 1
 
-The inode version 1 (xfs_dinode_core_t) is 96 bytes of size and consist of:
+The inode version 1 (xfs_dinode_core_t) is 100 bytes of size and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -660,21 +680,21 @@ See section: <<fork_type,Fork type>>
 | 6 | 2 | | Number of links
 | 8 | 4 | | Owner (or user) identifier (UID)
 | 12 | 4 | | Group identifier (GID)
-| 16 | 14 | 0 | [yellow-background]*Unknown (padding)*
+| 16 | 14 | 0 | [yellow-background]*Unknown (contains data in XFS version 1)*
 | 30 | 2 | | Flush counter +
 Contains a value that is incremented on flush
 | 32 | 4 | | (last) access time +
 Contains a POSIX timestamp in seconds
 | 36 | 4 | | (last) access time fraction of second +
-Contains number of nanoseconds
+Contains number of nanoseconds (empty in XFS version 1)
 | 40 | 4 | | (last) modification time +
 Contains a POSIX timestamp in seconds
 | 44 | 4 | | (last) modification time fraction of second +
-Contains number of nanoseconds
+Contains number of nanoseconds (empty in XFS version 1)
 | 48 | 4 | | (last) inode change time +
 Contains a POSIX timestamp in seconds
 | 52 | 4 | | (last) inode change time fraction of second +
-Contains number of nanoseconds
+Contains number of nanoseconds (empty in XFS version 1)
 | 56 | 8 | | (Data) size
 | 64 | 8 | | Number of (data) blocks
 | 72 | 4 | | Extent size
@@ -688,11 +708,14 @@ Contains an offset (value x 8) relative to the end of the inode
 | 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
 | 90 | 2 | | Inode flags
 | 92 | 4 | | Generation number
+4+| _Non-inode core field
+| 96 | 4 | | [yellow-background]*Unknown (next unlinked inode)* +
+Contains -1 (0xffffffff) if not set
 |===
 
 === Inode version 2
 
-The inode version 2 (xfs_dinode_core_t) is 96 bytes of size and consist of:
+The inode version 2 (xfs_dinode_core_t) is 100 bytes of size and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
@@ -737,8 +760,9 @@ Contains an offset (value x 8) relative to the end of the inode
 | 88 | 2 | | [yellow-background]*Unknown (DMAPI state)*
 | 90 | 2 | | Inode flags
 | 92 | 4 | | Generation number
-4+| _Non-inode core field_
-| 96 | 4 | | [yellow-background]*Unknown (next unlinked inode)*
+4+| _Non-inode core field
+| 96 | 4 | | [yellow-background]*Unknown (next unlinked inode)* +
+Contains -1 (0xffffffff) if not set
 |===
 
 === Inode version 3
@@ -808,7 +832,8 @@ Contains an offset (value x 8) relative to the end of the inode
 See section: <<inode_flags,Inode flags>>
 | 92 | 4 | | Generation number
 4+| _Pre version 3 non-inode core field_
-| 96 | 4 | | [yellow-background]*Unknown (next unlinked inode)*
+| 96 | 4 | | [yellow-background]*Unknown (next unlinked inode)* +
+Contains -1 (0xffffffff) if not set
 4+| _Introduced in version 3_
 | 100 | 4 | | Checksum
 | 104 | 8 | | Change count +
@@ -1033,12 +1058,25 @@ directory entries can be stored in multiple ways:
 
 === Short-form directory table
 
-The short-form directory table (xfs_dir2_sf_t) is stored in the inode (as inline
-data), where fork type is XFS_DINODE_FMT_LOCAL. The short-form directory table
-consist of:
+The short-form directory table (xfs_dir_sf_t or xfs_dir2_sf_t) is stored in the
+inode (as inline data), where fork type is XFS_DINODE_FMT_LOCAL. The short-form
+directory table consist of:
 
 * Short-form directory table header
 * Short-form directory table entries
+
+==== Short-form directory table header version 1
+
+The short-form directory table header version 1 (xfs_dir_sf_hdr_t) is 9 bytes
+of size and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 8 | | Parent inode number +
+Contains an absolute inode number
+| 8 | 1 | | Number of entries
+|===
 
 ==== Short-form directory table header version 2
 
@@ -1059,6 +1097,21 @@ If the inode numbers are stored as 32-bit values then number of 32-bit entries
 is set and number of 64-bit entries must be 0. If the inode numbers are stored
 as 64-bit values then number of 64-bit entries is set and number of 32-bit
 entries must be 0.
+
+==== Short-form directory table entry version 1
+
+The short-form directory table entry version 1 (xfs_dir_sf_entry_t) is variable
+of size and consists of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 8 | | Inode number +
+Contains an absolute inode number
+| 9 | 1 | | Name size +
+Does not include the end-of-string character
+| 10 | ... | | Name
+|===
 
 ==== Short-form directory table entry version 2
 

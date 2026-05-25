@@ -1,17 +1,21 @@
 MSVSCPP_FILES = \
 	fsxfs_test_attribute_values/fsxfs_test_attribute_values.vcproj \
+	fsxfs_test_attributes/fsxfs_test_attributes.vcproj \
 	fsxfs_test_attributes_leaf_block_header/fsxfs_test_attributes_leaf_block_header.vcproj \
 	fsxfs_test_attributes_table/fsxfs_test_attributes_table.vcproj \
 	fsxfs_test_attributes_table_header/fsxfs_test_attributes_table_header.vcproj \
+	fsxfs_test_block_directory/fsxfs_test_block_directory.vcproj \
 	fsxfs_test_block_directory_footer/fsxfs_test_block_directory_footer.vcproj \
 	fsxfs_test_block_directory_header/fsxfs_test_block_directory_header.vcproj \
 	fsxfs_test_btree_block/fsxfs_test_btree_block.vcproj \
 	fsxfs_test_btree_header/fsxfs_test_btree_header.vcproj \
 	fsxfs_test_buffer_data_handle/fsxfs_test_buffer_data_handle.vcproj \
 	fsxfs_test_directory_entry/fsxfs_test_directory_entry.vcproj \
+	fsxfs_test_directory_table/fsxfs_test_directory_table.vcproj \
 	fsxfs_test_directory_table_header/fsxfs_test_directory_table_header.vcproj \
 	fsxfs_test_error/fsxfs_test_error.vcproj \
 	fsxfs_test_extent/fsxfs_test_extent.vcproj \
+	fsxfs_test_file_system_block/fsxfs_test_file_system_block.vcproj \
 	fsxfs_test_file_system_block_header/fsxfs_test_file_system_block_header.vcproj \
 	fsxfs_test_inode_btree/fsxfs_test_inode_btree.vcproj \
 	fsxfs_test_inode_btree_record/fsxfs_test_inode_btree_record.vcproj \

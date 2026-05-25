@@ -80,6 +80,28 @@ int libfsxfs_attributes_read_branch_values(
 
 		return( -1 );
 	}
+	if( data == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid data.",
+		 function );
+
+		return( -1 );
+	}
+	if( data_size > (size_t) SSIZE_MAX )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid data size value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
 	if( io_handle->format_version == 5 )
 	{
 		data_offset             = sizeof( fsxfs_file_system_block_header_v3_t );
@@ -115,39 +137,39 @@ int libfsxfs_attributes_read_branch_values(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_attributes_branch_block_header_v2_t *) &( data[ data_offset ] ) )->number_of_entries,
-		 number_of_entries );
+	byte_stream_copy_to_uint16_big_endian(
+	 ( (fsxfs_attributes_branch_block_header_v2_t *) &( data[ data_offset ] ) )->number_of_entries,
+	 number_of_entries );
 
 #if defined( HAVE_DEBUG_OUTPUT )
-		if( libcnotify_verbose != 0 )
+	if( libcnotify_verbose != 0 )
+	{
+		libcnotify_printf(
+		 "%s: number of entries\t\t: %" PRIu16 "\n",
+		 function,
+		 number_of_entries );
+
+		byte_stream_copy_to_uint16_big_endian(
+		 ( (fsxfs_attributes_branch_block_header_v2_t *) &( data[ data_offset ] ) )->node_level,
+		 value_16bit );
+		libcnotify_printf(
+		 "%s: node level\t\t\t: %" PRIu16 "\n",
+		 function,
+		 value_16bit );
+
+		if( io_handle->format_version == 5 )
 		{
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_attributes_branch_block_header_v3_t *) &( data[ data_offset ] ) )->unknown1,
+			 value_32bit );
 			libcnotify_printf(
-			 "%s: number of entries\t\t: %" PRIu16 "\n",
+			 "%s: unknown1\t\t\t: 0x%08" PRIx32 "\n",
 			 function,
-			 number_of_entries );
-
-			byte_stream_copy_to_uint16_big_endian(
-			 ( (fsxfs_attributes_branch_block_header_v2_t *) &( data[ data_offset ] ) )->node_level,
-			 value_16bit );
-			libcnotify_printf(
-			 "%s: node level\t\t\t: %" PRIu16 "\n",
-			 function,
-			 value_16bit );
-
-			if( io_handle->format_version == 5 )
-			{
-				byte_stream_copy_to_uint32_big_endian(
-				 ( (fsxfs_attributes_branch_block_header_v3_t *) &( data[ data_offset ] ) )->unknown1,
-				 value_32bit );
-				libcnotify_printf(
-				 "%s: unknown1\t\t\t: 0x%08" PRIx32 "\n",
-				 function,
-				 value_32bit );
-			}
-			libcnotify_printf(
-			 "\n" );
+			 value_32bit );
 		}
+		libcnotify_printf(
+		 "\n" );
+	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
 	data_offset += branch_header_data_size;
@@ -266,6 +288,28 @@ int libfsxfs_attributes_read_leaf_values(
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
 		 "%s: invalid IO handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( data == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid data.",
+		 function );
+
+		return( -1 );
+	}
+	if( data_size > (size_t) SSIZE_MAX )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid data size value out of bounds.",
 		 function );
 
 		return( -1 );

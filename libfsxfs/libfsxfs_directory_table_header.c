@@ -24,7 +24,9 @@
 #include <memory.h>
 #include <types.h>
 
+#include "libfsxfs_definitions.h"
 #include "libfsxfs_directory_table_header.h"
+#include "libfsxfs_io_handle.h"
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
 
@@ -138,6 +140,7 @@ int libfsxfs_directory_table_header_free(
  */
 int libfsxfs_directory_table_header_read_data(
      libfsxfs_directory_table_header_t *directory_table_header,
+     libfsxfs_io_handle_t *io_handle,
      const uint8_t *data,
      size_t data_size,
      libcerror_error_t **error )
@@ -154,6 +157,17 @@ int libfsxfs_directory_table_header_read_data(
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
 		 "%s: invalid directory table header.",
+		 function );
+
+		return( -1 );
+	}
+	if( io_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid IO handle.",
 		 function );
 
 		return( -1 );
@@ -181,28 +195,35 @@ int libfsxfs_directory_table_header_read_data(
 
 		return( -1 );
 	}
-	number_of_32bit_entries = data[ 0 ];
-	number_of_64bit_entries = data[ 1 ];
-
-	if( ( number_of_32bit_entries != 0 )
-	 && ( number_of_64bit_entries != 0 ) )
+	if( ( io_handle->feature_flags & LIBFSXFS_FEATURE_FLAG_DIRECTORY_V2 ) == 0 )
 	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: invalid number of 32-bit and 64-bit entries.",
-		 function );
-
-		return( -1 );
-	}
-	if( number_of_64bit_entries == 0 )
-	{
-		header_data_size = 6;
+		header_data_size = 9;
 	}
 	else
 	{
-		header_data_size = 10;
+		number_of_32bit_entries = data[ 0 ];
+		number_of_64bit_entries = data[ 1 ];
+
+		if( ( number_of_32bit_entries != 0 )
+		 && ( number_of_64bit_entries != 0 ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+			 "%s: invalid number of 32-bit and 64-bit entries.",
+			 function );
+
+			return( -1 );
+		}
+		if( number_of_64bit_entries == 0 )
+		{
+			header_data_size = 6;
+		}
+		else
+		{
+			header_data_size = 10;
+		}
 	}
 	if( data_size < header_data_size )
 	{
@@ -228,44 +249,76 @@ int libfsxfs_directory_table_header_read_data(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-	if( number_of_64bit_entries == 0 )
+	if( ( io_handle->feature_flags & LIBFSXFS_FEATURE_FLAG_DIRECTORY_V2 ) == 0 )
 	{
-		directory_table_header->number_of_entries = number_of_32bit_entries;
-
-		directory_table_header->inode_number_data_size = 4;
-
-		byte_stream_copy_to_uint32_big_endian(
-		 &( data[ 2 ] ),
+		byte_stream_copy_to_uint64_big_endian(
+		 data,
 		 directory_table_header->parent_inode_number );
-	}
-	else
-	{
-		directory_table_header->number_of_entries = number_of_64bit_entries;
 
 		directory_table_header->inode_number_data_size = 8;
 
-		byte_stream_copy_to_uint64_big_endian(
-		 &( data[ 2 ] ),
-		 directory_table_header->parent_inode_number );
+		directory_table_header->number_of_entries = data[ 8 ];
+
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: parent inode number\t\t: %" PRIu64 "\n",
+			 function,
+			 directory_table_header->parent_inode_number );
+
+			libcnotify_printf(
+			 "%s: number of entries\t\t: %" PRIu8 "\n",
+			 function,
+			 directory_table_header->number_of_entries );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
+	}
+	else
+	{
+		if( number_of_64bit_entries == 0 )
+		{
+			directory_table_header->number_of_entries = number_of_32bit_entries;
+
+			directory_table_header->inode_number_data_size = 4;
+
+			byte_stream_copy_to_uint32_big_endian(
+			 &( data[ 2 ] ),
+			 directory_table_header->parent_inode_number );
+		}
+		else
+		{
+			directory_table_header->number_of_entries = number_of_64bit_entries;
+
+			directory_table_header->inode_number_data_size = 8;
+
+			byte_stream_copy_to_uint64_big_endian(
+			 &( data[ 2 ] ),
+			 directory_table_header->parent_inode_number );
+		}
+#if defined( HAVE_DEBUG_OUTPUT )
+		if( libcnotify_verbose != 0 )
+		{
+			libcnotify_printf(
+			 "%s: number of 32-bit entries\t: %" PRIu8 "\n",
+			 function,
+			 number_of_32bit_entries );
+
+			libcnotify_printf(
+			 "%s: number of 64-bit entries\t: %" PRIu8 "\n",
+			 function,
+			 number_of_64bit_entries );
+
+			libcnotify_printf(
+			 "%s: parent inode number\t\t: %" PRIu64 "\n",
+			 function,
+			 directory_table_header->parent_inode_number );
+		}
+#endif /* defined( HAVE_DEBUG_OUTPUT ) */
 	}
 #if defined( HAVE_DEBUG_OUTPUT )
 	if( libcnotify_verbose != 0 )
 	{
-		libcnotify_printf(
-		 "%s: number of 32-bit entries\t: %" PRIu8 "\n",
-		 function,
-		 number_of_32bit_entries );
-
-		libcnotify_printf(
-		 "%s: number of 64-bit entries\t: %" PRIu8 "\n",
-		 function,
-		 number_of_64bit_entries );
-
-		libcnotify_printf(
-		 "%s: parent inode number\t\t: %" PRIu64 "\n",
-		 function,
-		 directory_table_header->parent_inode_number );
-
 		libcnotify_printf(
 		 "\n" );
 	}

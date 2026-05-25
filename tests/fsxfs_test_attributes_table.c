@@ -507,6 +507,13 @@ on_error:
 		libcerror_error_free(
 		 &error );
 	}
+	if( extended_attributes_array != NULL )
+	{
+		libcdata_array_free(
+		 &extended_attributes_array,
+		 (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_attribute_values_free,
+		 NULL );
+	}
 	if( attributes_table != NULL )
 	{
 		libfsxfs_attributes_table_free(

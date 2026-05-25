@@ -21,6 +21,7 @@
 
 #include <common.h>
 #include <file_stream.h>
+#include <memory.h>
 #include <types.h>
 
 #if defined( HAVE_STDLIB_H ) || defined( WINAPI )
@@ -267,6 +268,737 @@ on_error:
 	{
 		libcerror_error_free(
 		 &error );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_attribute_values_set_name function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_attribute_values_set_name(
+     void )
+{
+	libcerror_error_t *error                      = NULL;
+	libfsxfs_attribute_values_t *attribute_values = NULL;
+	int result                                    = 0;
+
+#if defined( HAVE_FSXFS_TEST_MEMORY )
+	int number_of_malloc_fail_tests               = 1;
+	int test_number                               = 0;
+
+#if defined( OPTIMIZATION_DISABLED )
+	int number_of_memcpy_fail_tests               = 2;
+#endif
+#endif
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_attribute_values_initialize(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_attribute_values_set_name(
+	          attribute_values,
+	          (uint8_t *) "myxattr1",
+	          8,
+	          0x00,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_attribute_values_free(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test with trusted domain prefix
+	 */
+	result = libfsxfs_attribute_values_initialize(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_attribute_values_set_name(
+	          attribute_values,
+	          (uint8_t *) "trustedattr",
+	          11,
+	          0x02,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_attribute_values_free(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test with secure domain prefix
+	 */
+	result = libfsxfs_attribute_values_initialize(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_attribute_values_set_name(
+	          attribute_values,
+	          (uint8_t *) "secureattr",
+	          10,
+	          0x04,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	/* Test with name already set
+	 */
+	result = libfsxfs_attribute_values_set_name(
+	          attribute_values,
+	          (uint8_t *) "myxattr2",
+	          8,
+	          0x00,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_attribute_values_free(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_attribute_values_initialize(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_attribute_values_set_name(
+	          NULL,
+	          (uint8_t *) "myxattr1",
+	          8,
+	          0x00,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_attribute_values_set_name(
+	          attribute_values,
+	          NULL,
+	          8,
+	          0x00,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_attribute_values_set_name(
+	          attribute_values,
+	          (uint8_t *) "myxattr1",
+	          0,
+	          0x00,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_attribute_values_set_name(
+	          attribute_values,
+	          (uint8_t *) "myxattr1",
+	          (size_t) SSIZE_MAX + 1,
+	          0x00,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_attribute_values_set_name(
+	          attribute_values,
+	          (uint8_t *) "myxattr1",
+	          8,
+	          0xff,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+#if defined( HAVE_FSXFS_TEST_MEMORY )
+
+	for( test_number = 0;
+	     test_number < number_of_malloc_fail_tests;
+	     test_number++ )
+	{
+		/* Test libfsxfs_attribute_values_set_name with malloc failing
+		 */
+		fsxfs_test_malloc_attempts_before_fail = test_number;
+
+		result = libfsxfs_attribute_values_set_name(
+		          attribute_values,
+		          (uint8_t *) "myxattr1",
+		          8,
+		          0x00,
+		          &error );
+
+		if( fsxfs_test_malloc_attempts_before_fail != -1 )
+		{
+			fsxfs_test_malloc_attempts_before_fail = -1;
+
+			if( attribute_values->name != NULL )
+			{
+				memory_free(
+				 attribute_values->name );
+
+				attribute_values->name      = NULL;
+				attribute_values->name_size = 0;
+			}
+		}
+		else
+		{
+			FSXFS_TEST_ASSERT_EQUAL_INT(
+			 "result",
+			 result,
+			 -1 );
+
+			FSXFS_TEST_ASSERT_IS_NULL(
+			 "attribute_values->name",
+			 attribute_values->name );
+
+			FSXFS_TEST_ASSERT_IS_NOT_NULL(
+			 "error",
+			 error );
+
+			libcerror_error_free(
+			 &error );
+		}
+	}
+#if defined( OPTIMIZATION_DISABLED )
+
+	for( test_number = 0;
+	     test_number < number_of_memcpy_fail_tests;
+	     test_number++ )
+	{
+		/* Test libfsxfs_attribute_values_set_name with memcpy failing
+		 */
+		fsxfs_test_memcpy_attempts_before_fail = 0;
+
+		result = libfsxfs_attribute_values_set_name(
+		          attribute_values,
+		          (uint8_t *) "myxattr1",
+		          8,
+		          0x00,
+		          &error );
+
+		if( fsxfs_test_memcpy_attempts_before_fail != -1 )
+		{
+			fsxfs_test_memcpy_attempts_before_fail = -1;
+
+			if( attribute_values->name != NULL )
+			{
+				memory_free(
+				 attribute_values->name );
+
+				attribute_values->name      = NULL;
+				attribute_values->name_size = 0;
+			}
+		}
+		else
+		{
+			FSXFS_TEST_ASSERT_EQUAL_INT(
+			 "result",
+			 result,
+			 -1 );
+
+			FSXFS_TEST_ASSERT_IS_NULL(
+			 "attribute_values->name",
+			 attribute_values->name );
+
+			FSXFS_TEST_ASSERT_IS_NOT_NULL(
+			 "error",
+			 error );
+
+			libcerror_error_free(
+			 &error );
+		}
+	}
+#endif /* defined( OPTIMIZATION_DISABLED ) */
+#endif /* defined( HAVE_FSXFS_TEST_MEMORY ) */
+
+	result = libfsxfs_attribute_values_free(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	if( attribute_values != NULL )
+	{
+		libfsxfs_attribute_values_free(
+		 &attribute_values,
+		 NULL );
+	}
+	return( 0 );
+}
+
+/* Tests the libfsxfs_attribute_values_set_value_data function
+ * Returns 1 if successful or 0 if not
+ */
+int fsxfs_test_attribute_values_set_value_data(
+     void )
+{
+	uint8_t value_data[ 16 ] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+
+	libcerror_error_t *error                      = NULL;
+	libfsxfs_attribute_values_t *attribute_values = NULL;
+	int result                                    = 0;
+
+#if defined( HAVE_FSXFS_TEST_MEMORY )
+	int number_of_malloc_fail_tests               = 1;
+	int test_number                               = 0;
+
+#if defined( OPTIMIZATION_DISABLED )
+	int number_of_memcpy_fail_tests               = 1;
+#endif
+#endif
+
+	/* Test regular cases
+	 */
+	result = libfsxfs_attribute_values_initialize(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_attribute_values_set_value_data(
+		  attribute_values,
+	          (uint8_t *) &value_data,
+	          16,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	/* Test with already set value data
+	 */
+	result = libfsxfs_attribute_values_set_value_data(
+	          attribute_values,
+	          (uint8_t *) "second",
+	          6,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_attribute_values_free(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	/* Test error cases
+	 */
+	result = libfsxfs_attribute_values_initialize(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libfsxfs_attribute_values_set_value_data(
+	          NULL,
+	          (uint8_t *) "test",
+	          4,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_attribute_values_set_value_data(
+	          attribute_values,
+	          NULL,
+	          4,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	result = libfsxfs_attribute_values_set_value_data(
+	          attribute_values,
+	          (uint8_t *) "test",
+	          (size_t) SSIZE_MAX + 1,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	FSXFS_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+#if defined( HAVE_FSXFS_TEST_MEMORY )
+
+	for( test_number = 0;
+	     test_number < number_of_malloc_fail_tests;
+	     test_number++ )
+	{
+		/* Test libfsxfs_attribute_values_set_value_data with malloc failing
+		 */
+		fsxfs_test_malloc_attempts_before_fail = test_number;
+
+		result = libfsxfs_attribute_values_set_value_data(
+		          attribute_values,
+		          (uint8_t *) &value_data,
+		          16,
+		          &error );
+
+		if( fsxfs_test_malloc_attempts_before_fail != -1 )
+		{
+			fsxfs_test_malloc_attempts_before_fail = -1;
+
+			if( attribute_values->value_data != NULL )
+			{
+				memory_free(
+				 attribute_values->value_data );
+
+				attribute_values->value_data      = NULL;
+				attribute_values->value_data_size = 0;
+			}
+		}
+		else
+		{
+			FSXFS_TEST_ASSERT_EQUAL_INT(
+			 "result",
+			 result,
+			 -1 );
+
+			FSXFS_TEST_ASSERT_IS_NULL(
+			 "attribute_values->value_data",
+			 attribute_values->value_data );
+
+			FSXFS_TEST_ASSERT_IS_NOT_NULL(
+			 "error",
+			 error );
+
+			libcerror_error_free(
+			 &error );
+		}
+	}
+#if defined( OPTIMIZATION_DISABLED )
+
+	for( test_number = 0;
+	     test_number < number_of_memcpy_fail_tests;
+	     test_number++ )
+	{
+		/* Test libfsxfs_attribute_values_set_value_data with memcpy failing
+		 */
+		fsxfs_test_memcpy_attempts_before_fail = 0;
+
+		result = libfsxfs_attribute_values_set_value_data(
+		          attribute_values,
+		          (uint8_t *) &value_data,
+		          16,
+		          &error );
+
+		if( fsxfs_test_memcpy_attempts_before_fail != -1 )
+		{
+			fsxfs_test_memcpy_attempts_before_fail = -1;
+
+			if( attribute_values->value_data != NULL )
+			{
+				memory_free(
+				 attribute_values->value_data );
+
+				attribute_values->value_data      = NULL;
+				attribute_values->value_data_size = 0;
+			}
+		}
+		else
+		{
+			FSXFS_TEST_ASSERT_EQUAL_INT(
+			 "result",
+			 result,
+			 -1 );
+
+			FSXFS_TEST_ASSERT_IS_NULL(
+			 "attribute_values->value_data",
+			 attribute_values->value_data );
+
+			FSXFS_TEST_ASSERT_IS_NOT_NULL(
+			 "error",
+			 error );
+
+			libcerror_error_free(
+			 &error );
+		}
+	}
+#endif /* defined( OPTIMIZATION_DISABLED ) */
+#endif /* defined( HAVE_FSXFS_TEST_MEMORY ) */
+
+	result = libfsxfs_attribute_values_free(
+	          &attribute_values,
+	          &error );
+
+	FSXFS_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	FSXFS_TEST_ASSERT_IS_NULL(
+	 "attribute_values",
+	 attribute_values );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	if( attribute_values != NULL )
+	{
+		libfsxfs_attribute_values_free(
+		 &attribute_values,
+		 NULL );
 	}
 	return( 0 );
 }
@@ -828,9 +1560,13 @@ int main(
 	 "libfsxfs_attribute_values_free",
 	 fsxfs_test_attribute_values_free );
 
-	/* TODO add tests for libfsxfs_attribute_values_set_name */
+	FSXFS_TEST_RUN(
+	 "libfsxfs_attribute_values_set_name",
+	 fsxfs_test_attribute_values_set_name );
 
-	/* TODO add tests for libfsxfs_attribute_values_set_value_data */
+	FSXFS_TEST_RUN(
+	 "libfsxfs_attribute_values_set_value_data",
+	 fsxfs_test_attribute_values_set_value_data );
 
 #if !defined( __BORLANDC__ ) || ( __BORLANDC__ >= 0x0560 )
 
