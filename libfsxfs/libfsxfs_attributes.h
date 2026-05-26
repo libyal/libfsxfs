@@ -55,7 +55,7 @@ int libfsxfs_attributes_read_leaf_values(
      libcdata_array_t *extended_attributes_array,
      libcerror_error_t **error );
 
-int libfsxfs_attributes_get_from_block(
+int libfsxfs_attributes_read_from_block(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
@@ -64,7 +64,7 @@ int libfsxfs_attributes_get_from_block(
      int recursion_depth,
      libcerror_error_t **error );
 
-int libfsxfs_attributes_get_from_inode(
+int libfsxfs_attributes_read_from_inode(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,

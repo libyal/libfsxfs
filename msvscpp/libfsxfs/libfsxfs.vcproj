@@ -238,6 +238,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_directory_leaf_block_header.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_directory_table.c"
 				>
 			</File>
@@ -344,6 +348,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\fsxfs_directory_block.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\fsxfs_file_system_block.h"
 				>
 			</File>
@@ -425,6 +433,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_directory_entry.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_directory_leaf_block_header.h"
 				>
 			</File>
 			<File

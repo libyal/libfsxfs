@@ -24,12 +24,12 @@
 #include <memory.h>
 #include <types.h>
 
-#include "libfsxfs_debug.h"
-#include "libfsxfs_definitions.h"
-#include "libfsxfs_directory_entry.h"
 #include "libfsxfs_block_directory.h"
 #include "libfsxfs_block_directory_footer.h"
 #include "libfsxfs_block_directory_header.h"
+#include "libfsxfs_debug.h"
+#include "libfsxfs_definitions.h"
+#include "libfsxfs_directory_entry.h"
 #include "libfsxfs_io_handle.h"
 #include "libfsxfs_libbfio.h"
 #include "libfsxfs_libcdata.h"

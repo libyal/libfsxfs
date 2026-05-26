@@ -2092,7 +2092,7 @@ int libfsxfs_internal_file_entry_get_extended_attributes(
 
 		goto on_error;
 	}
-	if( libfsxfs_attributes_get_from_inode(
+	if( libfsxfs_attributes_read_from_inode(
 	     internal_file_entry->io_handle,
 	     internal_file_entry->file_io_handle,
 	     internal_file_entry->inode,
@@ -2103,7 +2103,7 @@ int libfsxfs_internal_file_entry_get_extended_attributes(
 		 error,
 		 LIBCERROR_ERROR_DOMAIN_IO,
 		 LIBCERROR_IO_ERROR_READ_FAILED,
-		 "%s: unable to retrieve extended attributes from inode.",
+		 "%s: unable to read extended attributes from inode.",
 		 function );
 
 		goto on_error;

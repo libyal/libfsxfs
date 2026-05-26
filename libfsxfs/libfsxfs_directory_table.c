@@ -280,7 +280,7 @@ int libfsxfs_directory_table_read_data(
 	     directory_entry_index < directory_table->header->number_of_entries;
 	     directory_entry_index++ )
 	{
-		entry_data_size = directory_table->header->inode_number_data_size;
+		entry_data_size = directory_table->header->inode_number_data_size + 1;
 		name_offset     = data_offset;
 
 		if( ( io_handle->feature_flags & LIBFSXFS_FEATURE_FLAG_DIRECTORY_V2 ) == 0 )
@@ -290,11 +290,11 @@ int libfsxfs_directory_table_read_data(
 		else if( ( io_handle->format_version == 5 )
 		      || ( ( io_handle->secondary_feature_flags & LIBFSXFS_SECONDARY_FEATURE_FLAG_FILE_TYPE ) != 0 ) )
 		{
-			entry_data_size += 4;
+			entry_data_size += 3;
 		}
 		else
 		{
-			entry_data_size += 3;
+			entry_data_size += 2;
 		}
 		if( name_offset >= data_size )
 		{

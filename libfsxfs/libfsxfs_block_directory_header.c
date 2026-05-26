@@ -150,6 +150,8 @@ int libfsxfs_block_directory_header_read_data(
 
 #if defined( HAVE_DEBUG_OUTPUT )
 	size_t data_offset      = 0;
+	uint64_t value_64bit    = 0;
+	uint32_t value_32bit    = 0;
 	uint16_t value_16bit    = 0;
 	int free_region_index   = 0;
 #endif
@@ -275,8 +277,66 @@ int libfsxfs_block_directory_header_read_data(
 		 ( (fsxfs_block_directory_header_v2_t *) data )->signature[ 2 ],
 		 ( (fsxfs_block_directory_header_v2_t *) data )->signature[ 3 ] );
 
-		data_offset = 4;
+		if( format_version == 3 )
+		{
+			byte_stream_copy_to_uint32_big_endian(
+			 ( (fsxfs_block_directory_header_v3_t *) data )->checksum,
+			 value_32bit );
+			libcnotify_printf(
+			 "%s: checksum\t\t\t: 0x%08" PRIx32 "\n",
+			 function,
+			 value_32bit );
 
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_block_directory_header_v3_t *) data )->block_number,
+			 value_64bit );
+			libcnotify_printf(
+			 "%s: block number\t\t\t: %" PRIu64 "\n",
+			 function,
+			 value_64bit );
+
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_block_directory_header_v3_t *) data )->log_sequence_number,
+			 value_64bit );
+			libcnotify_printf(
+			 "%s: log sequence number\t\t: 0x%08" PRIx64 "\n",
+			 function,
+			 value_64bit );
+
+			if( libfsxfs_debug_print_guid_value(
+			     function,
+			     "block type identifier\t",
+			     ( (fsxfs_block_directory_header_v3_t *) data )->block_type_identifier,
+			     16,
+			     LIBFGUID_ENDIAN_BIG,
+			     LIBFGUID_STRING_FORMAT_FLAG_USE_LOWER_CASE,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_PRINT_FAILED,
+				 "%s: unable to print GUID value.",
+				 function );
+
+				return( -1 );
+			}
+			byte_stream_copy_to_uint64_big_endian(
+			 ( (fsxfs_block_directory_header_v3_t *) data )->owner_inode_number,
+			 value_64bit );
+			libcnotify_printf(
+			 "%s: owner inode number\t\t: %" PRIu64 "\n",
+			 function,
+			 value_64bit );
+		}
+		if( format_version == 3 )
+		{
+			data_offset = 48;
+		}
+		else
+		{
+			data_offset = 4;
+		}
 		for( free_region_index = 0;
 		     free_region_index < 3;
 		     free_region_index++ )
@@ -303,8 +363,21 @@ int libfsxfs_block_directory_header_read_data(
 
 			data_offset += 2;
 		}
-		libcnotify_printf(
-		 "\n" );
+		if( format_version == 3 )
+		{
+			libcnotify_printf(
+			 "%s: unknown1:\n",
+			 function );
+			libcnotify_print_data(
+			 ( (fsxfs_block_directory_header_v3_t *) data )->unknown1,
+			 4,
+			 LIBCNOTIFY_PRINT_DATA_FLAG_GROUP_DATA );
+		}
+		else
+		{
+			libcnotify_printf(
+			 "\n" );
+		}
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 

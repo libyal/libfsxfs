@@ -109,7 +109,7 @@ int libfsxfs_attributes_read_branch_values(
 	}
 	else
 	{
-		data_offset             = sizeof( fsxfs_file_system_block_header_v2_t );
+		data_offset             = sizeof( fsxfs_file_system_block_header_v1_t );
 		branch_header_data_size = sizeof( fsxfs_attributes_branch_block_header_v2_t );
 	}
 	if( ( data_offset >= data_size )
@@ -191,7 +191,7 @@ int libfsxfs_attributes_read_branch_values(
 	if( libcnotify_verbose != 0 )
 	{
 		libcnotify_printf(
-		 "%s: attribute branch entries data:\n",
+		 "%s: branch entries data:\n",
 		 function );
 		libcnotify_print_data(
 		 &( data[ data_offset ] ),
@@ -231,7 +231,7 @@ int libfsxfs_attributes_read_branch_values(
 
 		data_offset += sizeof( fsxfs_attributes_branch_block_entry_t );
 
-		if( libfsxfs_attributes_get_from_block(
+		if( libfsxfs_attributes_read_from_block(
 		     io_handle,
 		     file_io_handle,
 		     inode,
@@ -320,7 +320,7 @@ int libfsxfs_attributes_read_leaf_values(
 	}
 	else
 	{
-		data_offset = sizeof( fsxfs_file_system_block_header_v2_t );
+		data_offset = sizeof( fsxfs_file_system_block_header_v1_t );
 	}
 	if( data_offset >= data_size )
 	{
@@ -387,7 +387,7 @@ int libfsxfs_attributes_read_leaf_values(
 	if( libcnotify_verbose != 0 )
 	{
 		libcnotify_printf(
-		 "%s: attribute leaf entries data:\n",
+		 "%s: leaf block entries data:\n",
 		 function );
 		libcnotify_print_data(
 		 &( data[ data_offset ] ),
@@ -420,8 +420,9 @@ int libfsxfs_attributes_read_leaf_values(
 			 value_32bit );
 
 			libcnotify_printf(
-			 "%s: values offset\t\t\t: %" PRIu16 "\n",
+			 "%s: values offset\t\t\t: %" PRIu16 " (0x%04" PRIx16 ")\n",
 			 function,
+			 values_offset,
 			 values_offset );
 
 			libcnotify_printf(
@@ -703,10 +704,10 @@ on_error:
 	return( -1 );
 }
 
-/* Retrieves the extended attributes from an attributes block
+/* Reads the extended attributes from an attributes block
  * Returns 1 if successful or -1 on error
  */
-int libfsxfs_attributes_get_from_block(
+int libfsxfs_attributes_read_from_block(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
@@ -717,7 +718,7 @@ int libfsxfs_attributes_get_from_block(
 {
 	libfsxfs_extent_t *extent                       = NULL;
 	libfsxfs_file_system_block_t *file_system_block = NULL;
-	static char *function                           = "libfsxfs_attributes_get_from_block";
+	static char *function                           = "libfsxfs_attributes_read_from_block";
 	off64_t block_offset                            = 0;
 	uint64_t relative_block_number                  = 0;
 	int allocation_group_index                      = 0;
@@ -963,10 +964,10 @@ on_error:
 	return( -1 );
 }
 
-/* Retrieves the extended attributes from the inode
+/* Reads the extended attributes from the inode
  * Returns 1 if successful or -1 on error
  */
-int libfsxfs_attributes_get_from_inode(
+int libfsxfs_attributes_read_from_inode(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
@@ -974,7 +975,7 @@ int libfsxfs_attributes_get_from_inode(
      libcerror_error_t **error )
 {
 	libfsxfs_attributes_table_t *attributes_table = NULL;
-	static char *function                         = "libfsxfs_attributes_get_from_inode";
+	static char *function                         = "libfsxfs_attributes_read_from_inode";
 
 	if( io_handle == NULL )
 	{
@@ -1071,7 +1072,7 @@ int libfsxfs_attributes_get_from_inode(
 	}
 	else if( inode->attributes_extents_array != NULL )
 	{
-		if( libfsxfs_attributes_get_from_block(
+		if( libfsxfs_attributes_read_from_block(
 		     io_handle,
 		     file_io_handle,
 		     inode,
@@ -1082,9 +1083,9 @@ int libfsxfs_attributes_get_from_inode(
 		{
 			libcerror_error_set(
 			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
-			 "%s: unable to retrieve extended attributes from attributes block: 0.",
+			 LIBCERROR_ERROR_DOMAIN_IO,
+			 LIBCERROR_IO_ERROR_READ_FAILED,
+			 "%s: unable to read extended attributes from attributes block: 0.",
 			 function );
 
 			goto on_error;

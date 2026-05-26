@@ -341,27 +341,59 @@ int libfsxfs_superblock_read_data(
 		 function,
 		 superblock->journal_block_number );
 
-		libcnotify_printf(
-		 "%s: root directory inode number\t\t: %" PRIu64 "\n",
-		 function,
-		 superblock->root_directory_inode_number );
-
+		if( superblock->root_directory_inode_number == 0xffffffffffffffffUL )
+		{
+			libcnotify_printf(
+			 "%s: root directory inode number\t\t: %" PRIi64 " (0x%08" PRIx64 ")\n",
+			 function,
+			 (int64_t) superblock->root_directory_inode_number,
+			 superblock->root_directory_inode_number );
+		}
+		else
+		{
+			libcnotify_printf(
+			 "%s: root directory inode number\t\t: %" PRIu64 "\n",
+			 function,
+			 superblock->root_directory_inode_number );
+		}
 		byte_stream_copy_to_uint64_big_endian(
 		 ( (fsxfs_superblock_t *) data )->realtime_bitmap_extents_inode_number,
 		 value_64bit );
-		libcnotify_printf(
-		 "%s: real-time bitmap extents inode number\t: %" PRIu64 "\n",
-		 function,
-		 value_64bit );
 
+		if( value_64bit == 0xffffffffffffffffUL )
+		{
+			libcnotify_printf(
+			 "%s: real-time bitmap extents inode number\t: %" PRIi64 " (0x%08" PRIx64 ")\n",
+			 function,
+			 (int64_t) value_64bit,
+			 value_64bit );
+		}
+		else
+		{
+			libcnotify_printf(
+			 "%s: real-time bitmap extents inode number\t: %" PRIu64 "\n",
+			 function,
+			 value_64bit );
+		}
 		byte_stream_copy_to_uint64_big_endian(
 		 ( (fsxfs_superblock_t *) data )->realtime_bitmap_summary_inode_number,
 		 value_64bit );
-		libcnotify_printf(
-		 "%s: real-time bitmap summary inode number\t: %" PRIu64 "\n",
-		 function,
-		 value_64bit );
 
+		if( value_64bit == 0xffffffffffffffffUL )
+		{
+			libcnotify_printf(
+			 "%s: real-time bitmap summary inode number\t: %" PRIi64 " (0x%08" PRIx64 ")\n",
+			 function,
+			 (int64_t) value_64bit,
+			 value_64bit );
+		}
+		else
+		{
+			libcnotify_printf(
+			 "%s: real-time bitmap summary inode number\t: %" PRIu64 "\n",
+			 function,
+			 value_64bit );
+		}
 		byte_stream_copy_to_uint32_big_endian(
 		 ( (fsxfs_superblock_t *) data )->realtime_extents_size,
 		 value_32bit );
@@ -618,36 +650,46 @@ int libfsxfs_superblock_read_data(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-#if defined( HAVE_DEBUG_OUTPUT )
-	/* TODO allow versions 1 to 5 for format analysis when debug output is enabled */
-	if( ( superblock->format_version < 1 )
-	 || ( superblock->format_version > 5 ) )
-#else
-	if( ( superblock->format_version != 4 )
-	 && ( superblock->format_version != 5 ) )
-#endif
+	switch( superblock->format_version )
 	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-		 "%s: unsupported format version: %" PRIu8 ".",
-		 function,
-		 superblock->format_version );
+		case 1:
+			supported_feature_flags = 0;
+			break;
 
-		return( -1 );
+		case 2:
+			supported_feature_flags = 0x0010;
+			break;
+
+		case 3:
+			supported_feature_flags = 0x0010
+			                        | 0x0020;
+			break;
+
+		case 4:
+		case 5:
+			supported_feature_flags = 0x0010
+			                        | 0x0020
+			                        | 0x0080
+			                        | 0x0100
+			                        | 0x0400
+			                        | 0x0800
+			                        | 0x1000
+			                        | 0x2000
+			                        | 0x4000
+			                        | 0x8000;
+			break;
+
+		default:
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+			 "%s: unsupported format version: %" PRIu8 ".",
+			 function,
+			 superblock->format_version );
+
+			return( -1 );
 	}
-	supported_feature_flags = 0x0010
-	                        | 0x0020
-	                        | 0x0080
-	                        | 0x0100
-	                        | 0x0400
-	                        | 0x0800
-	                        | 0x1000
-	                        | 0x2000
-	                        | 0x4000
-	                        | 0x8000;
-
 	if( ( (uint32_t) superblock->feature_flags & ~( supported_feature_flags ) ) != 0 )
 	{
 		libcerror_error_set(

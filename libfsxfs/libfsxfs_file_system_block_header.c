@@ -183,7 +183,7 @@ int libfsxfs_file_system_block_header_read_data(
 	}
 	else
 	{
-		header_data_size = sizeof( fsxfs_file_system_block_header_v2_t );
+		header_data_size = sizeof( fsxfs_file_system_block_header_v1_t );
 	}
 	if( data == NULL )
 	{
@@ -222,15 +222,15 @@ int libfsxfs_file_system_block_header_read_data(
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
 	byte_stream_copy_to_uint32_big_endian(
-	 ( (fsxfs_file_system_block_header_v2_t *) data )->next_block_number,
+	 ( (fsxfs_file_system_block_header_v1_t *) data )->next_block_number,
 	 file_system_block_header->next_block_number );
 
 	byte_stream_copy_to_uint32_big_endian(
-	 ( (fsxfs_file_system_block_header_v2_t *) data )->previous_block_number,
+	 ( (fsxfs_file_system_block_header_v1_t *) data )->previous_block_number,
 	 file_system_block_header->previous_block_number );
 
 	byte_stream_copy_to_uint16_big_endian(
-	 ( (fsxfs_file_system_block_header_v2_t *) data )->signature,
+	 ( (fsxfs_file_system_block_header_v1_t *) data )->signature,
 	 file_system_block_header->signature );
 
 #if defined( HAVE_DEBUG_OUTPUT )
@@ -252,7 +252,7 @@ int libfsxfs_file_system_block_header_read_data(
 		 file_system_block_header->signature );
 
 		byte_stream_copy_to_uint16_big_endian(
-		 ( (fsxfs_file_system_block_header_v2_t *) data )->unknown1,
+		 ( (fsxfs_file_system_block_header_v1_t *) data )->unknown1,
 		 value_16bit );
 		libcnotify_printf(
 		 "%s: unknown1\t\t\t: 0x%04" PRIx16 "\n",

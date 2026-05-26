@@ -53,6 +53,39 @@ int libfsxfs_directory_free(
      libfsxfs_directory_t **directory,
      libcerror_error_t **error );
 
+int libfsxfs_directory_read_branch_values(
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     libfsxfs_inode_t *inode,
+     const uint8_t *data,
+     size_t data_size,
+     libcdata_array_t *entries_array,
+     int recursion_depth,
+     libcerror_error_t **error );
+
+int libfsxfs_directory_read_leaf_values(
+     libfsxfs_io_handle_t *io_handle,
+     const uint8_t *data,
+     size_t data_size,
+     libcdata_array_t *entries_array,
+     libcerror_error_t **error );
+
+int libfsxfs_directory_read_from_block(
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     libfsxfs_inode_t *inode,
+     uint32_t block_number,
+     libcdata_array_t *entries_array,
+     int recursion_depth,
+     libcerror_error_t **error );
+
+int libfsxfs_directory_read_from_block_directory(
+     libfsxfs_io_handle_t *io_handle,
+     libbfio_handle_t *file_io_handle,
+     libfsxfs_inode_t *inode,
+     libcdata_array_t *entries_array,
+     libcerror_error_t **error );
+
 int libfsxfs_directory_read_file_io_handle(
      libfsxfs_directory_t *directory,
      libfsxfs_io_handle_t *io_handle,

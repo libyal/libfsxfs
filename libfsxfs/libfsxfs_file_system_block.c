@@ -241,7 +241,7 @@ int libfsxfs_file_system_block_read_data(
 	}
 	else
 	{
-		header_data_size = sizeof( fsxfs_file_system_block_header_v2_t );
+		header_data_size = sizeof( fsxfs_file_system_block_header_v1_t );
 	}
 	if( data == NULL )
 	{

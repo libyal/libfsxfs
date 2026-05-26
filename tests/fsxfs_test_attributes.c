@@ -674,7 +674,9 @@ int main(
 	 "libfsxfs_attributes_read_leaf_values",
 	 fsxfs_test_attributes_read_leaf_values );
 
-	/* TODO add tests for libfsxfs_attributes_get_from_inode */
+	/* TODO add tests for libfsxfs_attributes_read_from_block */
+
+	/* TODO add tests for libfsxfs_attributes_read_from_inode */
 
 	/* TODO add tests for libfsxfs_attributes_get_value_data_stream */
 

@@ -25,6 +25,7 @@ libfsxfs_la_SOURCES = \
 	fsxfs_attributes_block.h \
 	fsxfs_block_directory.h \
 	fsxfs_btree.h \
+	fsxfs_directory_block.h \
 	fsxfs_file_system_block.h \
 	fsxfs_inode.h \
 	fsxfs_inode_information.h \
@@ -47,6 +48,7 @@ libfsxfs_la_SOURCES = \
 	libfsxfs_definitions.h \
 	libfsxfs_directory.c libfsxfs_directory.h \
 	libfsxfs_directory_entry.c libfsxfs_directory_entry.h \
+	libfsxfs_directory_leaf_block_header.c libfsxfs_directory_leaf_block_header.h \
 	libfsxfs_directory_table.c libfsxfs_directory_table.h \
 	libfsxfs_directory_table_header.c libfsxfs_directory_table_header.h \
 	libfsxfs_error.c libfsxfs_error.h \
