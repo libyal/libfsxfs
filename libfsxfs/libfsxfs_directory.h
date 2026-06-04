@@ -25,6 +25,7 @@
 #include <common.h>
 #include <types.h>
 
+#include "libfsxfs_block_tree.h"
 #include "libfsxfs_directory_entry.h"
 #include "libfsxfs_inode.h"
 #include "libfsxfs_io_handle.h"
@@ -57,10 +58,10 @@ int libfsxfs_directory_read_branch_values(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
+     libfsxfs_block_tree_t *node_block_tree,
      const uint8_t *data,
      size_t data_size,
      libcdata_array_t *entries_array,
-     int recursion_depth,
      libcerror_error_t **error );
 
 int libfsxfs_directory_read_leaf_values(
@@ -74,15 +75,16 @@ int libfsxfs_directory_read_from_block(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
+     libfsxfs_block_tree_t *node_block_tree,
      uint32_t block_number,
      libcdata_array_t *entries_array,
-     int recursion_depth,
      libcerror_error_t **error );
 
 int libfsxfs_directory_read_from_block_directory(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
+     libfsxfs_block_tree_t *node_block_tree,
      libcdata_array_t *entries_array,
      libcerror_error_t **error );
 

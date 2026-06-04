@@ -36,6 +36,10 @@ typedef struct libfsxfs_io_handle libfsxfs_io_handle_t;
 
 struct libfsxfs_io_handle
 {
+	/* The volume size
+	 */
+	size64_t volume_size;
+
 	/* The format version
 	 */
 	int format_version;

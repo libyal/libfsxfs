@@ -374,6 +374,18 @@ int libfsxfs_inode_read_data(
 		posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
 		posix_nanoseconds = bigtime_timestamp % 1000000000;
 
+		if( ( inode->access_time < ( (int64_t) INT64_MIN / 1000000000 ) )
+		 || ( inode->access_time > ( (int64_t) INT64_MAX / 1000000000 ) ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: unsupported access time value out of bounds.",
+			 function );
+
+			return( -1 );
+		}
 		inode->access_time = ( (int64_t) posix_seconds * 1000000000) + (int64_t) posix_nanoseconds;
 
 		byte_stream_copy_to_uint64_big_endian(
@@ -383,6 +395,18 @@ int libfsxfs_inode_read_data(
 		posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
 		posix_nanoseconds = bigtime_timestamp % 1000000000;
 
+		if( ( inode->modification_time < ( (int64_t) INT64_MIN / 1000000000 ) )
+		 || ( inode->modification_time > ( (int64_t) INT64_MAX / 1000000000 ) ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: unsupported modification time value out of bounds.",
+			 function );
+
+			return( -1 );
+		}
 		inode->modification_time = ( (int64_t) posix_seconds * 1000000000) + (int64_t) posix_nanoseconds;
 
 		byte_stream_copy_to_uint64_big_endian(
@@ -392,6 +416,18 @@ int libfsxfs_inode_read_data(
 		posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
 		posix_nanoseconds = bigtime_timestamp % 1000000000;
 
+		if( ( inode->inode_change_time < ( (int64_t) INT64_MIN / 1000000000 ) )
+		 || ( inode->inode_change_time > ( (int64_t) INT64_MAX / 1000000000 ) ) )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+			 "%s: unsupported inode change time value out of bounds.",
+			 function );
+
+			return( -1 );
+		}
 		inode->inode_change_time = ( (int64_t) posix_seconds * 1000000000) + (int64_t) posix_nanoseconds;
 	}
 	else
@@ -864,6 +900,18 @@ int libfsxfs_inode_read_data(
 			posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
 			posix_nanoseconds = bigtime_timestamp % 1000000000;
 
+			if( ( inode->creation_time < ( (int64_t) INT64_MIN / 1000000000 ) )
+			 || ( inode->creation_time > ( (int64_t) INT64_MAX / 1000000000 ) ) )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+				 "%s: unsupported creation time value out of bounds.",
+				 function );
+
+				return( -1 );
+			}
 			inode->creation_time = ( (int64_t) posix_seconds * 1000000000) + (int64_t) posix_nanoseconds;
 		}
 		else

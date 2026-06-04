@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_block_descriptor.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_block_directory.c"
 				>
 			</File>
@@ -207,6 +211,14 @@
 			</File>
 			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_block_directory_header.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_block_tree.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_block_tree_node.c"
 				>
 			</File>
 			<File
@@ -392,6 +404,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_block_descriptor.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_block_directory.h"
 				>
 			</File>
@@ -401,6 +417,14 @@
 			</File>
 			<File
 				RelativePath="..\..\libfsxfs\libfsxfs_block_directory_header.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_block_tree.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libfsxfs\libfsxfs_block_tree_node.h"
 				>
 			</File>
 			<File

@@ -24,6 +24,7 @@
 #include <types.h>
 
 #include "libfsxfs_block_directory.h"
+#include "libfsxfs_block_tree.h"
 #include "libfsxfs_debug.h"
 #include "libfsxfs_definitions.h"
 #include "libfsxfs_directory.h"
@@ -187,10 +188,10 @@ int libfsxfs_directory_read_branch_values(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
+     libfsxfs_block_tree_t *node_block_tree,
      const uint8_t *data,
      size_t data_size,
      libcdata_array_t *entries_array,
-     int recursion_depth,
      libcerror_error_t **error )
 {
 	static char *function      = "libfsxfs_directory_read_branch_values";
@@ -353,9 +354,9 @@ int libfsxfs_directory_read_branch_values(
 		     io_handle,
 		     file_io_handle,
 		     inode,
+		     node_block_tree,
 		     sub_block_number,
 		     entries_array,
-		     recursion_depth + 1,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
@@ -727,15 +728,17 @@ int libfsxfs_directory_read_from_block(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
+     libfsxfs_block_tree_t *node_block_tree,
      uint32_t block_number,
      libcdata_array_t *entries_array,
-     int recursion_depth,
      libcerror_error_t **error )
 {
 	libfsxfs_extent_t *extent                       = NULL;
 	libfsxfs_file_system_block_t *file_system_block = NULL;
 	static char *function                           = "libfsxfs_directory_read_from_block";
 	off64_t block_offset                            = 0;
+	uint64_t maximum_block_number                   = 0;
+	uint64_t number_of_blocks                       = 0;
 	uint64_t relative_block_number                  = 0;
 	int allocation_group_index                      = 0;
 	int extent_index                                = 0;
@@ -748,18 +751,6 @@ int libfsxfs_directory_read_from_block(
 		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
 		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
 		 "%s: invalid IO handle.",
-		 function );
-
-		return( -1 );
-	}
-	if( ( recursion_depth < 0 )
-	 || ( recursion_depth > LIBFSXFS_MAXIMUM_RECURSION_DEPTH ) )
-	{
-		libcerror_error_set(
-		 error,
-		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
-		 "%s: invalid recursion depth value out of bounds.",
 		 function );
 
 		return( -1 );
@@ -859,10 +850,65 @@ int libfsxfs_directory_read_from_block(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-	block_offset  = ( (off64_t) allocation_group_index * io_handle->allocation_group_size ) + relative_block_number;
-	block_offset += block_number - extent->logical_block_number;
-	block_offset *= io_handle->block_size;
+	if( allocation_group_index > ( UINT64_MAX / io_handle->allocation_group_size ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid allocation group index value out of bounds.",
+		 function );
 
+		return( -1 );
+	}
+	block_offset = (off64_t) allocation_group_index * io_handle->allocation_group_size;
+
+	maximum_block_number = UINT64_MAX / io_handle->block_size;
+
+	if( relative_block_number > ( maximum_block_number - block_offset ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid relative block number value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	block_offset += relative_block_number;
+
+	number_of_blocks = block_number - extent->logical_block_number;
+
+	if( number_of_blocks > ( maximum_block_number - block_offset ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid number of blocks value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	block_offset = ( block_offset + number_of_blocks ) * io_handle->block_size;
+
+	if( libfsxfs_block_tree_check_if_block_first_read(
+	     node_block_tree,
+	     (uint64_t) block_number,
+	     block_offset,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GENERIC,
+		 "%s: unable to check if first read of block number: %" PRIu32 ".",
+		 function,
+		 block_number );
+
+		goto on_error;
+	}
 	if( libfsxfs_file_system_block_initialize(
 	     &file_system_block,
 	     io_handle->block_size,
@@ -920,10 +966,10 @@ int libfsxfs_directory_read_from_block(
 		     io_handle,
 		     file_io_handle,
 		     inode,
+		     node_block_tree,
 		     file_system_block->data,
 		     file_system_block->data_size,
 		     entries_array,
-		     0,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
@@ -985,6 +1031,7 @@ int libfsxfs_directory_read_from_block_directory(
      libfsxfs_io_handle_t *io_handle,
      libbfio_handle_t *file_io_handle,
      libfsxfs_inode_t *inode,
+     libfsxfs_block_tree_t *node_block_tree,
      libcdata_array_t *entries_array,
      libcerror_error_t **error )
 {
@@ -997,6 +1044,7 @@ int libfsxfs_directory_read_from_block_directory(
 	int allocation_group_index                  = 0;
 	int extent_index                            = 0;
 	int number_of_extents                       = 0;
+	uint64_t block_number                       = 0;
 	uint64_t relative_block_number              = 0;
 
 	if( io_handle == NULL )
@@ -1096,8 +1144,9 @@ int libfsxfs_directory_read_from_block_directory(
 		{
 			break;
 		}
-		allocation_group_index = (int) ( extent->physical_block_number >> io_handle->number_of_relative_block_number_bits );
-		relative_block_number  = extent->physical_block_number & ( ( 1 << io_handle->number_of_relative_block_number_bits ) - 1 );
+		block_number           = extent->physical_block_number;
+		allocation_group_index = (int) ( block_number >> io_handle->number_of_relative_block_number_bits );
+		relative_block_number  = block_number & ( ( 1 << io_handle->number_of_relative_block_number_bits ) - 1 );
 
 #if defined( HAVE_DEBUG_OUTPUT )
 		if( libcnotify_verbose != 0 )
@@ -1106,7 +1155,7 @@ int libfsxfs_directory_read_from_block_directory(
 			 "%s: extent: %d physical block number\t: %" PRIu64 "\n",
 			 function,
 			 extent_index,
-			 extent->physical_block_number );
+			 block_number );
 
 			libcnotify_printf(
 			 "%s: extent: %d allocation group index\t: %d\n",
@@ -1130,6 +1179,22 @@ int libfsxfs_directory_read_from_block_directory(
 
 		while( extent_size > 0 )
 		{
+			if( libfsxfs_block_tree_check_if_block_first_read(
+			     node_block_tree,
+			     block_number,
+			     block_offset,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_GENERIC,
+				 "%s: unable to check if first read of block number: %" PRIu64 ".",
+				 function,
+				 block_number );
+
+				goto on_error;
+			}
 			if( libfsxfs_block_directory_initialize(
 			     &block_directory,
 			     io_handle->block_size,
@@ -1174,6 +1239,7 @@ int libfsxfs_directory_read_from_block_directory(
 
 				goto on_error;
 			}
+			block_number += 1;
 			block_offset += io_handle->directory_block_size;
 			extent_size  -= io_handle->directory_block_size;
 		}
@@ -1205,6 +1271,7 @@ int libfsxfs_directory_read_file_io_handle(
      libfsxfs_inode_t *inode,
      libcerror_error_t **error )
 {
+	libfsxfs_block_tree_t *node_block_tree      = NULL;
 	libfsxfs_directory_table_t *directory_table = NULL;
 	static char *function                       = "libfsxfs_directory_read_file_io_handle";
 
@@ -1293,13 +1360,28 @@ int libfsxfs_directory_read_file_io_handle(
 		}
 		else if( ( io_handle->feature_flags & LIBFSXFS_FEATURE_FLAG_DIRECTORY_V2 ) == 0 )
 		{
+			if( libfsxfs_block_tree_initialize(
+			     &node_block_tree,
+			     io_handle->volume_size,
+			     io_handle->block_size,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+				 "%s: unable to create node block tree.",
+				 function );
+
+				goto on_error;
+			}
 			if( libfsxfs_directory_read_from_block(
 			     io_handle,
 			     file_io_handle,
 			     inode,
+			     node_block_tree,
 			     0,
 			     directory->entries_array,
-			     0,
 			     error ) != 1 )
 			{
 				libcerror_error_set(
@@ -1311,13 +1393,43 @@ int libfsxfs_directory_read_file_io_handle(
 
 				goto on_error;
 			}
+			if( libfsxfs_block_tree_free(
+			     &node_block_tree,
+			     (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_block_descriptor_free,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free node block tree.",
+				 function );
+
+				goto on_error;
+			}
 		}
 		else
 		{
+			if( libfsxfs_block_tree_initialize(
+			     &node_block_tree,
+			     io_handle->volume_size,
+			     io_handle->directory_block_size,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+				 "%s: unable to create node block tree.",
+				 function );
+
+				goto on_error;
+			}
 			if( libfsxfs_directory_read_from_block_directory(
 			     io_handle,
 			     file_io_handle,
 			     inode,
+			     node_block_tree,
 			     directory->entries_array,
 			     error ) != 1 )
 			{
@@ -1330,11 +1442,32 @@ int libfsxfs_directory_read_file_io_handle(
 
 				goto on_error;
 			}
+			if( libfsxfs_block_tree_free(
+			     &node_block_tree,
+			     (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_block_descriptor_free,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free node block tree.",
+				 function );
+
+				goto on_error;
+			}
 		}
 	}
 	return( 1 );
 
 on_error:
+	if( node_block_tree != NULL )
+	{
+		libfsxfs_block_tree_free(
+		 &node_block_tree,
+		 (int (*)(intptr_t **, libcerror_error_t **)) &libfsxfs_block_descriptor_free,
+		 NULL );
+	}
 	if( directory_table != NULL )
 	{
 		libfsxfs_directory_table_free(

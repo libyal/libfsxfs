@@ -37,9 +37,12 @@ libfsxfs_la_SOURCES = \
 	libfsxfs_attributes_table_header.c libfsxfs_attributes_table_header.h \
 	libfsxfs_attribute_values.c libfsxfs_attribute_values.h \
 	libfsxfs_block_data_handle.c libfsxfs_block_data_handle.h \
+	libfsxfs_block_descriptor.c libfsxfs_block_descriptor.h \
 	libfsxfs_block_directory.c libfsxfs_block_directory.h \
 	libfsxfs_block_directory_footer.c libfsxfs_block_directory_footer.h \
 	libfsxfs_block_directory_header.c libfsxfs_block_directory_header.h \
+	libfsxfs_block_tree.c libfsxfs_block_tree.h \
+	libfsxfs_block_tree_node.c libfsxfs_block_tree_node.h \
 	libfsxfs_btree_block.c libfsxfs_btree_block.h \
 	libfsxfs_btree_header.c libfsxfs_btree_header.h \
 	libfsxfs_buffer_data_handle.c libfsxfs_buffer_data_handle.h \
