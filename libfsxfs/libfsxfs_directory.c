@@ -850,7 +850,7 @@ int libfsxfs_directory_read_from_block(
 	}
 #endif /* defined( HAVE_DEBUG_OUTPUT ) */
 
-	if( allocation_group_index > ( UINT64_MAX / io_handle->allocation_group_size ) )
+	if( (off64_t) allocation_group_index > ( INT64_MAX / io_handle->allocation_group_size ) )
 	{
 		libcerror_error_set(
 		 error,

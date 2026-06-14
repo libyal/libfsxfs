@@ -69,7 +69,7 @@ struct libfsxfs_inode
 
 	/* Access time
 	 */
-	uint64_t access_time;
+	int64_t access_time;
 
 	/* Modification time
 	 */
