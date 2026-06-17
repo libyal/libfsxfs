@@ -374,8 +374,8 @@ int libfsxfs_inode_read_data(
 		posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
 		posix_nanoseconds = bigtime_timestamp % 1000000000;
 
-		if( ( inode->access_time < ( (int64_t) INT64_MIN / 1000000000 ) )
-		 || ( inode->access_time > ( (int64_t) INT64_MAX / 1000000000 ) ) )
+		if( ( (int64_t) posix_seconds < ( (int64_t) INT64_MIN / 1000000000 ) )
+		 || ( (int64_t) posix_seconds > ( (int64_t) INT64_MAX / 1000000000 ) ) )
 		{
 			libcerror_error_set(
 			 error,
@@ -395,8 +395,8 @@ int libfsxfs_inode_read_data(
 		posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
 		posix_nanoseconds = bigtime_timestamp % 1000000000;
 
-		if( ( inode->modification_time < ( (int64_t) INT64_MIN / 1000000000 ) )
-		 || ( inode->modification_time > ( (int64_t) INT64_MAX / 1000000000 ) ) )
+		if( ( (int64_t) posix_seconds < ( (int64_t) INT64_MIN / 1000000000 ) )
+		 || ( (int64_t) posix_seconds > ( (int64_t) INT64_MAX / 1000000000 ) ) )
 		{
 			libcerror_error_set(
 			 error,
@@ -416,8 +416,8 @@ int libfsxfs_inode_read_data(
 		posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
 		posix_nanoseconds = bigtime_timestamp % 1000000000;
 
-		if( ( inode->inode_change_time < ( (int64_t) INT64_MIN / 1000000000 ) )
-		 || ( inode->inode_change_time > ( (int64_t) INT64_MAX / 1000000000 ) ) )
+		if( ( (int64_t) posix_seconds < ( (int64_t) INT64_MIN / 1000000000 ) )
+		 || ( (int64_t) posix_seconds > ( (int64_t) INT64_MAX / 1000000000 ) ) )
 		{
 			libcerror_error_set(
 			 error,
@@ -900,8 +900,8 @@ int libfsxfs_inode_read_data(
 			posix_seconds     = ( bigtime_timestamp / 1000000000 ) - 2147483648;
 			posix_nanoseconds = bigtime_timestamp % 1000000000;
 
-			if( ( inode->creation_time < ( (int64_t) INT64_MIN / 1000000000 ) )
-			 || ( inode->creation_time > ( (int64_t) INT64_MAX / 1000000000 ) ) )
+			if( ( (int64_t) posix_seconds < ( (int64_t) INT64_MIN / 1000000000 ) )
+			 || ( (int64_t) posix_seconds > ( (int64_t) INT64_MAX / 1000000000 ) ) )
 			{
 				libcerror_error_set(
 				 error,
