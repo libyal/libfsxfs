@@ -15,6 +15,7 @@ MSVSCPP_FILES = \
 	fsxfs_test_directory_table_header/fsxfs_test_directory_table_header.vcproj \
 	fsxfs_test_error/fsxfs_test_error.vcproj \
 	fsxfs_test_extent/fsxfs_test_extent.vcproj \
+	fsxfs_test_file_entry/fsxfs_test_file_entry.vcproj \
 	fsxfs_test_file_system_block/fsxfs_test_file_system_block.vcproj \
 	fsxfs_test_file_system_block_header/fsxfs_test_file_system_block_header.vcproj \
 	fsxfs_test_inode_btree/fsxfs_test_inode_btree.vcproj \

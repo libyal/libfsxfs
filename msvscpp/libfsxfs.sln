@@ -184,6 +184,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fsxfs_test_extent", "fsxfs_
 		{5A9EDA97-A2F9-4D3A-BB8C-6560D18B6281} = {5A9EDA97-A2F9-4D3A-BB8C-6560D18B6281}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fsxfs_test_file_entry", "fsxfs_test_file_entry\fsxfs_test_file_entry.vcproj", "{41C968B1-9A41-44CD-886A-1CF1F2CA1D23}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D08D760C-C2AD-4FF4-8C1C-CA8350B16026} = {D08D760C-C2AD-4FF4-8C1C-CA8350B16026}
+		{5A9EDA97-A2F9-4D3A-BB8C-6560D18B6281} = {5A9EDA97-A2F9-4D3A-BB8C-6560D18B6281}
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fsxfs_test_file_system_block", "fsxfs_test_file_system_block\fsxfs_test_file_system_block.vcproj", "{12E152A4-C0C1-4B9B-A440-ABF017347178}"
 	ProjectSection(ProjectDependencies) = postProject
 		{B37A300F-A358-4F51-AB0A-4CF59D816AF8} = {B37A300F-A358-4F51-AB0A-4CF59D816AF8}
@@ -500,6 +506,10 @@ Global
 		{9304509C-FA40-4A95-A38A-17A5FE5E9BC2}.Release|Win32.Build.0 = Release|Win32
 		{9304509C-FA40-4A95-A38A-17A5FE5E9BC2}.VSDebug|Win32.ActiveCfg = VSDebug|Win32
 		{9304509C-FA40-4A95-A38A-17A5FE5E9BC2}.VSDebug|Win32.Build.0 = VSDebug|Win32
+		{41C968B1-9A41-44CD-886A-1CF1F2CA1D23}.Release|Win32.ActiveCfg = Release|Win32
+		{41C968B1-9A41-44CD-886A-1CF1F2CA1D23}.Release|Win32.Build.0 = Release|Win32
+		{41C968B1-9A41-44CD-886A-1CF1F2CA1D23}.VSDebug|Win32.ActiveCfg = VSDebug|Win32
+		{41C968B1-9A41-44CD-886A-1CF1F2CA1D23}.VSDebug|Win32.Build.0 = VSDebug|Win32
 		{12E152A4-C0C1-4B9B-A440-ABF017347178}.Release|Win32.ActiveCfg = Release|Win32
 		{12E152A4-C0C1-4B9B-A440-ABF017347178}.Release|Win32.Build.0 = Release|Win32
 		{12E152A4-C0C1-4B9B-A440-ABF017347178}.VSDebug|Win32.ActiveCfg = VSDebug|Win32

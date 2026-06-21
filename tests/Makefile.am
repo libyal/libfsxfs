@@ -54,6 +54,7 @@ check_PROGRAMS = \
 	fsxfs_test_directory_table_header \
 	fsxfs_test_error \
 	fsxfs_test_extent \
+	fsxfs_test_file_entry \
 	fsxfs_test_file_system_block \
 	fsxfs_test_file_system_block_header \
 	fsxfs_test_inode_btree \
@@ -291,6 +292,18 @@ fsxfs_test_extent_SOURCES = \
 	fsxfs_test_unused.h
 
 fsxfs_test_extent_LDADD = \
+	../libfsxfs/libfsxfs.la \
+	@LIBCERROR_LIBADD@
+
+fsxfs_test_file_entry_SOURCES = \
+	fsxfs_test_file_entry.c \
+	fsxfs_test_libcerror.h \
+	fsxfs_test_libfsxfs.h \
+	fsxfs_test_macros.h \
+	fsxfs_test_memory.c fsxfs_test_memory.h \
+	fsxfs_test_unused.h
+
+fsxfs_test_file_entry_LDADD = \
 	../libfsxfs/libfsxfs.la \
 	@LIBCERROR_LIBADD@
 
@@ -598,13 +611,15 @@ test_manpages: \
 test_python_module: \
 	package.m4 \
 	test_inputs_pyfsxfs.at \
+	test_macros.at \
 	test_python_module.at
 
 test_tools: \
 	package.m4 \
 	test_inputs_fsxfsinfo.at \
 	test_inputs_fsxfsinfo_fs.at \
-	test_macros.at test_tools.at
+	test_macros.at \
+	test_tools.at
 
 EXTRA_DIST = \
 	$(check_AUTOTESTS:=.at) \

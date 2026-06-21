@@ -156,7 +156,6 @@ stamp-h[1-9]
 /tests/fsxfs_test_file_entry
 /tests/fsxfs_test_file_system_block
 /tests/fsxfs_test_file_system_block_header
-/tests/fsxfs_test_inode
 /tests/fsxfs_test_inode_btree
 /tests/fsxfs_test_inode_btree_record
 /tests/fsxfs_test_inode_information
