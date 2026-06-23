@@ -24,7 +24,8 @@ AM_LDFLAGS = @STATIC_LDFLAGS@
 
 bin_PROGRAMS = \
 	fsxfsinfo \
-	fsxfsmount
+	fsxfsmount \
+	xfs_extract
 
 fsxfsinfo_SOURCES = \
 	digest_hash.c digest_hash.h \
@@ -99,6 +100,22 @@ fsxfsmount_LDADD = \
 	@LIBCERROR_LIBADD@ \
 	@LIBINTL@
 
+xfs_extract_SOURCES = \
+	xfs_extract.c
+
+xfs_extract_LDADD = \
+        @LIBBFIO_LIBADD@ \
+        @LIBCPATH_LIBADD@ \
+        @LIBCFILE_LIBADD@ \
+        @LIBUNA_LIBADD@ \
+        @LIBCSPLIT_LIBADD@ \
+        @LIBCNOTIFY_LIBADD@ \
+        @LIBCLOCALE_LIBADD@ \
+        @LIBCDATA_LIBADD@ \
+        ../libfsxfs/libfsxfs.la \
+        @LIBCERROR_LIBADD@ \
+        @LIBINTL@
+		
 DISTCLEANFILES = \
 	Makefile \
 	Makefile.in
