@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="fsxfsextract"
+	Name="xfs_extract"
 	ProjectGUID="{F3A82C91-5D4E-4B7A-9C16-87E2D3F01BA5}"
-	RootNamespace="fsxfsextract"
+	RootNamespace="xfs_extract"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -57,6 +57,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				OutputFile="$(OutDir)\xfs_extract.exe"
 				LinkIncremental="1"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -131,6 +132,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				OutputFile="$(OutDir)\xfs_extract.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -172,7 +174,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\fsxfstools\fsxfsextract.cpp"
+				RelativePath="..\..\fsxfstools\xfs_extract.cpp"
 				>
 			</File>
 		</Filter>

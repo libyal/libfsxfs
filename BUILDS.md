@@ -91,9 +91,9 @@ The `fsxfsmount` project (`vs2022\fsxfsmount\fsxfsmount.vcxproj`) is pre-configu
 - **Linker:** `dokan2.lib` is added to `AdditionalDependencies` (x86 uses `x86\lib\dokan2.lib`, x64 uses `lib\dokan2.lib`).
 - **Runtime DLL:** At runtime, `fsxfsmount.exe` requires `dokan2.dll` to be on the system `PATH` (the Dokan installer handles this).
 
-## Step 6: Build fsxfsextract
+## Step 6: Build xfs_extract.exe
 
-`fsxfsextract` is a standalone tool that orchestrates the full extraction workflow: it launches `fsxfsmount.exe` in the background, copies all content to an output directory, then terminates the mount process and cleans up.
+`xfs_extract.exe` is a standalone tool that orchestrates the full extraction workflow: it launches `fsxfsmount.exe` in the background, copies all content to an output directory, then terminates the mount process and cleans up.
 
 The project is already included in `msvcpp\libfsxfs.sln` and depends on the `fsxfsmount` project, so **Steps 3 and 4 must be completed first**.
 
@@ -104,32 +104,33 @@ The project is already included in `msvcpp\libfsxfs.sln` and depends on the `fsx
 3. The output is placed alongside the other tools:
    
 ```
-vs2022\Release\x64\fsxfsextract.exe
+vs2022\Release\x64\xfs_extract.exe
 ```
 
 ### Verify the build output
 
 ```powershell
-.\vs2022\Release\x64\vslvmextract.exe -h
+.\vs2022\Release\x64\xfs_extract.exe -h
 ```
 
 ### Usage
 
 ```
-fsxfsextract [-v] <xfs_image> <output_dir> [path_to_fsxfsmount.exe]
+xfs_extract [-v] <xfs_image> <output_dir> [path_to_fsxfsmount.exe]
+   -v flag for verbose output to a log.txt
 ```
 
 Example:
 
 ```powershell
-.\vs2022\Release\x64\fsxfsextract.exe `
+.\vs2022\Release\x64\xfs_extract.exe `
     C:\images\disk.xfs `
     C:\output\extracted
 ```
 
-`fsxfsextract.exe` expects `fsxfsmount.exe` to be in the same directory by default. If it is located elsewhere, pass the full path as the third argument.
+`xfs_extract.exe` expects `fsxfsmount.exe` to be in the same directory by default. If it is located elsewhere, pass the full path as the third argument.
 
-> **Note:** `fsxfsextract.exe` does **not** require Dokan headers or libraries at compile time. It only requires `fsxfsmount.exe` (and by extension the Dokan driver) to be present at **runtime**.
+> **Note:** `xfs_extract.exe` does **not** require Dokan headers or libraries at compile time. It only requires `fsxfsmount.exe` (and by extension the Dokan driver) to be present at **runtime**.
 
 ## Troubleshooting
 
@@ -138,4 +139,5 @@ Example:
 | `dokan.h` not found | Check that the Dokan include path in the vcxproj matches your installed version. |
 | `dokan2.lib` linker error | Verify the `.lib` path. x64 builds need `lib\dokan2.lib`, x86 builds need `x86\lib\dokan2.lib`. |
 | `dokan2.dll` not found at runtime | Ensure the Dokan driver is installed and `C:\Program Files\Dokan\DokanLibrary-2.3.1` is on your system `PATH`. |
+
 | `fsxfsmount` hangs on exit | The Dokan kernel driver may not be running. Start it with `sc start dokan2` (requires admin). |
