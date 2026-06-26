@@ -13,8 +13,8 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libfsxfs1
 Replaces: libfsxfs1
 Suggests: libfsxfs-dbg
-Description: Library to support the X File System (XFS) format
- libfsxfs is a library to support the X File System (XFS) format.
+Description: Library to access the X File System (XFS) format
+ libfsxfs is a library to access the X File System (XFS) format.
 
 Package: libfsxfs-dbg
 Architecture: any

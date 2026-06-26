@@ -21,7 +21,7 @@ BEGIN
   BEGIN
     BLOCK "040904E4"
     BEGIN
-      VALUE "FileDescription",		"Library to support the X File System (XFS) format\0"
+      VALUE "FileDescription",		"Library to access the X File System (XFS) format\0"
       VALUE "FileVersion",		"@VERSION@" "\0"
       VALUE "InternalName",		"libfsxfs.dll\0"
       VALUE "LegalCopyright",		"(C) 2020-2026, Joachim Metz <joachim.metz@gmail.com>\0"

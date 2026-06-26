@@ -1,5 +1,5 @@
 /*
- * Library to support the X File System (XFS) format
+ * Library to access the X File System (XFS) format
  *
  * Copyright (C) 2020-2026, Joachim Metz <joachim.metz@gmail.com>
  *

@@ -1,32 +1,28 @@
 # Script that synchronizes the local test data
-#
-# Version: 20260608
 
-$Repository = "log2timeline/dfvfs"
-$TestDataPath = "test_data"
+$TestsInputDirectory = "tests\input"
 $TestSet = "public"
-$TestInputDirectory = "tests\input"
 $TestFiles = "xfs.raw"
 
-If (-Not (Test-Path ${TestInputDirectory}))
+If (-Not (Test-Path "${TestsInputDirectory}\.fsxfsinfo_fs"))
 {
-	New-Item -Name ${TestInputDirectory} -ItemType "directory" | Out-Null
+	New-Item -Name "${TestsInputDirectory}\.fsxfsinfo_fs" -ItemType "directory" | Out-Null
+	Write-Output "-H" | Out-File -Encoding ascii -FilePath "${TestsInputDirectory}\.fsxfsinfo_fs\options"
 }
-If (-Not (Test-Path "${TestInputDirectory}\.fsxfsinfo_sh"))
+
+If (-Not (Test-Path ${TestsInputDirectory}))
 {
-	New-Item -Name "${TestInputDirectory}\.fsxfsinfo_sh" -ItemType "directory" | Out-Null
-	Write-Output "-H" | Out-File -Encoding ascii -FilePath "${TestInputDirectory}\.fsxfsinfo_sh\options"
+	New-Item -Name ${TestsInputDirectory} -ItemType "directory" | Out-Null
 }
-If (-Not (Test-Path "${TestInputDirectory}\${TestSet}"))
+If (-Not (Test-Path "${TestsInputDirectory}\${TestSet}"))
 {
-	New-Item -Name "${TestInputDirectory}\${TestSet}" -ItemType "directory" | Out-Null
+	New-Item -Name "${TestsInputDirectory}\${TestSet}" -ItemType "directory" | Out-Null
 }
 ForEach ($TestFile in ${TestFiles} -split " ")
 {
 	$UrlTestFile = [System.Uri]::EscapeDataString("${TestFile}")
-	$Url = "https://raw.githubusercontent.com/${Repository}/refs/heads/main/${TestDataPath}/${UrlTestFile}"
+	$Url = "https://raw.githubusercontent.com/log2timeline/dfvfs/refs/heads/main/test_data/${UrlTestFile}"
 
 	$ProgressPreference = 'SilentlyContinue'
-	Invoke-WebRequest -Uri ${Url} -OutFile "${TestInputDirectory}\${TestSet}\${TestFile}"
+	Invoke-WebRequest -Uri ${Url} -OutFile "${TestsInputDirectory}\${TestSet}\${TestFile}"
 }
-

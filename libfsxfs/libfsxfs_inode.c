@@ -388,8 +388,10 @@ int libfsxfs_inode_read_data(
 		}
 		inode->access_time = (int64_t) posix_seconds * 1000000000;
 
-		if( ( (int64_t) posix_nanoseconds < ( (int64_t) INT64_MIN + inode->access_time ) )
-		 || ( (int64_t) posix_nanoseconds > ( (int64_t) INT64_MAX - inode->access_time ) ) )
+		if( ( ( inode->access_time < 0 )
+		  &&  ( (int64_t) posix_nanoseconds < ( (int64_t) INT64_MIN - inode->access_time ) ) )
+		 || ( ( inode->access_time > 0 )
+		  &&  ( (int64_t) posix_nanoseconds > ( (int64_t) INT64_MAX - inode->access_time ) ) ) )
 		{
 			libcerror_error_set(
 			 error,
@@ -423,8 +425,10 @@ int libfsxfs_inode_read_data(
 		}
 		inode->modification_time = (int64_t) posix_seconds * 1000000000;
 
-		if( ( (int64_t) posix_nanoseconds < ( (int64_t) INT64_MIN + inode->modification_time ) )
-		 || ( (int64_t) posix_nanoseconds > ( (int64_t) INT64_MAX - inode->modification_time ) ) )
+		if( ( ( inode->modification_time < 0 )
+		  &&  ( (int64_t) posix_nanoseconds < ( (int64_t) INT64_MIN - inode->modification_time ) ) )
+		 || ( ( inode->modification_time > 0 )
+		  &&  ( (int64_t) posix_nanoseconds > ( (int64_t) INT64_MAX - inode->modification_time ) ) ) )
 		{
 			libcerror_error_set(
 			 error,
@@ -458,8 +462,10 @@ int libfsxfs_inode_read_data(
 		}
 		inode->inode_change_time = (int64_t) posix_seconds * 1000000000;
 
-		if( ( (int64_t) posix_nanoseconds < ( (int64_t) INT64_MIN + inode->inode_change_time ) )
-		 || ( (int64_t) posix_nanoseconds > ( (int64_t) INT64_MAX - inode->inode_change_time ) ) )
+		if( ( ( inode->inode_change_time < 0 )
+		  &&  ( (int64_t) posix_nanoseconds < ( (int64_t) INT64_MIN - inode->inode_change_time ) ) )
+		 || ( ( inode->inode_change_time > 0 )
+		  &&  ( (int64_t) posix_nanoseconds > ( (int64_t) INT64_MAX - inode->inode_change_time ) ) ) )
 		{
 			libcerror_error_set(
 			 error,
@@ -956,8 +962,10 @@ int libfsxfs_inode_read_data(
 			}
 			inode->creation_time = (int64_t) posix_seconds * 1000000000;
 
-			if( ( (int64_t) posix_nanoseconds < ( (int64_t) INT64_MIN + inode->creation_time ) )
-			 || ( (int64_t) posix_nanoseconds > ( (int64_t) INT64_MAX - inode->creation_time ) ) )
+			if( ( ( inode->creation_time < 0 )
+			  &&  ( (int64_t) posix_nanoseconds < ( (int64_t) INT64_MIN - inode->creation_time ) ) )
+			 || ( ( inode->creation_time > 0 )
+			  &&  ( (int64_t) posix_nanoseconds > ( (int64_t) INT64_MAX - inode->creation_time ) ) ) )
 			{
 				libcerror_error_set(
 				 error,
