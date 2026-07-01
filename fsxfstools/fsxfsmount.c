@@ -488,6 +488,9 @@ int main( int argc, char * const argv[] )
 
 		goto on_error;
 	}
+	fuse_unmount(
+	 fsxfsmount_fuse_handle );
+
 	fuse_destroy(
 	 fsxfsmount_fuse_handle );
 
