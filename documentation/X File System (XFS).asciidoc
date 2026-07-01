@@ -53,6 +53,7 @@ in the section entitled "GNU Free Documentation License".
 | 0.0.6 | J.B. Metz | May 2022 | Additional information about extended attributes.
 | 0.0.7 | J.B. Metz | July 2022 | Additional information about device identifier.
 | 0.0.8 | J.B. Metz | May 2026 | Additional information about format.
+| 0.0.9 | J.B. Metz | July 2026 | Additional information about format.
 |===
 
 :numbered:
@@ -343,7 +344,7 @@ Current no compatible feature flags are defined
 | 0x00000010 | XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR | Needs repair
 | 0x00000020 | XFS_SB_FEAT_INCOMPAT_NREXT64 | Inode (v3) contains a 64-bit number of data extents and 32-bit number of (extended) attribute extent values
 | 0x00000040 | XFS_SB_FEAT_INCOMPAT_EXCHRANGE | Has exchangerange
-| 0x00000080 | XFS_SB_FEAT_INCOMPAT_PARENT | Has parent pointers
+| 0x00000080 | XFS_SB_FEAT_INCOMPAT_PARENT | Has parent directory reference attributes
 | 0x00000100 | XFS_SB_FEAT_INCOMPAT_METADIR | Has metadata directory (tree)
 | 0x00000200 | XFS_SB_FEAT_INCOMPAT_ZONED | Has zoned RT allocator
 | 0x00000400 | XFS_SB_FEAT_INCOMPAT_ZONE_GAPS | RTGs have LBA gaps
@@ -1741,8 +1742,9 @@ The attribute flags indicate the prefix (or namespace) of the attribute name.
 | 0x01 | XFS_ATTR_LOCAL | | The attribute value is contained within the current block
 | 0x02 | XFS_ATTR_ROOT | "trusted." | The attribute is part of the trusted namespace
 | 0x04 | XFS_ATTR_SECURE | "secure." | The attribute is part of the secure namespace
+| 0x08 | XFS_ATTR_PARENT | | The attribute contains a parent directory reference, where the attribute name contains the file tentry name and the attribute value data a <<parent_directory_attribute_value_data,reference to the parent directory>>.
 4+|
-| 0x80 | XFS_ATTR_INCOMPLETE | | This attribute is being modified
+| 0x80 | XFS_ATTR_INCOMPLETE | | The attribute is being modified
 |===
 
 ==== [[remote_attribute_value_data_block]]Remote attribute value data block
@@ -1775,6 +1777,18 @@ Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_met
 Contains the absolute inode number the block is part of
 | 40 | 8 | | Block number
 | 48 | 8 | | Log sequence number
+|===
+
+===== [[parent_directory_attribute_value_data]]Parent directory attribute value data
+
+The parent directory attribute value data (xfs_parent_rec) is 12 bytes of size
+and consist of:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Offset | Size | Value | Description
+| 0 | 8 | | Parent directory inode number
+| 8 | 4 | | Parent directory generation number
 |===
 
 :numbered!:

@@ -561,7 +561,7 @@ int libfsxfs_attributes_read_leaf_values(
 			if( libfsxfs_attribute_values_set_name(
 			     attribute_values,
 			     &( data[ values_offset ] ),
-			     name_size,
+			     (size_t) name_size,
 			     flags,
 			     error ) != 1 )
 			{
@@ -651,22 +651,42 @@ int libfsxfs_attributes_read_leaf_values(
 				}
 			}
 		}
-		if( libcdata_array_append_entry(
-		     extended_attributes_array,
-		     &entry_index,
-		     (intptr_t *) attribute_values,
-		     error ) != 1 )
+		if( ( flags & 0x08 ) != 0 )
 		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_APPEND_FAILED,
-			 "%s: unable to append attribute values to extended attributes array.",
-			 function );
+			if( libfsxfs_attribute_values_free(
+			     &attribute_values,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free attribute: %d values.",
+				 function,
+				 block_entry_index );
 
-			goto on_error;
+				goto on_error;
+			}
 		}
-		attribute_values = NULL;
+		else
+		{
+			if( libcdata_array_append_entry(
+			     extended_attributes_array,
+			     &entry_index,
+			     (intptr_t *) attribute_values,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_APPEND_FAILED,
+				 "%s: unable to append attribute values to extended attributes array.",
+				 function );
+
+				goto on_error;
+			}
+			attribute_values = NULL;
+		}
 	}
 	if( libfsxfs_attributes_leaf_block_header_free(
 	     &leaf_block_header,

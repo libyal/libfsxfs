@@ -219,6 +219,10 @@ int libfsxfs_attribute_values_set_name(
 			name_prefix = "secure.";
 			break;
 
+		case 8:
+			name_prefix = "";
+			break;
+
 		default:
 			libcerror_error_set(
 			 error,

@@ -912,7 +912,9 @@ int libfsxfs_superblock_read_data(
 		supported_feature_flags = 0x00000001UL
 		                        | 0x00000002UL
 		                        | 0x00000008UL
-		                        | 0x00000020UL;
+		                        | 0x00000020UL
+		                        | 0x00000040UL
+		                        | 0x00000080UL;
 
 		if( ( superblock->incompatible_features_flags & ~( supported_feature_flags ) ) != 0 )
 		{

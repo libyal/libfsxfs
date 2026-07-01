@@ -448,23 +448,43 @@ int libfsxfs_attributes_table_read_data(
 			}
 			data_offset += value_data_size;
 		}
-		if( libcdata_array_append_entry(
-		     extended_attributes_array,
-		     &entry_index,
-		     (intptr_t *) attribute_values,
-		     error ) != 1 )
+		if( ( flags & 0x08 ) != 0 )
 		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_APPEND_FAILED,
-			 "%s: unable to append attribute: %d values to extended attributes array.",
-			 function,
-			 attribute_index );
+			if( libfsxfs_attribute_values_free(
+			     &attribute_values,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_FINALIZE_FAILED,
+				 "%s: unable to free attribute: %d values.",
+				 function,
+				 attribute_index );
 
-			goto on_error;
+				goto on_error;
+			}
 		}
-		attribute_values = NULL;
+		else
+		{
+			if( libcdata_array_append_entry(
+			     extended_attributes_array,
+			     &entry_index,
+			     (intptr_t *) attribute_values,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_APPEND_FAILED,
+				 "%s: unable to append attribute: %d values to extended attributes array.",
+				 function,
+				 attribute_index );
+
+				goto on_error;
+			}
+			attribute_values = NULL;
+		}
 	}
 	return( 1 );
 
