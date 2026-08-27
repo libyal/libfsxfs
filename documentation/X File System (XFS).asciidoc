@@ -221,12 +221,12 @@ See section: <<journal_incompatible_feature_flags,Journal incompatible feature f
 | 224 | 4 | | Checksum of the superblock
 | 228 | 4 | | [yellow-background]*Unknown (Sparse inode chunk alignment in number of blocks)*
 | 232 | 4 | | Project quota inode number
-| 240 | 8 | | Journal log sequence number (LSN) of the last superblock update
+| 236 | 8 | | Journal log sequence number (LSN) of the last superblock update
 4+| _Only used if the XFS_SB_FEAT_INCOMPAT_META_UUID incompatible feature flag is set_
-| 248 | 16 | | Metadata identifier +
+| 244 | 16 | | Metadata identifier +
 Contains an UUID
 4+| _Only used if the XFS_SB_FEAT_RO_COMPAT_RMAPBT incompatible feature flag is set_
-| 264 | 8 | | Real-time Reverse Mapping B+tree inode number
+| 260 | 8 | | Real-time Reverse Mapping B+tree inode number
 |===
 
 [NOTE]
