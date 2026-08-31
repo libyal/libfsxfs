@@ -1197,7 +1197,7 @@ int libfsxfs_directory_read_from_block_directory(
 			}
 			if( libfsxfs_block_directory_initialize(
 			     &block_directory,
-			     io_handle->block_size,
+			     io_handle->directory_block_size,
 			     error ) != 1 )
 			{
 				libcerror_error_set(

@@ -183,7 +183,7 @@ int libfsxfs_inode_btree_read_inode_information(
      libcerror_error_t **error )
 {
 	libfsxfs_inode_information_t *inode_information = NULL;
-	static char *function                           = "libfsxfs_file_system_read_inode_information";
+	static char *function                           = "libfsxfs_inode_btree_read_inode_information";
 	int entry_index                                 = 0;
 
 	if( inode_btree == NULL )

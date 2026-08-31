@@ -1220,6 +1220,12 @@ void info_handle_incompatible_features_flags_fprint(
 		 notify_stream,
 		 "\t\t(XFS_SB_FEAT_INCOMPAT_ZONED)\n" );
 	}
+	if( ( incompatible_features_flags & 0x00000400UL ) != 0 )
+	{
+		fprintf(
+		 notify_stream,
+		 "\t\t(XFS_SB_FEAT_INCOMPAT_ZONE_GAPS)\n" );
+	}
 }
 
 /* Prints the journal incompatible features flags to the notify stream

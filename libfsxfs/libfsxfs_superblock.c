@@ -747,38 +747,32 @@ int libfsxfs_superblock_read_data(
 
 		return( -1 );
 	}
-	if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 == 0 )
+	if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 >= 32 )
 	{
-		superblock->directory_block_size = superblock->block_size;
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: invalid directory block size log2 value out of bounds.",
+		 function );
+
+		return( -1 );
 	}
-	else
+	superblock->directory_block_size = (uint32_t) 1 << ( (fsxfs_superblock_t *) data )->directory_block_size_log2;
+
+	if( (size_t) superblock->directory_block_size > (size_t) ( UINT32_MAX / superblock->block_size ) )
 	{
-		if( ( (fsxfs_superblock_t *) data )->directory_block_size_log2 >= 32 )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-			 "%s: invalid directory block size log2 value out of bounds.",
-			 function );
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
+		 "%s: invalid directory block size log2 value out of bounds.",
+		 function );
 
-			return( -1 );
-		}
-		superblock->directory_block_size = (uint32_t) 1 << ( (fsxfs_superblock_t *) data )->directory_block_size_log2;
-
-		if( (size_t) superblock->directory_block_size > (size_t) ( UINT32_MAX / superblock->block_size ) )
-		{
-			libcerror_error_set(
-			 error,
-			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
-			 LIBCERROR_RUNTIME_ERROR_UNSUPPORTED_VALUE,
-			 "%s: invalid directory block size log2 value out of bounds.",
-			 function );
-
-			return( -1 );
-		}
-		superblock->directory_block_size *= superblock->block_size;
+		return( -1 );
 	}
+	superblock->directory_block_size *= superblock->block_size;
+
 	if( ( superblock->allocation_group_size < 5 )
 	 || ( superblock->allocation_group_size > (uint32_t) INT32_MAX ) )
 	{

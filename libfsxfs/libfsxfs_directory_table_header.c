@@ -30,8 +30,6 @@
 #include "libfsxfs_libcerror.h"
 #include "libfsxfs_libcnotify.h"
 
-#include "fsxfs_btree.h"
-
 /* Creates a directory_table_header
  * Make sure the value directory_table_header is referencing, is set to NULL
  * Returns 1 if successful or -1 on error

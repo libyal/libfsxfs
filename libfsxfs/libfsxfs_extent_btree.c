@@ -552,7 +552,7 @@ int libfsxfs_extent_btree_get_extents_from_node(
      libcerror_error_t **error )
 {
 	libfsxfs_btree_block_t *btree_block = NULL;
-	static char *function               = "libfsxfs_extent_btree_get_exents_from_node";
+	static char *function               = "libfsxfs_extent_btree_get_extents_from_node";
 	off64_t btree_block_offset          = 0;
 	uint64_t relative_block_number      = 0;
 	int allocation_group_index          = 0;

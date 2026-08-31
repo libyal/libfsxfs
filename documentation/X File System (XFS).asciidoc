@@ -198,7 +198,7 @@ Contains number of blocks
 Contains number of blocks
 | 188 | 4 | | Stripe (or RAID) width +
 Contains number of blocks
-| 192 | 1 | | Directory block size in log2
+| 192 | 1 | | Directory block size in log2, in number of blocks
 | 193 | 1 | | Journal device sector size in log2
 | 194 | 2 | | Journal device sector size (in bytes)
 4+| _Only used if the XFS_SB_VERSION_LOGV2BIT feature flag is set_
@@ -250,7 +250,7 @@ The 4 LSB contain the version the remaining bits are used to store feature flags
 3+| _Second generation_
 | 4 | XFS_SB_VERSION_4 | Introduced in Irix 6.2, added directory version 2 support.
 3+| _Third generation_
-| 5 | XFS_SB_VERSION_5 | Intoduces in Linux 3.10.
+| 5 | XFS_SB_VERSION_5 | Introduced in Linux 3.10.
 |===
 
 [cols="1,1,5",options="header"]
@@ -508,7 +508,7 @@ Contains the allocation group the block is part of
 
 ==== [[btree_block_header_64bit]]B+ tree block header 64-bit
 
-The B+ tree block header 64-bit (xfs_btree_lblock_t) is 24 or 68 bytes of size
+The B+ tree block header 64-bit (xfs_btree_lblock_t) is 24 or 72 bytes of size
 and consist of:
 
 [cols="1,1,1,5",options="header"]
@@ -530,7 +530,7 @@ Contains an UUID that should correspond to [yellow-background]*sb_uuid or sb_met
 | 56 | 8 | | Owner allocation group +
 Contains the allocation group the block is part of
 | 64 | 4 | | Checksum
-| 64 | 4 | 0 | [yellow-background]*Unknown (padding)*
+| 68 | 4 | 0 | [yellow-background]*Unknown (padding)*
 |===
 
 === B+ tree block extended header
@@ -904,7 +904,7 @@ _Bitmask: 0xf000 (S_IFMT)_
 | 1 | XFS_DINODE_FMT_LOCAL | Data is stored inline (in the inode)
 | 2 | XFS_DINODE_FMT_EXTENTS | Data is referrenced by extents stored in an extent list +
 See section: <<extent_list,Extent list>>
-| 3 | XFS_DINODE_FMT_BTREE | Data is referrence by extents stored in an extents B+ tree +
+| 3 | XFS_DINODE_FMT_BTREE | Data is referrence by extents stored in an extent B+ tree +
 See section: <<extent_btree,Extent B+ tree>>
 | 4 | XFS_DINODE_FMT_UUID | [yellow-background]*Unknown (currently not used)*
 | 5 | XFS_DINODE_FMT_RMAP | Data is referrence by a reverse mapping
@@ -962,7 +962,7 @@ See section: <<file_system_block_number,File system block number>>
 
 ==== Extent B+ tree root node
 
-The root node of the extents B+ tree is stored in the inode and equivalent to a
+The root node of the extent B+ tree is stored in the inode and equivalent to a
 <<extent_btree_branch_node,Extent B+ tree branch node>>.
 
 The number of key-value pairs is calculated as following:
@@ -978,7 +978,7 @@ value is not 0, or otherwise the remaining inode block size.
 
 An extent B+ tree sub nodes is stored in a <<btree_block,B+ tree block>>.
 
-The inode B+ tree uses the <<btree_block_header_64bit,B+ tree block header 64-bit>>.
+The extent B+ tree uses the <<btree_block_header_64bit,B+ tree block header 64-bit>>.
 
 ===== Extent B+ tree sub node block header
 
@@ -1151,11 +1151,11 @@ A directory (leaf) block (xfs_dir_leafblock_t) consist of:
 * array of block values
 * a block footer
 
-If the XFS_SB_VERSION_DIRV2BIT flag in the superblock is set the directory
-is stored using a <<block_directory,Block directory>>.
-
-If more than one block is needed to store the extended attributes a
+If more than one block is needed to store the directory entries a
 <<directory_btree,Directory B+ tree>> is used.
+
+If the XFS_SB_VERSION_DIRV2BIT flag in the superblock is set the directory
+is stored using a <<block_directory,Block directory>> instead.
 
 ==== Directory (leaf) block header version 1
 
@@ -1238,7 +1238,7 @@ of:
 * a block directory footer
 
 If the XFS_SB_VERSION_DIRV2BIT flag in the superblock is not set the directory
-is stored using a <<directory_leaf_block,Directory (leaf) block>>
+is stored using a <<directory_leaf_block,Directory (leaf) block>> instead.
 
 ==== Block directory header
 
@@ -1257,13 +1257,13 @@ See section: <<block_free_region_v2,Block free region>>
 
 ===== Block directory header version 3
 
-The block directory header version 3 (xfs_dir3_data_hdr_t) is 48 bytes of size
+The block directory header version 3 (xfs_dir3_data_hdr_t) is 64 bytes of size
 and consist of:
 
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
-4+| _Block header_
+4+| _Block header (xfs_dir3_blk_hdr_t)_
 | 0 | 4 | "XDB3" or "XDD3" | Signature
 | 4 | 4 | | Checksum
 | 8 | 8 | | Block number
@@ -1286,9 +1286,9 @@ See section: <<block_free_region_v2,Block free region>>
 | "XD2B" | Version 2 directory entries B+ tree (single block)
 | "XD2D" | Version 2 directory entries B+ tree (multi block)
 | "XD2F" | Version 2 directory free space B+ tree
-| "XDB3" | Version 3 Directory entries B+ tree (single block)
-| "XDD3" | Version 3 Directory entries B+ tree (multi block)
-| "XDF3" | Version 3 Directory free space B+ tree
+| "XDB3" | Version 3 directory entries B+ tree (single block)
+| "XDD3" | Version 3 directory entries B+ tree (multi block)
+| "XDF3" | Version 3 directory free space B+ tree
 |===
 
 ===== [[block_free_region_v2]]Block free region version 2
@@ -1335,7 +1335,7 @@ and consists of:
 |===
 | Offset | Size | Value | Description
 | 0 | 2 | 0xffff | Signature (free tag)
-| 2 | 4 | | Entry size +
+| 2 | 2 | | Entry size +
 Contains the size of the unused block including the size of the signature and entry size
 | 4 | 2 | | [yellow-background]*Unknown (padding)*
 | ... | 2 | | [yellow-background]*Unknown (offset, tag)*
@@ -1374,7 +1374,7 @@ The first block in the extents is the B+ tree root block.
 
 === Directory B+ tree branch node block
 
-An attributes B+ tree branch node block consist of:
+A directory B+ tree branch node block consist of:
 
 * a <<directory_branch_node_block_header,directory branch node block header>>
 * array of directory branch node entry
@@ -1516,12 +1516,12 @@ If the inode attributes fork type is XFS_DINODE_FMT_LOCAL the extended
 attributes are stored in a short-form attributes table (xfs_attr_shortform)
 inline in the attribtes fork. The short-form attributes table consist of:
 
-* a short-form attribute table header
-* one or more short-form attribute table entries
+* a short-form attributes table header
+* one or more short-form attributes table entries
 
-==== The short-form attribute table header
+==== The short-form attributes table header
 
-The short-form attribute table header (xfs_attr_sf_hdr) is 4 bytes of size
+The short-form attributes table header (xfs_attr_sf_hdr) is 4 bytes of size
 and consists of:
 
 [cols="1,1,1,5",options="header"]
@@ -1539,7 +1539,7 @@ analysis of test data.
 
 ==== The short-form attribute entry
 
-The short-form attribute table entry (xfs_attr_sf_entry) is variable of size
+The short-form attributes table entry (xfs_attr_sf_entry) is variable of size
 and consists of:
 
 [cols="1,1,1,5",options="header"]

@@ -456,7 +456,7 @@ int libfsxfs_internal_file_entry_get_symbolic_link_data(
 	if( ( internal_file_entry->inode->file_mode & 0xf000 ) == LIBFSXFS_FILE_TYPE_SYMBOLIC_LINK )
 	{
 		if( ( internal_file_entry->data_size == 0 )
-		 || ( internal_file_entry->data_size > (uint64_t) MEMORY_MAXIMUM_ALLOCATION_SIZE ) )
+		 || ( internal_file_entry->data_size > (uint64_t) 1024 ) )
 		{
 			libcerror_error_set(
 			 error,
