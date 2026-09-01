@@ -1019,6 +1019,10 @@ int libfsxfs_attributes_read_from_inode(
 
 		return( -1 );
 	}
+	if( inode->attributes_fork_offset == 0 )
+	{
+		return( 1 );
+	}
 	if( ( inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_INLINE_DATA )
 	 && ( inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_EXTENTS )
 	 && ( inode->attributes_fork_type != LIBFSXFS_FORK_TYPE_BTREE ) )
